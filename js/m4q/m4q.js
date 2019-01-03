@@ -891,24 +891,34 @@
 	        }
 	
 	        if (value === undefined) {
-	            return this[0][property];
+	
+	            var el = this[0];
+	
+	            if (property === 'height') {
+	                return el === window ? window.innerHeight : el.clientHeight;
+	            }
+	            if (property === 'width') {
+	                return el === window ? window.innerWidth : el.clientWidth;
+	            }
 	        }
 	
 	        if (!unit) {
 	            unit = 'px';
 	        }
 	
-	        this[0].style[property ===  'clientHeight' ? 'height' : 'width'] = parseInt(value)+unit;
-	
-	        return this;
+	        return this.each(function(el){
+	            if (el !== window) {
+	                el.style[property] = parseInt(value)+unit;
+	            }
+	        });
 	    },
 	
 	    height: function(value, unit){
-	        return this._size.call(this, 'clientHeight', value, unit);
+	        return this._size.call(this, 'height', value, unit);
 	    },
 	
 	    width: function(value, unit){
-	        return this._size.call(this, 'clientWidth', value, unit);
+	        return this._size.call(this, 'width', value, unit);
 	    },
 	
 	    outerWidth: function(){

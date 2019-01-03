@@ -49,9 +49,9 @@ var Dialog = {
     },
 
     _setOptionsFromDOM: function(){
-        var that = this, element = this.element, o = this.options;
+        var element = this.element, o = this.options;
 
-        $.each(element.data(), function(key, value){
+        $.each(element.data(), function(value, key){
             if (key in o) {
                 try {
                     o[key] = JSON.parse(value);
@@ -152,7 +152,7 @@ var Dialog = {
     },
 
     _overlay: function(){
-        var that = this, element = this.element, o = this.options;
+        var o = this.options;
 
         var overlay = $("<div>");
         overlay.addClass("overlay").addClass(o.clsOverlay);
@@ -175,8 +175,7 @@ var Dialog = {
             timeout = 300;
         }
         setTimeout(function(){
-            element.css({
-                visibility: "hidden",
+            element.visible(false).css({
                 top: "100%"
             });
             Utils.exec(o.onHide, [that], element[0]);
@@ -187,16 +186,14 @@ var Dialog = {
     show: function(callback){
         var that = this, element = this.element, o = this.options;
         this.setPosition();
-        element.css({
-            visibility: "visible"
-        });
+        element.visible(true);
         Utils.exec(o.onShow, [that], element[0]);
         Utils.callback(callback);
     },
 
     setPosition: function(){
         var element = this.element, o = this.options;
-        var top, bottom;
+        var top, bottom, left;
         if (o.toTop !== true && o.toBottom !== true) {
             top = ( $(window).height() - element.outerHeight() ) / 2;
             if (top < 0) {
@@ -213,26 +210,29 @@ var Dialog = {
                 top = "auto";
             }
         }
+
+        left = ( $(window).width() - element.outerWidth() ) / 2;
+
         element.css({
-            top: top,
-            bottom: bottom,
-            left: ( $(window).width() - element.outerWidth() ) / 2
+            top: top + 'px',
+            bottom: bottom + 'px',
+            left: left + 'px'
         });
     },
 
     setContent: function(c){
-        var that = this, element = this.element, o = this.options;
+        var element = this.element;
         var content = element.find(".dialog-content");
         if (content.length === 0) {
             content = $("<div>").addClass("dialog-content");
             content.appendTo(element);
         }
 
-        if (!Utils.isJQueryObject(c) && Utils.isFunc(c)) {
+        if (!Utils.isM4QObject(c) && Utils.isFunc(c)) {
             c = Utils.exec(c);
         }
 
-        if (Utils.isJQueryObject(c)) {
+        if (Utils.isM4QObject(c)) {
             c.appendTo(content);
         } else {
             content.html(c);
@@ -240,7 +240,7 @@ var Dialog = {
     },
 
     setTitle: function(t){
-        var that = this, element = this.element, o = this.options;
+        var element = this.element;
         var title = element.find(".dialog-title");
         if (title.length === 0) {
             title = $("<div>").addClass("dialog-title");
@@ -250,7 +250,7 @@ var Dialog = {
     },
 
     close: function(){
-        var that = this, element = this.element, o = this.options;
+        var element = this.element, o = this.options;
 
         if (!Utils.bool(o.leaveOverlayOnClose)) {
             $('body').find('.overlay').remove();
