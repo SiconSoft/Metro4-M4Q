@@ -461,6 +461,12 @@
 	
 	
 
+	var overriddenStop =  Event.prototype.stopPropagation;
+	Event.prototype.stopPropagation = function(){
+	    this.isPropagationStopped = true;
+	    overriddenStop.apply(this, arguments);
+	};
+	
 	Event.prototype.stop = function(immediate){
 	    return immediate ? this.stopImmediatePropagation() : this.stopPropagation();
 	};
@@ -469,7 +475,7 @@
 	    events: [],
 	    eventHook: {},
 	
-	    setEventHandler: function(el, eventName, handler, selector){
+	    setEventHandler: function(el, eventName, handler, selector, ns){
 	        var i, freeIndex = -1, eventObj, resultIndex;
 	        if (this.events.length > 0) {
 	            for(i = 0; i < this.events.length; i++) {
@@ -484,7 +490,8 @@
 	            element: el,
 	            eventName: eventName,
 	            handler: handler,
-	            selector: selector
+	            selector: selector,
+	            ns: ns
 	        };
 	
 	        if (freeIndex === -1) {
@@ -525,8 +532,7 @@
 	});
 	
 	m4q.fn.extend({
-	    on: function(event, selector, handler, options){
-	        options = isPlainObject(options) ? options : {};
+	    on: function(event, selector, handler, ns, options){
 	        if (this.length === 0) {
 	            return;
 	        }
@@ -534,17 +540,25 @@
 	        if (typeof selector === "function") {
 	            handler = selector;
 	            selector = undefined;
+	            ns = handler;
+	            options = ns;
 	        }
+	
+	        options = isPlainObject(options) ? options : {};
 	
 	        var events = event.split(" ").map(function(ev){
 	            return  ev.indexOf(".") > -1 ? ev.substr(0, ev.indexOf(".")) : ev;
 	        });
 	
+	        var eventOptions = {
+	            once: options.once && options.once === true
+	        };
+	
 	        return this.each(function(el){
 	            m4q.each(events, function(eventName){
 	
 	                if (!selector) {
-	                    el.addEventListener(eventName, handler, options);
+	                    el.addEventListener(eventName, handler, eventOptions);
 	                    m4q(el).origin('event.'+eventName, m4q.setEventHandler(el, eventName, handler, selector));
 	                } else {
 	                    var _handler = function(e){
@@ -553,19 +567,22 @@
 	                        while (target && target !== el) {
 	                            if (matches.call(target, selector)) {
 	                                handler.call(target, e);
+	                                if (e.isPropagationStopped) {
+	                                    e.stop(true);
+	                                }
 	                            }
 	                            target = target.parentNode;
 	                        }
 	                    };
-	                    el.addEventListener(eventName, _handler, options);
+	                    el.addEventListener(eventName, _handler, eventOptions);
 	                    m4q(el).origin('event.'+eventName+":"+selector, m4q.setEventHandler(el, eventName, _handler, selector));
 	                }
 	            });
 	        });
 	    },
 	
-	    one: function(event, selector, handler){
-	        return this.on(event, selector, handler, {once: true})
+	    one: function(event, selector, handler, ns){
+	        return this.on(event, selector, handler, ns,{once: true})
 	    },
 	
 	    off: function(eventName, selector){
@@ -589,7 +606,7 @@
 	            });
 	        }
 	
-	        var events = event.split(" ").map(function(ev){
+	        var events = eventName.split(" ").map(function(ev){
 	            return  ev.indexOf(".") > -1 ? ev.substr(0, ev.indexOf(".")) : ev;
 	        });
 	
@@ -754,6 +771,24 @@
 	        });
 	
 	        return this;
+	    },
+	
+	    scrollTop: function(val){
+	        if (not(val)) {
+	            return this[0] ? this[0].scrollTop : undefined;
+	        }
+	        return this.each(function(el){
+	            el.scrollTop = val;
+	        })
+	    },
+	
+	    scrollLeft: function(val){
+	        if (not(val)) {
+	            return this[0] ? this[0].scrollTop : undefined;
+	        }
+	        return this.each(function(el){
+	            el.scrollLeft = val;
+	        })
 	    }
 	});
 	
@@ -1407,7 +1442,7 @@
 	    },
 	
 	    show: function(el, callback){
-	        var display = m4q(el).origin('display', undefined, "display");
+	        var display = m4q(el).origin('display', undefined, "block");
 	        el.style.display = display ? display : '';
 	        if (typeof callback === "function") callback.call(el, arguments);
 	        return this;

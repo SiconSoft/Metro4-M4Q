@@ -8,6 +8,11 @@ var DatePicker = {
         this.value = new Date();
         this.locale = Metro.locales[METRO_LOCALE]['calendar'];
         this.offset = (new Date()).getTimezoneOffset() / 60 + 1;
+        this.listTimer = {
+            day: null,
+            month: null,
+            year: null
+        };
 
         this._setOptionsFromDOM();
         this._create();
@@ -181,21 +186,20 @@ var DatePicker = {
             var target = this;
             var pageY = Utils.pageXY(e).y;
 
-            $(document).on(Metro.events.move + "-picker", function(e){
-
+            $(document).on(Metro.events.move, function(e){
                 target.scrollTop -= o.scrollSpeed * (pageY  > Utils.pageXY(e).y ? -1 : 1);
-
                 pageY = Utils.pageXY(e).y;
             });
 
-            $(document).on(Metro.events.stop + "-picker", function(){
-                $(document).off(Metro.events.move + "-picker");
-                $(document).off(Metro.events.stop + "-picker");
+            $(document).on(Metro.events.stop, function(){
+                $(document).off(Metro.events.move);
+                $(document).off(Metro.events.stop);
             });
         });
 
         picker.on(Metro.events.click, function(e){
             if (that.isOpen === false) that.open();
+            e.preventDefault();
             e.stopPropagation();
         });
 
@@ -214,49 +218,46 @@ var DatePicker = {
             that._set();
 
             that.close();
+            e.preventDefault();
             e.stopPropagation();
         });
 
         picker.on(Metro.events.click, ".action-cancel", function(e){
             that.close();
+            e.preventDefault();
             e.stopPropagation();
         });
 
-        this._addScrollEvents();
-    },
+        var scrollLatency = 150;
 
-    _addScrollEvents: function(){
-        var picker = this.picker, o = this.options;
-        var lists = ['month', 'day', 'year'];
+        var lists = "month day year".split(" ");
         $.each(lists, function(){
-            var list_name = this;
-            var list = picker.find(".sel-" + list_name);
+            var listName = this, list = picker.find(".sel-"+listName);
+            list.on("scroll", function(e){
+                if (that.listTimer[listName]) {
+                    clearTimeout(that.listTimer[listName]);
+                    that.listTimer[listName] = null;
+                }
+                that.listTimer[listName] = setTimeout(function(){
 
-            if (list.length === 0) return ;
+                    var target, targetElement, scrollTop, delta;
 
-            list.on(Metro.events.scrollStart, function(){
-                list.find(".active").removeClass("active");
-            });
-            list.on(Metro.events.scrollStop, {latency: 50}, function(){
-                var target = Math.round((Math.ceil(list.scrollTop()) / 40));
-                var target_element = list.find(".js-"+list_name+"-"+target);
-                var scroll_to = target_element.position().top - (o.distance * 40) + list.scrollTop() - 1;
+                    that.listTimer[listName] = null;
 
-                list.animate({
-                    scrollTop: scroll_to
-                }, 100, function(){
-                    target_element.addClass("active");
-                    Utils.exec(o.onScroll, [target_element, list, picker], list[0]);
-                });
-            });
-        });
-    },
+                    target = Math.round((Math.ceil(list.scrollTop()) / 40));
+                    targetElement = list.find(".js-"+listName+"-"+target);
+                    scrollTop = targetElement.position().top - (o.distance * 40);// + list.scrollTop() - 1;
+                    delta = scrollTop - list.scrollTop();
 
-    _removeScrollEvents: function(){
-        var picker = this.picker;
-        var lists = ['month', 'day', 'year'];
-        $.each(lists, function(){
-            picker.find(".sel-" + this).off("scrollstart scrollstop");
+                    list.find(".active").removeClass("active");
+
+                    list[0].scrollTop += delta;
+                    targetElement.addClass("active");
+                    Utils.exec(o.onScroll, [targetElement, list, picker], list[0]);
+
+                }, scrollLatency);
+
+            })
         });
     },
 
@@ -316,21 +317,15 @@ var DatePicker = {
 
         if (o.month === true) {
             m_list = picker.find(".sel-month");
-            m_list.scrollTop(0).animate({
-                scrollTop: m_list.find("li.js-month-" + m).addClass("active").position().top - (40 * o.distance)
-            }, 100);
+            m_list.scrollTop(m_list.find("li.js-month-" + m).addClass("active").position().top - (40 * o.distance));
         }
         if (o.day === true) {
             d_list = picker.find(".sel-day");
-            d_list.scrollTop(0).animate({
-                scrollTop: d_list.find("li.js-day-" + d).addClass("active").position().top - (40 * o.distance)
-            }, 100);
+            d_list.scrollTop(d_list.find("li.js-day-" + d).addClass("active").position().top - (40 * o.distance));
         }
         if (o.year === true) {
             y_list = picker.find(".sel-year");
-            y_list.scrollTop(0).animate({
-                scrollTop: y_list.find("li.js-year-real-" + y).addClass("active").position().top - (40 * o.distance)
-            }, 100);
+            y_list.scrollTop(y_list.find("li.js-year-real-" + y).addClass("active").position().top - (40 * o.distance));
         }
 
         this.isOpen = true;
@@ -400,6 +395,6 @@ Metro.plugin('datepicker', DatePicker);
 
 $(document).on(Metro.events.click, function(){
     $.each($(".date-picker"), function(){
-        $(this).find("input").data("datepicker").close();
+        // $(this).find("input").data("datepicker").close();
     });
 });
