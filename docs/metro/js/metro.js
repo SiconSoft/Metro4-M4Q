@@ -11182,9 +11182,9 @@ var Donut = {
     },
 
     _setOptionsFromDOM: function(){
-        var that = this, element = this.element, o = this.options;
+        var element = this.element, o = this.options;
 
-        $.each(element.data(), function(key, value){
+        $.each(element.data(), function(value, key){
             if (key in o) {
                 try {
                     o[key] = JSON.parse(value);
@@ -11196,20 +11196,18 @@ var Donut = {
     },
 
     _create: function(){
-        var that = this, element = this.element, o = this.options;
+        var element = this.element, o = this.options;
         var html = "";
         var r = o.radius  * (1 - (1 - o.hole) / 2);
         var width = o.radius * (1 - o.hole);
-        var circumference = 2 * Math.PI * r;
-        var strokeDasharray = ((o.value * circumference) / o.total) + ' ' + circumference;
         var transform = 'rotate(-90 ' + o.radius + ',' + o.radius + ')';
         var fontSize = r * o.hole * 0.6;
 
         element.addClass("donut");
 
         element.css({
-            width: o.size,
-            height: o.size,
+            width: o.size + 'px',
+            height: o.size + 'px',
             background: o.background
         });
 
@@ -11225,13 +11223,12 @@ var Donut = {
     },
 
     _setValue: function(v){
-        var that = this, element = this.element, o = this.options;
+        var element = this.element, o = this.options;
 
         var fill = element.find(".donut-fill");
         var title = element.find(".donut-title");
         var r = o.radius  * (1 - (1 - o.hole) / 2);
         var circumference = 2 * Math.PI * r;
-        // var title_value = (o.showValue ? o.value : Math.round(((v * 1000 / o.total) / 10)))+(o.cap);
         var title_value = (o.showValue ? v : Utils.percent(o.total, v, true))  + (o.cap);
         var fill_value = ((v * circumference) / o.total) + ' ' + circumference;
 
@@ -11274,7 +11271,6 @@ var Donut = {
         }
 
         this.value = v;
-        //element.attr("data-value", v);
         Utils.exec(o.onChange, [this.value, element]);
     },
 
