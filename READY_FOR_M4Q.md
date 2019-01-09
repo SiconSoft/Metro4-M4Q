@@ -1,4 +1,4 @@
-# Already fixed for M4Q
+# List of components who ready for using with M4Q
 
 ### Core
 - [x] Metro.js
@@ -34,8 +34,8 @@
 - [x] Cube
 - [x] Datepicker
 - [x] Dialog
-- [ ] Donut
-- [ ] Draggable
+- [x] Donut
+- [x] Draggable
 - [ ] Dropdown
 - [ ] File
 - [ ] Gravatar

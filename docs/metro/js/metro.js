@@ -53,9 +53,12 @@
 // Pass this if window is not defined yet
 } )( typeof window !== "undefined" ? window : this, function( window, noGlobal ) {
 
-	"use strict";
-	
+	'use strict';
 
+	function not(value){
+	    return value === undefined || value === null;
+	}
+	
 	function camelCase(string){
 	    return string.replace( /-([a-z])/g, function(all, letter){
 	        return letter.toUpperCase();
@@ -85,6 +88,14 @@
 	    return target instanceof Object && 'length' in target;
 	}
 	
+	function str2arr (str, sep) {
+	    sep = sep || " ";
+	    return str.split(sep).map(function(el){
+	        return  (""+el).trim();
+	    }).filter(function(el){
+	        return el !== "";
+	    })
+	}
 
 	var m4qVersion = "@VERSION";
 	var regexpSingleTag = /^<([a-z][^\/\0>:\x20\t\r\n\f]*)[\x20\t\r\n\f]*\/?>(?:<\/\1>|)$/i;
@@ -95,10 +106,6 @@
 	    || Element.prototype.mozMatchesSelector
 	    || Element.prototype.msMatchesSelector
 	    || Element.prototype.oMatchesSelector;
-	
-	var not = function(value){
-	    return value === undefined || value === null;
-	};
 	
 	var m4q = function(selector, context){
 	    return new m4q.init(selector, context);
@@ -157,13 +164,13 @@
 	            return ;
 	        }
 	
-	        if (name === undefined && value === undefined) {
+	        if (not(name) && not(value)) {
 	            return m4q.data(this[0]);
 	        }
 	
-	        if (value === undefined) {
+	        if (not(value)) {
 	            var res = m4q.data(this[0], "origin-"+name);
-	            return res ? res : defaultValue;
+	            return !not(res) ? res : defaultValue;
 	        }
 	
 	        this.data("origin-"+name, value);
@@ -235,6 +242,7 @@
 	    var index = 0;
 	    if (isArrayLike(context)) {
 	        [].forEach.call(context, function(el) {
+	            'use strict';
 	            callback.apply(el, arguments);
 	        });
 	    } else {
@@ -502,7 +510,9 @@
 	    events: [],
 	    eventHook: {},
 	
-	    setEventHandler: function(el, eventName, handler, selector, ns){
+	    eventUID: 0,
+	
+	    setEventHandler: function(el, eventName, handler, selector, ns, id){
 	        var i, freeIndex = -1, eventObj, resultIndex;
 	        if (this.events.length > 0) {
 	            for(i = 0; i < this.events.length; i++) {
@@ -518,7 +528,8 @@
 	            eventName: eventName,
 	            handler: handler,
 	            selector: selector,
-	            ns: ns
+	            ns: ns,
+	            id: id
 	        };
 	
 	        if (freeIndex === -1) {
@@ -559,91 +570,89 @@
 	});
 	
 	m4q.fn.extend({
-	    on: function(event, selector, handler, ns, options){
+	    on: function(eventsList, sel, handler, options){
+	        var eventOptions;
+	
 	        if (this.length === 0) {
 	            return;
 	        }
 	
-	        if (typeof selector === "function") {
-	            handler = selector;
-	            selector = undefined;
-	            ns = handler;
-	            options = ns;
+	        if (typeof sel === "function") {
+	            handler = sel;
+	            options = handler;
+	            sel = undefined;
 	        }
 	
 	        options = isPlainObject(options) ? options : {};
 	
-	        var events = event.split(" ").map(function(ev){
-	            return  ev.indexOf(".") > -1 ? ev.substr(0, ev.indexOf(".")) : ev;
-	        });
-	
-	        var eventOptions = {
+	        eventOptions = {
 	            once: options.once && options.once === true
 	        };
 	
 	        return this.each(function(el){
-	            m4q.each(events, function(eventName){
+	            m4q.each(str2arr(eventsList), function(ev){
+	                var h,
+	                    event = ev.split("."),
+	                    name = event[0],
+	                    ns = event[1],
+	                    index, originEvent;
 	
-	                if (!selector) {
-	                    el.addEventListener(eventName, handler, eventOptions);
-	                    m4q(el).origin('event.'+eventName, m4q.setEventHandler(el, eventName, handler, selector));
-	                } else {
-	                    var _handler = function(e){
-	                        var target = e.target;
+	                h = !sel ? handler : function(e){
+	                    var target = e.target;
 	
-	                        while (target && target !== el) {
-	                            if (matches.call(target, selector)) {
-	                                handler.call(target, e);
-	                                if (e.isPropagationStopped) {
-	                                    e.stop(true);
-	                                }
+	                    while (target && target !== el) {
+	                        if (matches.call(target, sel)) {
+	                            handler.call(target, e);
+	                            if (e.isPropagationStopped) {
+	                                e.stop(true);
 	                            }
-	                            target = target.parentNode;
 	                        }
-	                    };
-	                    el.addEventListener(eventName, _handler, eventOptions);
-	                    m4q(el).origin('event.'+eventName+":"+selector, m4q.setEventHandler(el, eventName, _handler, selector));
-	                }
+	                        target = target.parentNode;
+	                    }
+	                };
+	
+	                m4q.eventUID++;
+	                originEvent = name+(sel ? ":"+sel:"")+(ns ? ":"+ns:"");
+	                el.addEventListener(name, h, eventOptions);
+	                index = m4q.setEventHandler(el, name, h, sel, ns, m4q.eventUID);
+	                m4q(el).origin('event-'+originEvent, index);
 	            });
 	        });
 	    },
 	
-	    one: function(event, selector, handler, ns){
-	        return this.on(event, selector, handler, ns,{once: true})
+	    one: function(events, sel, handler){
+	        return this.on(events, sel, handler,{once: true})
 	    },
 	
-	    off: function(eventName, selector){
-	        if (this.length === 0) {
-	            return;
-	        }
-	
-	        if (eventName === undefined || eventName === null) {
+	    off: function(eventsList, sel){
+	        if (not(eventsList) || this.length === 0) {
 	            return ;
 	        }
 	
-	        if (eventName.toLowerCase() === 'all') {
+	        if (eventsList.toLowerCase() === 'all') {
 	            return this.each(function(el){
 	                m4q.each(m4q.events, function(e){
 	                    if (e.element === el) {
 	                        el.removeEventListener(e.eventName, e.handler);
 	                        e.handler = null;
-	                        m4q(el).origin('event.'+e.eventName+":"+e.selector, null);
+	                        m4q(el).origin("event-"+name+(e.selector ? ":"+e.selector:"")+(e.ns ? ":"+e.ns:""), null);
 	                    }
 	                })
 	            });
 	        }
 	
-	        var events = eventName.split(" ").map(function(ev){
-	            return  ev.indexOf(".") > -1 ? ev.substr(0, ev.indexOf(".")) : ev;
-	        });
-	
 	        return this.each(function(el){
-	            m4q.each(events, function(event){
-	                var eventKey = 'event.'+event+(selector ? ":"+selector : "");
-	                var eventIndex = m4q(el).origin(eventKey);
-	                el.removeEventListener(event, m4q.events[eventIndex].handler);
-	                m4q.events[eventIndex].handler = null;
-	                m4q(el).origin(eventKey, null);
+	            m4q.each(str2arr(eventsList), function(event){
+	                var evMap = event.split("."),
+	                    name = evMap[0],
+	                    ns = evMap[1],
+	                    originEvent, index;
+	
+	                originEvent = "event-"+name+(sel ? ":"+sel:"")+(ns ? ":"+ns:"");
+	                index = m4q(el).origin(originEvent);
+	                el.removeEventListener(name, m4q.events[index].handler);
+	                m4q.events[index].handler = null;
+	                m4q(el).origin(originEvent, null);
 	            });
 	        });
 	    },
@@ -665,9 +674,9 @@
 	    .split( " " )
 	    .forEach(
 	    function( name ) {
-	        m4q.fn[ name ] = function( data, fn ) {
+	        m4q.fn[ name ] = function( sel, fn, opt ) {
 	            return arguments.length > 0 ?
-	                this.on( name, data, fn ) :
+	                this.on( name, sel, fn, opt ) :
 	                this.trigger( name );
 	        };
 	});
@@ -873,19 +882,11 @@
 	
 	    data = data.trim();
 	
-	    if (!context) {
-	        ctx = document.implementation.createHTMLDocument("");
-	        base = ctx.createElement( "base" );
-	        base.href = document.location.href;
-	        ctx.head.appendChild( base );
-	        _context = ctx.body;
-	    } else {
-	        if (!isPlainObject(context)) {
-	            _context = context;
-	        } else {
-	            _context = document;
-	        }
-	    }
+	    ctx = document.implementation.createHTMLDocument("");
+	    base = ctx.createElement( "base" );
+	    base.href = document.location.href;
+	    ctx.head.appendChild( base );
+	    _context = ctx.body;
 	
 	    singleTag = regexpSingleTag.exec(data);
 	
@@ -898,7 +899,7 @@
 	        }
 	    }
 	
-	    if (context && isPlainObject(context)) {
+	    if (context && !(context instanceof m4q) && isPlainObject(context)) {
 	        m4q.each(result,function(el){
 	            for(var name in context) {
 	                if (context.hasOwnProperty(name))
@@ -1000,25 +1001,41 @@
 	});
 
 	m4q.fn.extend({
-	    offset: function(){
+	    offset: function(val){
 	        var rect;
 	        if (this.length === 0) {
 	            return ;
 	        }
-	        if (arguments.length === 0) {
+	        if (not(val)) {
 	            rect = this[0].getBoundingClientRect();
 	            return {
 	                top: rect.top + document.body.scrollTop,
 	                left: rect.left + document.body.scrollLeft
 	            }
 	        }
-	        return this;
+	        return this.each(function(el){
+	            if (val.top) {el.style.top = val.top + 'px';}
+	            if (val.left) {el.style.left = val.left + 'px';}
+	        });
 	    },
 	
-	    position: function(){
-	        return this.length === 0 ? undefined : {
-	            left: this[0].offsetLeft,
-	            top: this[0].offsetTop
+	    position: function(margin){
+	        var ml = 0, mt = 0;
+	
+	        margin = !!margin;
+	
+	        if (this.length === 0) {
+	            return ;
+	        }
+	
+	        if (margin) {
+	            ml = parseInt(getComputedStyle(this[0], null)['margin-left']);
+	            mt = parseInt(getComputedStyle(this[0], null)['margin-top']);
+	        }
+	
+	        return {
+	            left: this[0].offsetLeft - ml,
+	            top: this[0].offsetTop - mt
 	        }
 	    }
 	});
@@ -1694,6 +1711,12 @@
 	        }
 	    }
 	
+	    if (context !== undefined && (context instanceof m4q || context instanceof HTMLElement)) {
+	        this.each(function(el){
+	            $(context).append($(el))
+	        });
+	    }
+	
 	    return this;
 	};
 	
@@ -1710,6 +1733,7 @@ if (!noGlobal) {
 	    if ( window.$M === m4q ) {window.$M = _$M;}
 	    return m4q;
 	};
+	
 	return m4q; 
 });
 
@@ -11324,9 +11348,9 @@ var Draggable = {
     },
 
     _setOptionsFromDOM: function(){
-        var that = this, element = this.element, o = this.options;
+        var element = this.element, o = this.options;
 
-        $.each(element.data(), function(key, value){
+        $.each(element.data(), function(value, key){
             if (key in o) {
                 try {
                     o[key] = JSON.parse(value);
@@ -11338,14 +11362,46 @@ var Draggable = {
     },
 
     _create: function(){
-        var that = this, element = this.element, o = this.options;
+        var that = this, element = this.element, elem = this.elem, o = this.options;
         var dragArea;
-        var offset, position, shift, coords;
+        var position = {
+            top: 0,
+            left: 0
+        };
         var dragElement  = o.dragElement !== 'self' ? element.find(o.dragElement) : element;
 
         dragElement[0].ondragstart = function(){return false;};
 
-        dragElement.on(Metro.events.start, function(e){
+        dragElement.on(Metro.events.start+".draggable", function(e){
+            if (o.dragArea === 'document' || o.dragArea === 'window') {
+                o.dragArea = "body";
+            }
+
+            dragArea = o.dragArea === 'parent' ? element.parent() : $(o.dragArea);
+
+            var coord = o.dragArea === "body" ? element.offset() : element.position(),
+                shiftX = Utils.pageXY(e).x - coord.left,
+                shiftY = Utils.pageXY(e).y - coord.top;
+
+            var moveElement = function(e){
+                var top = Utils.pageXY(e).y - shiftY + (o.dragArea === "body" ? pageYOffset : 0);
+                var left = Utils.pageXY(e).x - shiftX + (o.dragArea === "body" ? pageXOffset : 0);
+
+                if (top < 0) top = 0;
+                if (left < 0) left = 0;
+
+                if (top > dragArea.height() - element.outerHeight()) top = dragArea.height() - element.outerHeight();
+                if (left > dragArea.width() - element.outerWidth()) left = dragArea.width() - element.outerWidth();
+
+                position.top = top;
+                position.left = left;
+
+                element.css({
+                    left: left + 'px',
+                    top: top + 'px'
+                });
+            };
+
 
             if (element.data("canDrag") === false || Utils.exec(o.onCanDrag, [element]) !== true) {
                 return ;
@@ -11360,74 +11416,38 @@ var Draggable = {
             that.backup.cursor = element.css("cursor");
             that.backup.zIndex = element.css("z-index");
 
-            element.addClass("draggable");
+            element.css("position", "absolute").addClass("draggable");
 
-            if (o.dragArea === 'document' || o.dragArea === 'window') {
-                o.dragArea = "body";
-            }
+            element.appendTo(dragArea);
 
-            if (o.dragArea === 'parent') {
-                dragArea = element.parent();
-            } else {
-                dragArea = $(o.dragArea);
-            }
+            moveElement(e);
 
-            offset = {
-                left: dragArea.offset().left,
-                top:  dragArea.offset().top
-            };
+            Utils.exec(o.onDragStart, [position], elem);
 
-            position = Utils.pageXY(e);
-
-            var drg_h = element.outerHeight(),
-                drg_w = element.outerWidth(),
-                pos_y = element.offset().top + drg_h - Utils.pageXY(e).y,
-                pos_x = element.offset().left + drg_w - Utils.pageXY(e).x;
-
-            Utils.exec(o.onDragStart, [position, element]);
-
-            $(document).on(Metro.events.move, function(e){
-                var pageX, pageY;
-
-                if (that.drag === false) {
-                    return ;
-                }
-                that.move = true;
-
-                pageX = Utils.pageXY(e).x - offset.left;
-                pageY = Utils.pageXY(e).y - offset.top;
-
-                var t = (pageY > 0) ? (pageY + pos_y - drg_h) : (0);
-                var l = (pageX > 0) ? (pageX + pos_x - drg_w) : (0);
-                var t_delta = dragArea.innerHeight() + dragArea.scrollTop() - element.outerHeight();
-                var l_delta = dragArea.innerWidth() + dragArea.scrollLeft() - element.outerWidth();
-
-                if(t >= 0 && t <= t_delta) {
-                    position.y = t;
-                    element.offset({top: t + offset.top});
-                }
-                if(l >= 0 && l <= l_delta) {
-                    position.x = l;
-                    element.offset({left: l + offset.left});
-                }
-
-                Utils.exec(o.onDragMove, [position, element]);
-
+            $(document).on(Metro.events.move+".draggable", function(e){
+                moveElement(e);
+                Utils.exec(o.onDragMove, [position], elem);
                 e.preventDefault();
             });
-        });
 
-        dragElement.on(Metro.events.stop, function(e){
-            element.css({
-                cursor: that.backup.cursor,
-                zIndex: that.backup.zIndex
-            }).removeClass("draggable");
-            that.drag = false;
-            that.move = false;
-            position = Utils.pageXY(e);
-            $(document).off(Metro.events.move);
-            //console.log(o.onDragStop);
-            Utils.exec(o.onDragStop, [position, element]);
+            $(document).on(Metro.events.stop+".draggable", function(e){
+                element.css({
+                    cursor: that.backup.cursor,
+                    zIndex: that.backup.zIndex
+                }).removeClass("draggable");
+
+                if (that.drag) {
+                    $(document).off(Metro.events.move+".draggable");
+                    $(document).off(Metro.events.stop+".draggable");
+                }
+
+                that.drag = false;
+                that.move = false;
+
+                Utils.exec(o.onDragStop, [position], elem);
+                e.preventDefault();
+                e.stopPropagation();
+            });
         });
     },
 
