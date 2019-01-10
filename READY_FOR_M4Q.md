@@ -36,7 +36,7 @@
 - [x] Dialog
 - [x] Donut
 - [x] Draggable
-- [ ] Dropdown
+- [x] Dropdown
 - [ ] File
 - [ ] Gravatar
 - [ ] Hints
