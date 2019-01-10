@@ -103,6 +103,14 @@
 	    return out;
 	};
 	
+	m4q.export = function(ctx){
+	    var res = [], out = m4q();
+	    this.each(ctx, function(el){
+	        res.push(el);
+	    });
+	    return this.merge(out, res);
+	};
+	
 	m4q.fn = m4q.prototype = {
 	    m4q: m4qVersion,
 	    constructor: m4q,
@@ -156,7 +164,35 @@
 	    },
 	
 	    is: function(selector){
-	        return this.length === 0 ? undefined : matches.call(this[0], selector);
+	        var result = false;
+	
+	        if (typeof  selector === "string") {
+	            this.each(function(el){
+	                if (matches.call(el, selector)) {
+	                    return true;
+	                }
+	            });
+	        } else
+	
+	        if (isArrayLike(selector)) {
+	            this.each(function(el){
+	                m4q.each(selector, function(sel){
+	                    if (el === sel) {
+	                        result = true;
+	                    }
+	                })
+	            });
+	        } else
+	
+	        if (typeof selector === "object" && selector.nodeType === 1) {
+	            this.each(function(el){
+	                if  (el === selector) {
+	                    result = true;
+	                }
+	            })
+	        }
+	
+	        return result;
 	    },
 	
 	    last: function(){

@@ -55,7 +55,6 @@ var Accordion = {
         $.each(frames.children(".content"), function(el){
             var $el = $(el);
             $el.origin("height", $el.outerHeight(true));
-            console.log($el.origin("height"), $el);
         });
 
         element.addClass("accordion");
