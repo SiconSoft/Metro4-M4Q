@@ -46,12 +46,6 @@ var Accordion = {
         var active = element.children(".frame.active");
         var frame_to_open;
 
-        element.addClass("accordion");
-
-        if (o.material === true) {
-            element.addClass("material");
-        }
-
         if (active.length === 0) {
             frame_to_open = frames[0];
         } else {
@@ -60,8 +54,15 @@ var Accordion = {
 
         $.each(frames.children(".content"), function(el){
             var $el = $(el);
-            $el.origin("height", $el.height());
+            $el.origin("height", $el.outerHeight(true));
+            console.log($el.origin("height"), $el);
         });
+
+        element.addClass("accordion");
+
+        if (o.material === true) {
+            element.addClass("material");
+        }
 
         this._hideAll();
 

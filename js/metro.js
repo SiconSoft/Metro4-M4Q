@@ -1,8 +1,9 @@
-//'use strict';
 
 var $ = m4q;
-var meta_init, meta_locale, meta_week_start, meta_date_format, meta_date_format_input, meta_animation_duration, meta_callback_timeout, meta_timeout, meta_scroll_multiple, meta_cloak, meta_cloak_duration;
 
+var not = function(val){
+    return val === undefined && val === null;
+};
 
 if (typeof m4q === 'undefined') {
     throw new Error('Metro 4 requires m4q!');
@@ -12,17 +13,20 @@ if ('MutationObserver' in window === false) {
     throw new Error('Metro 4 requires MutationObserver!');
 }
 
-meta_init = $("meta[name='metro4:init']").attr("content");
-meta_locale = $("meta[name='metro4:locale']").attr("content");
-meta_week_start = $("meta[name='metro4:week_start']").attr("content");
-meta_date_format = $("meta[name='metro4:date_format']").attr("content");
-meta_date_format_input = $("meta[name='metro4:date_format_input']").attr("content");
-meta_animation_duration = $("meta[name='metro4:animation_duration']").attr("content");
-meta_callback_timeout = $("meta[name='metro4:callback_timeout']").attr("content");
-meta_timeout = $("meta[name='metro4:timeout']").attr("content");
-meta_scroll_multiple = $("meta[name='metro4:scroll_multiple']").attr("content");
-meta_cloak = $("meta[name='metro4:cloak']").attr("content"); //default or fade
-meta_cloak_duration = $("meta[name='metro4:cloak_duration']").attr("content"); //100
+var
+    meta_init = $("meta[name='metro4:init']").attr("content"),
+    meta_locale = $("meta[name='metro4:locale']").attr("content"),
+    meta_week_start = $("meta[name='metro4:week_start']").attr("content"),
+    meta_date_format = $("meta[name='metro4:date_format']").attr("content"),
+    meta_date_format_input = $("meta[name='metro4:date_format_input']").attr("content"),
+    meta_animation_duration = $("meta[name='metro4:animation_duration']").attr("content"),
+    meta_callback_timeout = $("meta[name='metro4:callback_timeout']").attr("content"),
+    meta_timeout = $("meta[name='metro4:timeout']").attr("content"),
+    meta_scroll_multiple = $("meta[name='metro4:scroll_multiple']").attr("content"),
+    meta_cloak = $("meta[name='metro4:cloak']").attr("content"), //default or fade
+    meta_cloak_duration = $("meta[name='metro4:cloak_duration']").attr("content"), //100
+    meta_m4q_global = $("meta[name='m4q:global']").attr("content"), //true or false
+    meta_jquery = $("meta[name='metro4:jquery']").attr("content"); //true or false
 
 if (window.METRO_INIT === undefined) {
     window.METRO_INIT = meta_init !== undefined ? JSON.parse(meta_init) : true;
@@ -65,6 +69,14 @@ if (window.METRO_HOTKEYS_FILTER_TEXT_INPUTS === undefined) {window.METRO_HOTKEYS
 if (window.METRO_HOTKEYS_BUBBLE_UP === undefined) {window.METRO_HOTKEYS_BUBBLE_UP = false;}
 if (window.METRO_THROWS === undefined) {window.METRO_THROWS = true;}
 
+if (meta_m4q_global && JSON.parse(meta_m4q_global) === true) {
+    window.$ = m4q;
+}
+
+if (window.METRO_JQUERY === undefined) {
+    window.METRO_JQUERY = meta_jquery !== undefined ? JSON.parse(meta_jquery) : true;
+}
+
 window.METRO_MEDIA = [];
 
 if ( typeof Object.create !== 'function' ) {
@@ -82,6 +94,8 @@ if (typeof Object.values !== 'function') {
         });
     }
 }
+
+var jQueryPresent = typeof jQuery !== "undefined";
 
 var isTouch = (('ontouchstart' in window) || (navigator.MaxTouchPoints > 0) || (navigator.msMaxTouchPoints > 0));
 
@@ -256,11 +270,15 @@ var Metro = {
     hotkeys: [],
 
     about: function(f){
-        console.log("Metro 4 - v" + (f === true ? this.versionFull : this.version));
+        console.log("Metro 4 - v" + this.ver(f));
+        console.log("M4Q - v" + $.fn.m4q);
     },
 
     aboutDlg: function(f){
-        alert("Metro 4 - v" + (f === true ? this.versionFull : this.version));
+        alert(
+            "Metro 4 - v" + this.ver(f)+"\n"+
+            "M4Q - v" + $.fn.m4q
+        );
     },
 
     ver: function(f){
@@ -406,8 +424,6 @@ var Metro = {
     },
 
     initWidgets: function(widgets) {
-        var that = this;
-
         $.each(widgets, function () {
             var $this = $(this), w = this;
             var roles = $this.attr('data-role').split(/\s*,\s*/);
@@ -433,12 +449,18 @@ var Metro = {
     },
 
     plugin: function(name, object){
-        'use strict';
         $.fn[name] = function( options ) {
             return this.each(function() {
                 $.data( this, name, Object.create(object).init(options, this ));
             });
         };
+        if (meta_jquery && jQueryPresent) {
+            jQuery.fn[name] = function( options ) {
+                return this.each(function() {
+                    jQuery.data( this, name, Object.create(object).init(options, this ));
+                });
+            };
+        }
     },
 
     destroyPlugin: function(element, name){

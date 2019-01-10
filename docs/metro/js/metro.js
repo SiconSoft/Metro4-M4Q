@@ -23,10 +23,12 @@
 
 // Pass this if window is not defined yet
 } )( typeof window !== "undefined" ? window : this, function( window, noGlobal ) {
+'use strict';
+
 // Source: js/m4q/m4q.js
 
 /*
- * m4q v1.0.0 (https://github.com/olton/m4q.git)
+ * m4q v0.1.0 (https://github.com/olton/m4q.git)
  * Copyright 2018 - 2019 by Sergey Pimenov
  * Helper for DOM manipulation for Metro 4 library
  * Licensed under MIT
@@ -51,7 +53,7 @@
 	}
 
 // Pass this if window is not defined yet
-} )( typeof window !== "undefined" ? window : this, function( window, noGlobal ) {
+} )( typeof window !== "undefined" ? window : this, function( window ) {
 
 	'use strict';
 
@@ -184,6 +186,30 @@
 	
 	    is: function(selector){
 	        return this.length === 0 ? undefined : matches.call(this[0], selector);
+	    },
+	
+	    last: function(){
+	        return this.ind(this.length - 1);
+	    },
+	
+	    first: function(){
+	        return this.ind(0);
+	    },
+	
+	    ind: function(i){
+	        return this.length === 0 ? m4q() : m4q(this[i]);
+	    },
+	
+	    odd: function(){
+	        return m4q.merge(m4q(), this.filter(function(el, i){
+	            return i % 2 === 0;
+	        }));
+	    },
+	
+	    even: function(){
+	        return m4q.merge(m4q(), this.filter(function(el, i){
+	            return i % 2 !== 0;
+	        }));
 	    },
 	
 	    _property: function(property, value){
@@ -949,54 +975,37 @@
 	        return this._size.call(this, 'width', value, unit);
 	    },
 	
-	    outerWidth: function(){
-	        var el, size, style, result, value, unit = "px";
+	    _sizeOut: function(prop, value, unit){
+	        var el, size, style, result;
 	
 	        if (this.length === 0) {
 	            return ;
 	        }
 	
-	        if (arguments.length > 0) {
-	            value = arguments[0];
+	        if (arguments.length > 1) {
+	            value = arguments[1];
 	        }
 	
 	        if (value !== undefined && typeof value !== "boolean") {
-	            if (arguments[1]) {
-	                unit = arguments[1];
+	            if (arguments[2]) {
+	                unit = arguments[2];
 	            }
-	            return this.width(value, unit);
+	            return this[prop](value, unit);
 	        }
 	
 	        el = this[0];
-	        size = el.offsetWidth;
+	        size = el[prop === 'width' ? 'offsetWidth' : 'offsetHeight'];
 	        style = getComputedStyle(el);
-	        result = size + parseInt(style.marginLeft) + parseInt(style.marginRight);
+	        result = size + parseInt(style[prop === 'width' ? 'marginLeft' : 'marginTop']) + parseInt(style[prop === 'width' ? 'marginRight' : 'marginBottom']);
 	        return value === true ? result : size;
 	    },
 	
+	    outerWidth: function(){
+	        return this._sizeOut.call(this, 'width', arguments[0], arguments[1]);
+	    },
+	
 	    outerHeight: function(){
-	        var el, size, style, result, value, unit = "px";
-	
-	        if (this.length === 0) {
-	            return ;
-	        }
-	
-	        if (arguments.length > 0) {
-	            value = arguments[0];
-	        }
-	
-	        if (value !== undefined && typeof value !== "boolean") {
-	            if (arguments[1]) {
-	                unit = arguments[1];
-	            }
-	            return this.height(value, unit);
-	        }
-	
-	        el = this[0];
-	        size = el.offsetHeight;
-	        style = getComputedStyle(el);
-	        result = size + parseInt(style.marginTop) + parseInt(style.marginBottom);
-	        return value === true ? result : size;
+	        return this._sizeOut.call(this, 'height', arguments[0], arguments[1]);
 	    }
 	});
 
@@ -1088,8 +1097,37 @@
 	        return m4q.merge(out, result);
 	    },
 	
+	    parents: function(selector){
+	        var result = [], out = m4q();
+	
+	        if (this.length === 0) {
+	            return;
+	        }
+	
+	        this.each(function(el){
+	            var parent = el.parentNode;
+	            while (parent) {
+	                if (parent.nodeType === 1) {
+	
+	                    if (!not(selector)) {
+	                        if (matches.call(parent, selector)) {
+	                            result.push(parent);
+	                        }
+	                    } else {
+	                        result.push(parent);
+	                    }
+	
+	
+	                }
+	                parent = parent.parentNode;
+	            }
+	        });
+	
+	        return m4q.merge(out, result);
+	    },
+	
 	    siblings: function(selector){
-	        var out = m4q();
+	        var res = [], out = m4q();
 	
 	        if (this.length === 0) {
 	            return ;
@@ -1103,10 +1141,10 @@
 	            });
 	
 	            elements.forEach(function(el){
-	                m4q.merge(out, m4q(el));
+	                res.push(el);
 	            })
 	        });
-	        return out;
+	        return m4q.merge(out, res);
 	    },
 	
 	    _siblings: function(direction, selector){
@@ -1722,15 +1760,28 @@
 	
 	m4q.init.prototype = m4q.fn;
 	
-if (!noGlobal) {
-	    window.m4q = window.$M = window.$ = m4q;
-	}
+var _$ = window.$,
+	    _m4q = window.m4q,
+	    _$M = window.$M;
 	
-	var _$ = window.$, _$M = window.$M;
+	window.m4q = m4q;
 	
-	m4q.noConflict = function() {
-	    if ( window.$ === m4q ) {window.$ = _$;}
-	    if ( window.$M === m4q ) {window.$M = _$M;}
+	m4q.global = function(){
+	    window.$M = window.$ = m4q;
+	};
+	
+	m4q.noConflict = function(deep) {
+	    if ( window.$ === m4q ) {
+	        window.$ = _$;
+	    }
+	    if ( window.$M === m4q ) {
+	        window.$M = _$M;
+	    }
+	
+	    if (deep && window.m4q === m4q) {
+	        window.m4q = _m4q;
+	    }
+	
 	    return m4q;
 	};
 	
@@ -1740,11 +1791,12 @@ if (!noGlobal) {
 
 // Source: js/metro.js
 
-//'use strict';
 
 var $ = m4q;
-var meta_init, meta_locale, meta_week_start, meta_date_format, meta_date_format_input, meta_animation_duration, meta_callback_timeout, meta_timeout, meta_scroll_multiple, meta_cloak, meta_cloak_duration;
 
+var not = function(val){
+    return val === undefined && val === null;
+};
 
 if (typeof m4q === 'undefined') {
     throw new Error('Metro 4 requires m4q!');
@@ -1754,17 +1806,20 @@ if ('MutationObserver' in window === false) {
     throw new Error('Metro 4 requires MutationObserver!');
 }
 
-meta_init = $("meta[name='metro4:init']").attr("content");
-meta_locale = $("meta[name='metro4:locale']").attr("content");
-meta_week_start = $("meta[name='metro4:week_start']").attr("content");
-meta_date_format = $("meta[name='metro4:date_format']").attr("content");
-meta_date_format_input = $("meta[name='metro4:date_format_input']").attr("content");
-meta_animation_duration = $("meta[name='metro4:animation_duration']").attr("content");
-meta_callback_timeout = $("meta[name='metro4:callback_timeout']").attr("content");
-meta_timeout = $("meta[name='metro4:timeout']").attr("content");
-meta_scroll_multiple = $("meta[name='metro4:scroll_multiple']").attr("content");
-meta_cloak = $("meta[name='metro4:cloak']").attr("content"); //default or fade
-meta_cloak_duration = $("meta[name='metro4:cloak_duration']").attr("content"); //100
+var
+    meta_init = $("meta[name='metro4:init']").attr("content"),
+    meta_locale = $("meta[name='metro4:locale']").attr("content"),
+    meta_week_start = $("meta[name='metro4:week_start']").attr("content"),
+    meta_date_format = $("meta[name='metro4:date_format']").attr("content"),
+    meta_date_format_input = $("meta[name='metro4:date_format_input']").attr("content"),
+    meta_animation_duration = $("meta[name='metro4:animation_duration']").attr("content"),
+    meta_callback_timeout = $("meta[name='metro4:callback_timeout']").attr("content"),
+    meta_timeout = $("meta[name='metro4:timeout']").attr("content"),
+    meta_scroll_multiple = $("meta[name='metro4:scroll_multiple']").attr("content"),
+    meta_cloak = $("meta[name='metro4:cloak']").attr("content"), //default or fade
+    meta_cloak_duration = $("meta[name='metro4:cloak_duration']").attr("content"), //100
+    meta_m4q_global = $("meta[name='m4q:global']").attr("content"), //true or false
+    meta_jquery = $("meta[name='metro4:jquery']").attr("content"); //true or false
 
 if (window.METRO_INIT === undefined) {
     window.METRO_INIT = meta_init !== undefined ? JSON.parse(meta_init) : true;
@@ -1807,6 +1862,14 @@ if (window.METRO_HOTKEYS_FILTER_TEXT_INPUTS === undefined) {window.METRO_HOTKEYS
 if (window.METRO_HOTKEYS_BUBBLE_UP === undefined) {window.METRO_HOTKEYS_BUBBLE_UP = false;}
 if (window.METRO_THROWS === undefined) {window.METRO_THROWS = true;}
 
+if (meta_m4q_global && JSON.parse(meta_m4q_global) === true) {
+    window.$ = m4q;
+}
+
+if (window.METRO_JQUERY === undefined) {
+    window.METRO_JQUERY = meta_jquery !== undefined ? JSON.parse(meta_jquery) : true;
+}
+
 window.METRO_MEDIA = [];
 
 if ( typeof Object.create !== 'function' ) {
@@ -1824,6 +1887,8 @@ if (typeof Object.values !== 'function') {
         });
     }
 }
+
+var jQueryPresent = typeof jQuery !== "undefined";
 
 var isTouch = (('ontouchstart' in window) || (navigator.MaxTouchPoints > 0) || (navigator.msMaxTouchPoints > 0));
 
@@ -1998,11 +2063,15 @@ var Metro = {
     hotkeys: [],
 
     about: function(f){
-        console.log("Metro 4 - v" + (f === true ? this.versionFull : this.version));
+        console.log("Metro 4 - v" + this.ver(f));
+        console.log("M4Q - v" + $.fn.m4q);
     },
 
     aboutDlg: function(f){
-        alert("Metro 4 - v" + (f === true ? this.versionFull : this.version));
+        alert(
+            "Metro 4 - v" + this.ver(f)+"\n"+
+            "M4Q - v" + $.fn.m4q
+        );
     },
 
     ver: function(f){
@@ -2148,8 +2217,6 @@ var Metro = {
     },
 
     initWidgets: function(widgets) {
-        var that = this;
-
         $.each(widgets, function () {
             var $this = $(this), w = this;
             var roles = $this.attr('data-role').split(/\s*,\s*/);
@@ -2175,12 +2242,18 @@ var Metro = {
     },
 
     plugin: function(name, object){
-        'use strict';
         $.fn[name] = function( options ) {
             return this.each(function() {
                 $.data( this, name, Object.create(object).init(options, this ));
             });
         };
+        if (meta_jquery && jQueryPresent) {
+            jQuery.fn[name] = function( options ) {
+                return this.each(function() {
+                    jQuery.data( this, name, Object.create(object).init(options, this ));
+                });
+            };
+        }
     },
 
     destroyPlugin: function(element, name){
@@ -5710,12 +5783,6 @@ var Accordion = {
         var active = element.children(".frame.active");
         var frame_to_open;
 
-        element.addClass("accordion");
-
-        if (o.material === true) {
-            element.addClass("material");
-        }
-
         if (active.length === 0) {
             frame_to_open = frames[0];
         } else {
@@ -5724,8 +5791,15 @@ var Accordion = {
 
         $.each(frames.children(".content"), function(el){
             var $el = $(el);
-            $el.origin("height", $el.height());
+            $el.origin("height", $el.outerHeight(true));
+            console.log($el.origin("height"), $el);
         });
+
+        element.addClass("accordion");
+
+        if (o.material === true) {
+            element.addClass("material");
+        }
 
         this._hideAll();
 
@@ -11495,9 +11569,9 @@ var Dropdown = {
     },
 
     _setOptionsFromDOM: function(){
-        var that = this, element = this.element, o = this.options;
+        var element = this.element, o = this.options;
 
-        $.each(element.data(), function(key, value){
+        $.each(element.data(), function(value, key){
             if (key in o) {
                 try {
                     o[key] = JSON.parse(value);
@@ -11530,12 +11604,13 @@ var Dropdown = {
 
         toggle.on(Metro.events.click, function(e){
             parent.siblings(parent[0].tagName).removeClass("active-container");
+
             $(".active-container").removeClass("active-container");
 
             if (element.css('display') !== 'none' && !element.hasClass('keep-open')) {
                 that._close(element);
             } else {
-                $('[data-role=dropdown]').each(function(i, el){
+                $('[data-role=dropdown]').each(function(el){
                     if (!element.parents('[data-role=dropdown]').is(el) && !$(el).hasClass('keep-open') && $(el).css('display') !== 'none') {
                         that._close(el);
                     }
@@ -11579,7 +11654,7 @@ var Dropdown = {
 
     _close: function(el){
 
-        if (Utils.isJQueryObject(el) === false) {
+        if (Utils.isM4QObject(el) === false) {
             el = $(el);
         }
 
@@ -11590,14 +11665,14 @@ var Dropdown = {
 
         toggle.removeClass('active-toggle').removeClass("active-control");
         dropdown.element.parent().removeClass("active-container");
-        el[func](options.duration, function(){
+        el[func](options.duration, "linear", function(){
             el.trigger("onClose", null, el);
         });
         Utils.exec(options.onUp, [el]);
     },
 
     _open: function(el){
-        if (Utils.isJQueryObject(el) === false) {
+        if (Utils.isM4QObject(el) === false) {
             el = $(el);
         }
 
@@ -11607,7 +11682,7 @@ var Dropdown = {
         var func = options.effect === "slide" ? "slideDown" : "fadeIn";
 
         toggle.addClass('active-toggle').addClass("active-control");
-        el[func](options.duration, function(){
+        el[func](options.duration, "linear", function(){
             el.trigger("onOpen", null, el);
         });
         Utils.exec(options.onDrop, [el]);
@@ -11630,7 +11705,7 @@ var Dropdown = {
     }
 };
 
-$(document).on(Metro.events.click, function(e){
+$(document).on(Metro.events.click, function(){
     $('[data-role*=dropdown]').each(function(){
         var el = $(this);
 

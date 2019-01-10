@@ -25,9 +25,9 @@ var Dropdown = {
     },
 
     _setOptionsFromDOM: function(){
-        var that = this, element = this.element, o = this.options;
+        var element = this.element, o = this.options;
 
-        $.each(element.data(), function(key, value){
+        $.each(element.data(), function(value, key){
             if (key in o) {
                 try {
                     o[key] = JSON.parse(value);
@@ -60,12 +60,13 @@ var Dropdown = {
 
         toggle.on(Metro.events.click, function(e){
             parent.siblings(parent[0].tagName).removeClass("active-container");
+
             $(".active-container").removeClass("active-container");
 
             if (element.css('display') !== 'none' && !element.hasClass('keep-open')) {
                 that._close(element);
             } else {
-                $('[data-role=dropdown]').each(function(i, el){
+                $('[data-role=dropdown]').each(function(el){
                     if (!element.parents('[data-role=dropdown]').is(el) && !$(el).hasClass('keep-open') && $(el).css('display') !== 'none') {
                         that._close(el);
                     }
@@ -109,7 +110,7 @@ var Dropdown = {
 
     _close: function(el){
 
-        if (Utils.isJQueryObject(el) === false) {
+        if (Utils.isM4QObject(el) === false) {
             el = $(el);
         }
 
@@ -120,14 +121,14 @@ var Dropdown = {
 
         toggle.removeClass('active-toggle').removeClass("active-control");
         dropdown.element.parent().removeClass("active-container");
-        el[func](options.duration, function(){
+        el[func](options.duration, "linear", function(){
             el.trigger("onClose", null, el);
         });
         Utils.exec(options.onUp, [el]);
     },
 
     _open: function(el){
-        if (Utils.isJQueryObject(el) === false) {
+        if (Utils.isM4QObject(el) === false) {
             el = $(el);
         }
 
@@ -137,7 +138,7 @@ var Dropdown = {
         var func = options.effect === "slide" ? "slideDown" : "fadeIn";
 
         toggle.addClass('active-toggle').addClass("active-control");
-        el[func](options.duration, function(){
+        el[func](options.duration, "linear", function(){
             el.trigger("onOpen", null, el);
         });
         Utils.exec(options.onDrop, [el]);
@@ -160,7 +161,7 @@ var Dropdown = {
     }
 };
 
-$(document).on(Metro.events.click, function(e){
+$(document).on(Metro.events.click, function(){
     $('[data-role*=dropdown]').each(function(){
         var el = $(this);
 

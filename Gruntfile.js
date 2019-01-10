@@ -34,7 +34,9 @@ module.exports = function(grunt) {
             "\t}\n" +
             "\n" +
             "// Pass this if window is not defined yet\n" +
-            "} )( typeof window !== \"undefined\" ? window : this, function( window, noGlobal ) {",
+            "} )( typeof window !== \"undefined\" ? window : this, function( window, noGlobal ) {"+
+            "\n"+
+            "'use strict';\n",
 
         clean: {
             build: ['build/js', 'build/css', 'build/mif']
@@ -56,7 +58,7 @@ module.exports = function(grunt) {
                     'js/m4q/*.js',
                     'js/*.js',
                     'js/utils/*.js',
-                    'js/plugins/*.js'
+                    'js/plugins/*.js',
                 ],
                 dest: 'build/js/metro.js'
             },

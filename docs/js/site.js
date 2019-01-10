@@ -1,4 +1,4 @@
-(function() {
+(function($) {
     "use strict";
 
     var form = $(".need-validation");
@@ -44,7 +44,7 @@
             });
         }
     }, 1000)
-}());
+}(m4q));
 
 var initDocSearchEngine = function(){
     setTimeout(function(){
