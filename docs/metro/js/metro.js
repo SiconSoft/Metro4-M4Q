@@ -1,5 +1,5 @@
 /*
- * Metro 4 Components Library v4.3.0 build @@buildalpha (https://metroui.org.ua)
+ * Metro 4 Components Library v4.3.0 build 1alpha (https://metroui.org.ua)
  * Copyright 2012 - 2019 Sergey Pimenov
  * Licensed under MIT
  */
@@ -99,7 +99,7 @@
 	    })
 	}
 
-	var m4qVersion = "@VERSION";
+	var m4qVersion = "0.1.0 alpha";
 	var regexpSingleTag = /^<([a-z][^\/\0>:\x20\t\r\n\f]*)[\x20\t\r\n\f]*\/?>(?:<\/\1>|)$/i;
 	
 	var matches = Element.prototype.matches
@@ -1054,8 +1054,8 @@
 	        if (not(val)) {
 	            rect = this[0].getBoundingClientRect();
 	            return {
-	                top: rect.top + document.body.scrollTop,
-	                left: rect.left + document.body.scrollLeft
+	                top: rect.top + pageYOffset,
+	                left: rect.left + pageXOffset
 	            }
 	        }
 	        return this.each(function(el){
@@ -1906,6 +1906,10 @@ if (window.METRO_JQUERY === undefined) {
     window.METRO_JQUERY = meta_jquery !== undefined ? JSON.parse(meta_jquery) : true;
 }
 
+if (!METRO_JQUERY && typeof window.$ === "undefined" ) {
+    window.$ = m4q;
+}
+
 window.METRO_MEDIA = [];
 
 if ( typeof Object.create !== 'function' ) {
@@ -1930,8 +1934,8 @@ var isTouch = (('ontouchstart' in window) || (navigator.MaxTouchPoints > 0) || (
 
 var Metro = {
 
-    version: "@@version",
-    versionFull: "@@version.@@build @@status",
+    version: "4.3.0",
+    versionFull: "4.3.0 [build 1] alpha",
     isTouchable: isTouch,
     fullScreenEnabled: document.fullscreenEnabled,
     sheet: null,
@@ -2260,7 +2264,13 @@ var Metro = {
             roles.map(function (func) {
                 if ($.fn[func] !== undefined && $this.attr("data-role-"+func) === undefined) {
 
-                    $.fn[func].call($this);
+                    if (METRO_JQUERY && jQueryPresent) {
+                        console.log("---");
+                        jQuery.fn[func].call($this);
+                    } else {
+                        console.log("+++");
+                        $.fn[func].call($this);
+                    }
 
                     $this.attr("data-role-"+func, true);
 
@@ -2283,7 +2293,7 @@ var Metro = {
                 $.data( this, name, Object.create(object).init(options, this ));
             });
         };
-        if (meta_jquery && jQueryPresent) {
+        if (METRO_JQUERY && jQueryPresent) {
             jQuery.fn[name] = function( options ) {
                 return this.each(function() {
                     jQuery.data( this, name, Object.create(object).init(options, this ));
@@ -11493,8 +11503,8 @@ var Draggable = {
                 shiftY = Utils.pageXY(e).y - coord.top;
 
             var moveElement = function(e){
-                var top = Utils.pageXY(e).y - shiftY + (o.dragArea === "body" ? pageYOffset : 0);
-                var left = Utils.pageXY(e).x - shiftX + (o.dragArea === "body" ? pageXOffset : 0);
+                var top = Utils.pageXY(e).y - shiftY;
+                var left = Utils.pageXY(e).x - shiftX;
 
                 if (top < 0) top = 0;
                 if (left < 0) left = 0;

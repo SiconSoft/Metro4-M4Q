@@ -77,6 +77,10 @@ if (window.METRO_JQUERY === undefined) {
     window.METRO_JQUERY = meta_jquery !== undefined ? JSON.parse(meta_jquery) : true;
 }
 
+if (!METRO_JQUERY && typeof window.$ === "undefined" ) {
+    window.$ = m4q;
+}
+
 window.METRO_MEDIA = [];
 
 if ( typeof Object.create !== 'function' ) {
@@ -102,7 +106,7 @@ var isTouch = (('ontouchstart' in window) || (navigator.MaxTouchPoints > 0) || (
 var Metro = {
 
     version: "@@version",
-    versionFull: "@@version.@@build @@status",
+    versionFull: "@@version [build @@build] @@status",
     isTouchable: isTouch,
     fullScreenEnabled: document.fullscreenEnabled,
     sheet: null,
@@ -431,7 +435,13 @@ var Metro = {
             roles.map(function (func) {
                 if ($.fn[func] !== undefined && $this.attr("data-role-"+func) === undefined) {
 
-                    $.fn[func].call($this);
+                    if (METRO_JQUERY && jQueryPresent) {
+                        console.log("---");
+                        jQuery.fn[func].call($this);
+                    } else {
+                        console.log("+++");
+                        $.fn[func].call($this);
+                    }
 
                     $this.attr("data-role-"+func, true);
 
@@ -454,7 +464,7 @@ var Metro = {
                 $.data( this, name, Object.create(object).init(options, this ));
             });
         };
-        if (meta_jquery && jQueryPresent) {
+        if (METRO_JQUERY && jQueryPresent) {
             jQuery.fn[name] = function( options ) {
                 return this.each(function() {
                     jQuery.data( this, name, Object.create(object).init(options, this ));

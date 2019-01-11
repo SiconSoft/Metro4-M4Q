@@ -193,15 +193,53 @@ module.exports = function(grunt) {
             }
         },
 
+        replace: {
+            build: {
+                options: {
+                    patterns: [
+                        {
+                            match: 'build',
+                            replacement: "<%= pkg.build %>"
+                        },
+                        {
+                            match: 'version',
+                            replacement: "<%= pkg.version %>"
+                        },
+                        {
+                            match: 'status',
+                            replacement: "<%= pkg.version_suffix %>"
+                        }
+                    ]
+                },
+                files: [
+                    {
+                        expand: true,
+                        flatten: true,
+                        src: ['build/js/*.js'], dest: 'build/js/'
+                    },
+                    {
+                        expand: true,
+                        flatten: true,
+                        src: ['build/css/*.css'], dest: 'build/css/'
+                    },
+                    {
+                        expand: true,
+                        flatten: true,
+                        src: ['docs/metro/js/*.js'], dest: 'docs/metro/js/'
+                    }
+                ]
+            }
+        },
+
         watch: {
             scripts: {
                 files: ['js/m4q/*.js', 'js/i18n/*.json', 'js/*.js', 'js/utils/*.js', 'js/plugins/*.js', 'less/*.less', 'less/include/*.less', 'less/third-party/*.less', 'less/schemes/*.less', 'less/schemes/builder/*.less', 'Gruntfile.js'],
-                tasks: ['clean',  'less', 'postcss', 'concat', 'uglify', 'cssmin', 'copy']
+                tasks: ['clean',  'less', 'postcss', 'concat', 'uglify', 'cssmin', 'copy', 'replace']
             }
         }
     });
 
-    tasks = ['clean', 'less', 'postcss', 'concat', 'uglify', 'cssmin', 'copy'];
+    tasks = ['clean', 'less', 'postcss', 'concat', 'uglify', 'cssmin', 'copy', 'replace'];
 
     if (watching) {
         tasks.push('watch');

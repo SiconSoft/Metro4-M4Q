@@ -65,8 +65,8 @@ var Draggable = {
                 shiftY = Utils.pageXY(e).y - coord.top;
 
             var moveElement = function(e){
-                var top = Utils.pageXY(e).y - shiftY + (o.dragArea === "body" ? pageYOffset : 0);
-                var left = Utils.pageXY(e).x - shiftX + (o.dragArea === "body" ? pageXOffset : 0);
+                var top = Utils.pageXY(e).y - shiftY;
+                var left = Utils.pageXY(e).x - shiftX;
 
                 if (top < 0) top = 0;
                 if (left < 0) left = 0;

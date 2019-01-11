@@ -70,7 +70,7 @@
 	    })
 	}
 
-	var m4qVersion = "@VERSION";
+	var m4qVersion = "0.1.0 alpha";
 	var regexpSingleTag = /^<([a-z][^\/\0>:\x20\t\r\n\f]*)[\x20\t\r\n\f]*\/?>(?:<\/\1>|)$/i;
 	
 	var matches = Element.prototype.matches
@@ -1025,8 +1025,8 @@
 	        if (not(val)) {
 	            rect = this[0].getBoundingClientRect();
 	            return {
-	                top: rect.top + document.body.scrollTop,
-	                left: rect.left + document.body.scrollLeft
+	                top: rect.top + pageYOffset,
+	                left: rect.left + pageXOffset
 	            }
 	        }
 	        return this.each(function(el){
