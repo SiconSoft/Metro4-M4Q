@@ -19,9 +19,9 @@ var ImageCompare = {
     },
 
     _setOptionsFromDOM: function(){
-        var that = this, element = this.element, o = this.options;
+        var element = this.element, o = this.options;
 
-        $.each(element.data(), function(key, value){
+        $.each(element.data(), function(value, key){
             if (key in o) {
                 try {
                     o[key] = JSON.parse(value);
@@ -33,7 +33,7 @@ var ImageCompare = {
     },
 
     _create: function(){
-        var that = this, element = this.element, o = this.options;
+        var element = this.element, o = this.options;
 
         this._createStructure();
         this._createEvents();
@@ -42,7 +42,7 @@ var ImageCompare = {
     },
 
     _createStructure: function(){
-        var that = this, element = this.element, o = this.options;
+        var element = this.element, o = this.options;
         var container, container_overlay, slider;
         var images, element_width, element_height;
 
@@ -69,9 +69,9 @@ var ImageCompare = {
         });
 
         container = $("<div>").addClass("image-container").appendTo(element);
-        container_overlay = $("<div>").addClass("image-container-overlay").appendTo(element).css({
+        container_overlay = $("<div>").addClass("image-container-overlay").css({
             width: element_width / 2
-        });
+        }).appendTo(element);
 
         slider = $("<div>").addClass("image-slider").appendTo(element);
         slider.css({
@@ -81,26 +81,26 @@ var ImageCompare = {
 
         images = element.find("img");
 
-        $.each(images, function(i, v){
+        $.each(images, function(v, i){
             var img = $("<div>").addClass("image-wrapper");
             img.css({
                 width: element_width,
                 height: element_height,
-                backgroundImage: "url("+this.src+")"
+                backgroundImage: "url("+v.src+")"
             });
             img.appendTo(i === 0 ? container : container_overlay);
         });
     },
 
     _createEvents: function(){
-        var that = this, element = this.element, o = this.options;
+        var element = this.element, o = this.options;
 
         var overlay = element.find(".image-container-overlay");
         var slider = element.find(".image-slider");
 
-        slider.on(Metro.events.start, function(e){
+        slider.on(Metro.events.start, function(){
             var w = element.width();
-            $(document).on(Metro.events.move + "-" + element.attr("id"), function(e){
+            $(document).on(Metro.events.move + ".image-comparer", function(e){
                 var x = Utils.getCursorPositionX(element, e), left_pos;
                 if (x < 0) x = 0;
                 if (x > w) x = w;
@@ -113,13 +113,13 @@ var ImageCompare = {
                 });
                 Utils.exec(o.onSliderMove, [x, left_pos, slider[0]], element[0]);
             });
-            $(document).on(Metro.events.stop + "-" + element.attr("id"), function(){
-                $(document).off(Metro.events.move + "-" + element.attr("id"));
-                $(document).off(Metro.events.stop + "-" + element.attr("id"));
+            $(document).on(Metro.events.stop + ".image-comparer", function(){
+                $(document).off(Metro.events.move + ".image-comparer");
+                $(document).off(Metro.events.stop + ".image-comparer");
             })
         });
 
-        $(window).on(Metro.events.resize+"-"+element.attr("id"), function(){
+        $(window).on(Metro.events.resize+"."+element.attr("id"), function(){
             var element_width = element.width(), element_height;
 
             if (o.width !== "100%") {
@@ -138,8 +138,8 @@ var ImageCompare = {
                 height: element_height
             });
 
-            $.each(element.find(".image-wrapper"), function(){
-                $(this).css({
+            $.each(element.find(".image-wrapper"), function(el){
+                $(el).css({
                     width: element_width,
                     height: element_height
                 })

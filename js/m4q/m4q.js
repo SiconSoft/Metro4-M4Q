@@ -805,6 +805,9 @@
 	});
 	
 
+	
+	var nonDigit = /[^0-9.]/;
+	
 	m4q.fn.extend({
 	    style: function(name){
 	        if (this.length === 0) {
@@ -832,7 +835,7 @@
 	        this.each(function(el){
 	            if (typeof o === "object") {
 	                for (var key in o) {
-	                    el.style[key] = o[key];
+	                    el.style[key] = nonDigit.test(o[key]) ? o[key] : o[key] + 'px';
 	                }
 	            } else if (typeof o === "string") {
 	                el.style[o] = v;
