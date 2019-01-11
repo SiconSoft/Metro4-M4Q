@@ -42,7 +42,7 @@
 - [x] Hints
 - [x] HTML container
 - [x] Image comparer
-- [ ] Image magnifier
+- [x] Image magnifier
 - [ ] InfoBox
 - [ ] Input
 - [ ] Input Material
