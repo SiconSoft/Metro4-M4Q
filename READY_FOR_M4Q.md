@@ -39,7 +39,7 @@
 - [x] Dropdown
 - [x] File
 - [x] Gravatar
-- [ ] Hints
+- [x] Hints
 - [x] HTML container
 - [ ] Image comparer
 - [ ] Image magnifier
