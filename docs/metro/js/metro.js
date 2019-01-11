@@ -12524,6 +12524,7 @@ var ImageMagnifier = {
         magnifierZoom: 2,
         magnifierMode: "glass", // glass, zoom
         magnifierZoomElement: null,
+        centerOnLeave: true,
 
         clsMagnifier: "",
         clsLens: "",
@@ -12536,7 +12537,7 @@ var ImageMagnifier = {
     _setOptionsFromDOM: function(){
         var element = this.element, o = this.options;
 
-        $.each(element.data(), function(key, value){
+        $.each(element.data(), function(value, key){
             if (key in o) {
                 try {
                     o[key] = JSON.parse(value);
@@ -12715,12 +12716,21 @@ var ImageMagnifier = {
         });
 
         element.on(Metro.events.leave, function(){
+
+            if (o.centerOnLeave !== true) {return ;}
+
             var x = element.width() / 2 - o.lensSize / 2;
             var y = element.height() / 2 - o.lensSize / 2;
 
-            glass.animate({
-                top: y, left: x
+            glass.animate(function(p){
+                $(this).css({
+                    top: y,
+                    left: x
+                })
             });
+            // glass.animate({
+            //     top: y, left: x
+            // });
 
             lens_move({
                 x: x + o.lensSize / 2, y: y + o.lensSize / 2
