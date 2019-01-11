@@ -29,9 +29,9 @@ var Hint = {
     },
 
     _setOptionsFromDOM: function(){
-        var that = this, element = this.element, o = this.options;
+        var element = this.element, o = this.options;
 
-        $.each(element.data(), function(key, value){
+        $.each(element.data(), function(value, key){
             if (key in o) {
                 try {
                     o[key] = JSON.parse(value);
@@ -45,7 +45,7 @@ var Hint = {
     _create: function(){
         var that = this, element = this.element, o = this.options;
 
-        element.on(Metro.events.enter + "-hint", function(){
+        element.on(Metro.events.enter + ".hint", function(){
             that.createHint();
             if (o.hintHide > 0) {
                 setTimeout(function(){
@@ -54,26 +54,30 @@ var Hint = {
             }
         });
 
-        element.on(Metro.events.leave + "-hint", function(){
+        element.on(Metro.events.leave + ".hint", function(){
             that.removeHint();
         });
 
-        $(window).on(Metro.events.scroll + "-hint", function(){
+        $(window).on(Metro.events.scroll + ".hint", function(){
             if (that.hint !== null) that.setPosition();
         });
     },
 
     createHint: function(){
-        var that = this, elem = this.elem, element = this.element, o = this.options;
+        var elem = this.elem, element = this.element, o = this.options;
         var hint = $("<div>").addClass("hint").addClass(o.clsHint).html(o.hintText);
 
         this.hint = hint;
         this.hint_size = Utils.hiddenElementSize(hint);
 
-        $(".hint:not(.permanent-hint)").remove();
+        $.each($(".hint"), function(el){
+            var $el = $(el);
+            if ($el.hasClass("permanent-hint") && $el.is(hint)) return;
+            $el.remove();
+        });
 
         if (elem.tagName === 'TD' || elem.tagName === 'TH') {
-            var wrp = $("<div/>").css("display", "inline-block").html(element.html());
+            var wrp = $("<div>").css("display", "inline-block").html(element.html());
             element.html(wrp);
             element = wrp;
         }
@@ -90,26 +94,26 @@ var Hint = {
         if (o.hintPosition === Metro.position.BOTTOM) {
             hint.addClass('bottom');
             hint.css({
-                top: element.offset().top - $(window).scrollTop() + element.outerHeight() + o.hintOffset,
-                left: element.offset().left + element.outerWidth()/2 - hint_size.width/2  - $(window).scrollLeft()
+                top: element.offset().top - pageYOffset + element.outerHeight() + o.hintOffset + 'px',
+                left: element.offset().left + element.outerWidth()/2 - hint_size.width/2  - pageXOffset + 'px'
             });
         } else if (o.hintPosition === Metro.position.RIGHT) {
             hint.addClass('right');
             hint.css({
-                top: element.offset().top + element.outerHeight()/2 - hint_size.height/2 - $(window).scrollTop(),
-                left: element.offset().left + element.outerWidth() - $(window).scrollLeft() + o.hintOffset
+                top: element.offset().top + element.outerHeight()/2 - hint_size.height/2 - pageYOffset + 'px',
+                left: element.offset().left + element.outerWidth() - pageXOffset + o.hintOffset + 'px'
             });
         } else if (o.hintPosition === Metro.position.LEFT) {
             hint.addClass('left');
             hint.css({
-                top: element.offset().top + element.outerHeight()/2 - hint_size.height/2 - $(window).scrollTop(),
-                left: element.offset().left - hint_size.width - $(window).scrollLeft() - o.hintOffset
+                top: element.offset().top + element.outerHeight()/2 - hint_size.height/2 - pageYOffset + 'px',
+                left: element.offset().left - hint_size.width - pageXOffset - o.hintOffset + 'px'
             });
         } else {
             hint.addClass('top');
             hint.css({
-                top: element.offset().top - $(window).scrollTop() - hint_size.height - o.hintOffset,
-                left: element.offset().left + element.outerWidth()/2 - hint_size.width/2  - $(window).scrollLeft()
+                top: element.offset().top - pageYOffset - hint_size.height - o.hintOffset + 'px',
+                left: element.offset().left + element.outerWidth()/2 - hint_size.width/2  - pageXOffset + 'px'
             });
         }
     },
@@ -143,7 +147,7 @@ var Hint = {
     },
 
     destroy: function(){
-        var that = this, elem = this.elem, element = this.element, o = this.options;
+        var element = this.element;
         this.removeHint();
         element.off(Metro.events.enter + "-hint");
         element.off(Metro.events.leave + "-hint");
