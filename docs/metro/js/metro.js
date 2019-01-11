@@ -873,7 +873,7 @@
 	
 	    scrollTop: function(val){
 	        if (not(val)) {
-	            return this[0] ? this[0].scrollTop : undefined;
+	            return this.length === 0 ? undefined : this[0] === window ? pageYOffset : this[0].scrollTop;
 	        }
 	        return this.each(function(el){
 	            el.scrollTop = val;
@@ -882,7 +882,7 @@
 	
 	    scrollLeft: function(val){
 	        if (not(val)) {
-	            return this[0] ? this[0].scrollTop : undefined;
+	            return this.length === 0 ? undefined : this[0] === window ? pageXOffset : this[0].scrollTop;
 	        }
 	        return this.each(function(el){
 	            el.scrollLeft = val;
