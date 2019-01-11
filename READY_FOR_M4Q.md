@@ -37,7 +37,7 @@
 - [x] Donut
 - [x] Draggable
 - [x] Dropdown
-- [ ] File
+- [x] File
 - [ ] Gravatar
 - [ ] Hints
 - [x] HTML container

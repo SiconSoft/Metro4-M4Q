@@ -103,7 +103,7 @@
 	    return out;
 	};
 	
-	m4q.export = function(ctx){
+	m4q.import = function(ctx){
 	    var res = [], out = m4q();
 	    this.each(ctx, function(el){
 	        res.push(el);
