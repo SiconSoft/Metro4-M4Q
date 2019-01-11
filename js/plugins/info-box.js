@@ -30,9 +30,9 @@ var InfoBox = {
     },
 
     _setOptionsFromDOM: function(){
-        var that = this, element = this.element, o = this.options;
+        var element = this.element, o = this.options;
 
-        $.each(element.data(), function(key, value){
+        $.each(element.data(), function(value, key){
             if (key in o) {
                 try {
                     o[key] = JSON.parse(value);
@@ -44,7 +44,7 @@ var InfoBox = {
     },
 
     _create: function(){
-        var that = this, element = this.element, o = this.options;
+        var element = this.element, o = this.options;
 
         this._createStructure();
         this._createEvents();
@@ -53,7 +53,7 @@ var InfoBox = {
     },
 
     _overlay: function(){
-        var that = this, element = this.element, o = this.options;
+        var o = this.options;
 
         var overlay = $("<div>");
         overlay.addClass("overlay").addClass(o.clsOverlay);
@@ -70,7 +70,7 @@ var InfoBox = {
     },
 
     _createStructure: function(){
-        var that = this, element = this.element, o = this.options;
+        var element = this.element, o = this.options;
         var closer, content;
 
         if (o.overlay === true) {
@@ -110,7 +110,7 @@ var InfoBox = {
     },
 
     _createEvents: function(){
-        var that = this, element = this.element, o = this.options;
+        var that = this, element = this.element;
 
         element.on(Metro.events.click, ".closer", function(){
             that.close();
@@ -120,7 +120,7 @@ var InfoBox = {
             that.close();
         });
 
-        $(window).on(Metro.events.resize + "_" + element.attr("id"), function(){
+        $(window).on(Metro.events.resize + "." + element.attr("id"), function(){
             that.reposition();
         });
     },
@@ -138,7 +138,7 @@ var InfoBox = {
     },
 
     setContent: function(c){
-        var that = this, element = this.element, o = this.options;
+        var element = this.element;
         var content = element.find(".info-box-content");
         if (content.length === 0) {
             return ;
@@ -148,7 +148,7 @@ var InfoBox = {
     },
 
     setType: function(t){
-        var that = this, element = this.element, o = this.options;
+        var element = this.element;
         element.removeClass("success info alert warning").addClass(t);
     },
 
@@ -175,7 +175,7 @@ var InfoBox = {
     },
 
     close: function(){
-        var that = this, element = this.element, o = this.options;
+        var element = this.element, o = this.options;
 
         if (o.overlay === true) {
             $('body').find('.overlay').remove();
@@ -204,11 +204,11 @@ var InfoBox = {
     },
 
     destroy: function(){
-        var that = this, element = this.element, o = this.options;
+        var element = this.element;
 
         element.off(Metro.events.click, ".closer");
         element.off(Metro.events.click, ".js-dialog-close");
-        $(window).off(Metro.events.resize + "_" + element.attr("id"));
+        $(window).off(Metro.events.resize + "." + element.attr("id"));
     }
 };
 
@@ -274,7 +274,7 @@ Metro['infobox'] = {
     },
 
     create: function(c, t, o, open){
-        var el, ib, box_type, con;
+        var el, ib, box_type;
 
         box_type = t !== undefined ? t : "";
 

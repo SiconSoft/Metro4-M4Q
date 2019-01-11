@@ -43,7 +43,7 @@
 - [x] HTML container
 - [x] Image comparer
 - [x] Image magnifier
-- [ ] InfoBox
+- [x] InfoBox
 - [ ] Input
 - [ ] Input Material
 - [ ] Keypad
