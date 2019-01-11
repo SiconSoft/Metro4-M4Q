@@ -38,7 +38,7 @@
 - [x] Draggable
 - [x] Dropdown
 - [x] File
-- [ ] Gravatar
+- [x] Gravatar
 - [ ] Hints
 - [x] HTML container
 - [ ] Image comparer
