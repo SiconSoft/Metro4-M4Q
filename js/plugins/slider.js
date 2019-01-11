@@ -161,20 +161,21 @@ var Slider = {
         var hint = slider.find(".hint");
 
         marker.on(Metro.events.start, function(){
-            $(document).on(Metro.events.move, function(e){
-                if (o.hint === true && o.hintAlways !== true) {
-                    hint.fadeIn();
-                }
+            if (o.hint === true && o.hintAlways !== true) {
+                hint.fadeIn(300);
+            }
+
+            $(document).on(Metro.events.move+".slider", function(e){
                 that._move(e);
                 Utils.exec(o.onMove, [that.value, that.percent, slider]);
             });
 
-            $(document).on(Metro.events.stop, function(){
-                $(document).off(Metro.events.move);
-                $(document).off(Metro.events.stop);
+            $(document).on(Metro.events.stop+".slider", function(){
+                $(document).off(Metro.events.move+".slider");
+                $(document).off(Metro.events.stop+".slider");
 
                 if (o.hintAlways !== true) {
-                    hint.fadeOut();
+                    hint.fadeOut(300);
                 }
 
                 Utils.exec(o.onStop, [that.value, that.percent, slider]);

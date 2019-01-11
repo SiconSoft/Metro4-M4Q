@@ -74,7 +74,7 @@ if (meta_m4q_global && JSON.parse(meta_m4q_global) === true) {
 }
 
 if (window.METRO_JQUERY === undefined) {
-    window.METRO_JQUERY = meta_jquery !== undefined ? JSON.parse(meta_jquery) : true;
+    window.METRO_JQUERY = meta_jquery !== undefined ? JSON.parse(meta_jquery) : false;
 }
 
 if (!METRO_JQUERY && typeof window.$ === "undefined" ) {
@@ -436,10 +436,8 @@ var Metro = {
                 if ($.fn[func] !== undefined && $this.attr("data-role-"+func) === undefined) {
 
                     if (METRO_JQUERY && jQueryPresent) {
-                        console.log("---");
                         jQuery.fn[func].call($this);
                     } else {
-                        console.log("+++");
                         $.fn[func].call($this);
                     }
 
