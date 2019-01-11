@@ -41,7 +41,7 @@
 - [x] Gravatar
 - [x] Hints
 - [x] HTML container
-- [ ] Image comparer
+- [x] Image comparer
 - [ ] Image magnifier
 - [ ] InfoBox
 - [ ] Input
