@@ -228,15 +228,16 @@ var Dialog = {
             content.appendTo(element);
         }
 
-        if (!Utils.isM4QObject(c) && Utils.isFunc(c)) {
+        if ( !Utils.isQ(c) && Utils.isFunc(c)) {
             c = Utils.exec(c);
         }
 
-        if (Utils.isM4QObject(c)) {
+        if (Utils.isQ(c)) {
             c.appendTo(content);
         } else {
             content.html(c);
         }
+
     },
 
     setTitle: function(t){

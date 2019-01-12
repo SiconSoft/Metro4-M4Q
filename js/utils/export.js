@@ -53,7 +53,7 @@ var Export = {
 
         o = $.extend({}, o, options);
 
-        if (Utils.isJQueryObject(table)) {
+        if (Utils.isQ(table)) {
             table = table[0];
         }
 

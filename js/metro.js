@@ -461,7 +461,7 @@ var Metro = {
 
     destroyPlugin: function(element, name){
         var p, mc;
-        element = Utils.isM4QObject(element) ? element[0] : element;
+        element = Utils.isQ(element) ? element[0] : element;
         p = $(element).data(name);
 
         if (!Utils.isValue(p)) {
@@ -481,7 +481,7 @@ var Metro = {
     },
 
     destroyPluginAll: function(element){
-        element = Utils.isM4QObject(element) ? element[0] : element;
+        element = Utils.isQ(element) ? element[0] : element;
         var mc = $(element).data("metroComponent");
 
         if (mc !== undefined && mc.length > 0) $.each(mc, function(){

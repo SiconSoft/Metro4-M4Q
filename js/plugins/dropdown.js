@@ -110,7 +110,7 @@ var Dropdown = {
 
     _close: function(el){
 
-        if (Utils.isM4QObject(el) === false) {
+        if (Utils.isQ(el) === false) {
             el = $(el);
         }
 
@@ -128,7 +128,7 @@ var Dropdown = {
     },
 
     _open: function(el){
-        if (Utils.isM4QObject(el) === false) {
+        if (Utils.isQ(el) === false) {
             el = $(el);
         }
 

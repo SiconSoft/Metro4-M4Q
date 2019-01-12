@@ -259,8 +259,8 @@ var Colors = {
     colors: function(palette){
         var c = [];
         palette = palette || this.PALETTES.ALL;
-        $.each(this[palette], function(){
-            c.push(this);
+        $.each(this[palette], function(p){
+            c.push(p);
         });
         return c;
     },

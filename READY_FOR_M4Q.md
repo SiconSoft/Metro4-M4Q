@@ -1,18 +1,18 @@
-# List of components who ready for using with M4Q
+# Ready list
 
 ### Core
 - [x] Metro.js
 
 ### Utils
 - [x] Animation
-- [ ] Colors
-- [ ] Easing
+- [x] Colors
+- [x] Easing
 - [ ] Export
-- [ ] Extensions
-- [ ] i18n
-- [ ] md5
-- [ ] Storage
-- [ ] Tpl
+- [x] Extensions
+- [x] i18n
+- [x] md5
+- [x] Storage
+- [x] Tpl
 - [x] Utilities
 
 ### Plugins
@@ -45,7 +45,7 @@
 - [x] Image magnifier
 - [x] InfoBox
 - [x] Input
-- [ ] Input Material
+- [x] Input Material
 - [ ] Keypad
 - [ ] List
 - [ ] ListView

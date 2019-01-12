@@ -2307,7 +2307,7 @@ var Metro = {
 
     destroyPlugin: function(element, name){
         var p, mc;
-        element = Utils.isM4QObject(element) ? element[0] : element;
+        element = Utils.isQ(element) ? element[0] : element;
         p = $(element).data(name);
 
         if (!Utils.isValue(p)) {
@@ -2327,7 +2327,7 @@ var Metro = {
     },
 
     destroyPluginAll: function(element){
-        element = Utils.isM4QObject(element) ? element[0] : element;
+        element = Utils.isQ(element) ? element[0] : element;
         var mc = $(element).data("metroComponent");
 
         if (mc !== undefined && mc.length > 0) $.each(mc, function(){
@@ -2545,6 +2545,66 @@ var Animation = {
 };
 
 Metro['animation'] = Animation;
+
+// Source: js/utils/array-ext.js
+
+Array.prototype.shuffle = function () {
+    var currentIndex = this.length, temporaryValue, randomIndex;
+
+    while (0 !== currentIndex) {
+
+        randomIndex = Math.floor(Math.random() * currentIndex);
+        currentIndex -= 1;
+
+        temporaryValue = this[currentIndex];
+        this[currentIndex] = this[randomIndex];
+        this[randomIndex] = temporaryValue;
+    }
+
+    return this;
+};
+
+Array.prototype.clone = function () {
+    return this.slice(0);
+};
+
+Array.prototype.unique = function () {
+    var a = this.concat();
+    for (var i = 0; i < a.length; ++i) {
+        for (var j = i + 1; j < a.length; ++j) {
+            if (a[i] === a[j])
+                a.splice(j--, 1);
+        }
+    }
+
+    return a;
+};
+
+if (!Array.from) {
+    Array.from = function(val) {
+        var i, a = [];
+
+        if (val.length === undefined && typeof val === "object") {
+            return Object.values(val);
+        }
+
+        if (val.length !== undefined) {
+            for(i = 0; i < val.length; i++) {
+                a.push(val[i]);
+            }
+            return a;
+        }
+
+        throw new Error("Value can not be converted to array");
+    };
+}
+
+if (typeof Array.contains !== "function") {
+    Array.prototype.contains = function(val, from){
+        return this.indexOf(val, from) > -1;
+    }
+}
+
 
 // Source: js/utils/colors.js
 
@@ -2809,8 +2869,8 @@ var Colors = {
     colors: function(palette){
         var c = [];
         palette = palette || this.PALETTES.ALL;
-        $.each(this[palette], function(){
-            c.push(this);
+        $.each(this[palette], function(p){
+            c.push(p);
         });
         return c;
     },
@@ -3426,496 +3486,9 @@ var Colors = {
 
 Metro['colors'] = Colors.init();
 
-// Source: js/utils/easing.js
+// Source: js/utils/date-ext.js
 
-$.extend($.easing, {
-    def: 'easeOutQuad',
-    swing: function (x, t, b, c, d) {
-        //alert($.easing.default);
-        return $.easing[$.easing.def](x, t, b, c, d);
-    },
-    easeInQuad: function (x, t, b, c, d) {
-        return c * (t /= d) * t + b;
-    },
-    easeOutQuad: function (x, t, b, c, d) {
-        return -c * (t /= d) * (t - 2) + b;
-    },
-    easeInOutQuad: function (x, t, b, c, d) {
-        if ((t /= d / 2) < 1) return c / 2 * t * t + b;
-        return -c / 2 * ((--t) * (t - 2) - 1) + b;
-    },
-    easeInCubic: function (x, t, b, c, d) {
-        return c * (t /= d) * t * t + b;
-    },
-    easeOutCubic: function (x, t, b, c, d) {
-        return c * ((t = t / d - 1) * t * t + 1) + b;
-    },
-    easeInOutCubic: function (x, t, b, c, d) {
-        if ((t /= d / 2) < 1) return c / 2 * t * t * t + b;
-        return c / 2 * ((t -= 2) * t * t + 2) + b;
-    },
-    easeInQuart: function (x, t, b, c, d) {
-        return c * (t /= d) * t * t * t + b;
-    },
-    easeOutQuart: function (x, t, b, c, d) {
-        return -c * ((t = t / d - 1) * t * t * t - 1) + b;
-    },
-    easeInOutQuart: function (x, t, b, c, d) {
-        if ((t /= d / 2) < 1) return c / 2 * t * t * t * t + b;
-        return -c / 2 * ((t -= 2) * t * t * t - 2) + b;
-    },
-    easeInQuint: function (x, t, b, c, d) {
-        return c * (t /= d) * t * t * t * t + b;
-    },
-    easeOutQuint: function (x, t, b, c, d) {
-        return c * ((t = t / d - 1) * t * t * t * t + 1) + b;
-    },
-    easeInOutQuint: function (x, t, b, c, d) {
-        if ((t /= d / 2) < 1) return c / 2 * t * t * t * t * t + b;
-        return c / 2 * ((t -= 2) * t * t * t * t + 2) + b;
-    },
-    easeInSine: function (x, t, b, c, d) {
-        return -c * Math.cos(t / d * (Math.PI / 2)) + c + b;
-    },
-    easeOutSine: function (x, t, b, c, d) {
-        return c * Math.sin(t / d * (Math.PI / 2)) + b;
-    },
-    easeInOutSine: function (x, t, b, c, d) {
-        return -c / 2 * (Math.cos(Math.PI * t / d) - 1) + b;
-    },
-    easeInExpo: function (x, t, b, c, d) {
-        return (t == 0) ? b : c * Math.pow(2, 10 * (t / d - 1)) + b;
-    },
-    easeOutExpo: function (x, t, b, c, d) {
-        return (t == d) ? b + c : c * (-Math.pow(2, -10 * t / d) + 1) + b;
-    },
-    easeInOutExpo: function (x, t, b, c, d) {
-        if (t == 0) return b;
-        if (t == d) return b + c;
-        if ((t /= d / 2) < 1) return c / 2 * Math.pow(2, 10 * (t - 1)) + b;
-        return c / 2 * (-Math.pow(2, -10 * --t) + 2) + b;
-    },
-    easeInCirc: function (x, t, b, c, d) {
-        return -c * (Math.sqrt(1 - (t /= d) * t) - 1) + b;
-    },
-    easeOutCirc: function (x, t, b, c, d) {
-        return c * Math.sqrt(1 - (t = t / d - 1) * t) + b;
-    },
-    easeInOutCirc: function (x, t, b, c, d) {
-        if ((t /= d / 2) < 1) return -c / 2 * (Math.sqrt(1 - t * t) - 1) + b;
-        return c / 2 * (Math.sqrt(1 - (t -= 2) * t) + 1) + b;
-    },
-    easeInElastic: function (x, t, b, c, d) {
-        var s = 1.70158;
-        var p = 0;
-        var a = c;
-        if (t == 0) return b;
-        if ((t /= d) == 1) return b + c;
-        if (!p) p = d * .3;
-        if (a < Math.abs(c)) {
-            a = c;
-            s = p / 4;
-        }
-        else s = p / (2 * Math.PI) * Math.asin(c / a);
-        return -(a * Math.pow(2, 10 * (t -= 1)) * Math.sin((t * d - s) * (2 * Math.PI) / p)) + b;
-    },
-    easeOutElastic: function (x, t, b, c, d) {
-        var s = 1.70158;
-        var p = 0;
-        var a = c;
-        if (t == 0) return b;
-        if ((t /= d) == 1) return b + c;
-        if (!p) p = d * .3;
-        if (a < Math.abs(c)) {
-            a = c;
-            s = p / 4;
-        }
-        else s = p / (2 * Math.PI) * Math.asin(c / a);
-        return a * Math.pow(2, -10 * t) * Math.sin((t * d - s) * (2 * Math.PI) / p) + c + b;
-    },
-    easeInOutElastic: function (x, t, b, c, d) {
-        var s = 1.70158;
-        var p = 0;
-        var a = c;
-        if (t == 0) return b;
-        if ((t /= d / 2) == 2) return b + c;
-        if (!p) p = d * (.3 * 1.5);
-        if (a < Math.abs(c)) {
-            a = c;
-            s = p / 4;
-        }
-        else s = p / (2 * Math.PI) * Math.asin(c / a);
-        if (t < 1) return -.5 * (a * Math.pow(2, 10 * (t -= 1)) * Math.sin((t * d - s) * (2 * Math.PI) / p)) + b;
-        return a * Math.pow(2, -10 * (t -= 1)) * Math.sin((t * d - s) * (2 * Math.PI) / p) * .5 + c + b;
-    },
-    easeInBack: function (x, t, b, c, d, s) {
-        if (s == undefined) s = 1.70158;
-        return c * (t /= d) * t * ((s + 1) * t - s) + b;
-    },
-    easeOutBack: function (x, t, b, c, d, s) {
-        if (s == undefined) s = 1.70158;
-        return c * ((t = t / d - 1) * t * ((s + 1) * t + s) + 1) + b;
-    },
-    easeInOutBack: function (x, t, b, c, d, s) {
-        if (s == undefined) s = 1.70158;
-        if ((t /= d / 2) < 1) return c / 2 * (t * t * (((s *= (1.525)) + 1) * t - s)) + b;
-        return c / 2 * ((t -= 2) * t * (((s *= (1.525)) + 1) * t + s) + 2) + b;
-    },
-    easeInBounce: function (x, t, b, c, d) {
-        return c - $.easing.easeOutBounce(x, d - t, 0, c, d) + b;
-    },
-    easeOutBounce: function (x, t, b, c, d) {
-        if ((t /= d) < (1 / 2.75)) {
-            return c * (7.5625 * t * t) + b;
-        } else if (t < (2 / 2.75)) {
-            return c * (7.5625 * (t -= (1.5 / 2.75)) * t + .75) + b;
-        } else if (t < (2.5 / 2.75)) {
-            return c * (7.5625 * (t -= (2.25 / 2.75)) * t + .9375) + b;
-        } else {
-            return c * (7.5625 * (t -= (2.625 / 2.75)) * t + .984375) + b;
-        }
-    },
-    easeInOutBounce: function (x, t, b, c, d) {
-        if (t < d / 2) return $.easing.easeInBounce(x, t * 2, 0, c, d) * .5 + b;
-        return $.easing.easeOutBounce(x, t * 2 - d, 0, c, d) * .5 + c * .5 + b;
-    }
-});
 
-
-// Source: js/utils/export.js
-
-var Export = {
-
-    init: function(){
-        return this;
-    },
-
-    options: {
-        csvDelimiter: "\t",
-        csvNewLine: "\r\n",
-        includeHeader: true
-    },
-
-    setup: function(options){
-        this.options = $.extend({}, this.options, options);
-        return this;
-    },
-
-    base64: function(data){
-        return window.btoa(unescape(encodeURIComponent(data)));
-    },
-
-    b64toBlob: function (b64Data, contentType, sliceSize) {
-        contentType = contentType || '';
-        sliceSize = sliceSize || 512;
-
-        var byteCharacters = window.atob(b64Data);
-        var byteArrays = [];
-
-        var offset;
-        for (offset = 0; offset < byteCharacters.length; offset += sliceSize) {
-            var slice = byteCharacters.slice(offset, offset + sliceSize);
-
-            var byteNumbers = new Array(slice.length);
-            var i;
-            for (i = 0; i < slice.length; i = i + 1) {
-                byteNumbers[i] = slice.charCodeAt(i);
-            }
-
-            var byteArray = new window.Uint8Array(byteNumbers);
-
-            byteArrays.push(byteArray);
-        }
-
-        return new Blob(byteArrays, {
-            type: contentType
-        });
-    },
-
-    tableToCSV: function(table, filename, options){
-        var that = this, o = this.options;
-        var body, head, data = "";
-        var i, j, row, cell;
-
-        o = $.extend({}, o, options);
-
-        if (Utils.isJQueryObject(table)) {
-            table = table[0];
-        }
-
-        if (Utils.bool(o.includeHeader)) {
-
-            head = table.querySelectorAll("thead")[0];
-
-            for(i = 0; i < head.rows.length; i++) {
-                row = head.rows[i];
-                for(j = 0; j < row.cells.length; j++){
-                    cell = row.cells[j];
-                    data += (j ? o.csvDelimiter : '') + cell.textContent.trim();
-                }
-                data += o.csvNewLine;
-            }
-        }
-
-        body = table.querySelectorAll("tbody")[0];
-
-        for(i = 0; i < body.rows.length; i++) {
-            row = body.rows[i];
-            for(j = 0; j < row.cells.length; j++){
-                cell = row.cells[j];
-                data += (j ? o.csvDelimiter : '') + cell.textContent.trim();
-            }
-            data += o.csvNewLine;
-        }
-
-        if (Utils.isValue(filename)) {
-            return this.createDownload(this.base64("\uFEFF" + data), 'application/csv', filename);
-        }
-
-        return data;
-    },
-
-    createDownload: function (data, contentType, filename) {
-        var blob, anchor, url;
-
-        anchor = document.createElement('a');
-        anchor.style.display = "none";
-        document.body.appendChild(anchor);
-
-        blob = this.b64toBlob(data, contentType);
-
-        url = window.URL.createObjectURL(blob);
-        anchor.href = url;
-        anchor.download = filename || Utils.elementId("download");
-        anchor.click();
-        window.URL.revokeObjectURL(url);
-        document.body.removeChild(anchor);
-        return true;
-    }
-};
-
-Metro['export'] = Export.init();
-
-
-// Source: js/utils/extensions.js
-
-$.fn.extend({
-    toggleAttr: function(a, v){
-        return this.each(function(){
-            var el = $(this);
-            if (v !== undefined) {
-                el.attr(a, v);
-            } else {
-                if (el.attr(a) !== undefined) {
-                    el.removeAttr(a);
-                } else {
-                    el.attr(a, ""+a);
-                }
-            }
-        });
-    },
-    clearClasses: function(){
-        return this.each(function(){
-            this.className = "";
-        });
-    }
-});
-
-Array.prototype.shuffle = function () {
-    var currentIndex = this.length, temporaryValue, randomIndex;
-
-    while (0 !== currentIndex) {
-
-        randomIndex = Math.floor(Math.random() * currentIndex);
-        currentIndex -= 1;
-
-        temporaryValue = this[currentIndex];
-        this[currentIndex] = this[randomIndex];
-        this[randomIndex] = temporaryValue;
-    }
-
-    return this;
-};
-
-Array.prototype.clone = function () {
-    return this.slice(0);
-};
-
-Array.prototype.unique = function () {
-    var a = this.concat();
-    for (var i = 0; i < a.length; ++i) {
-        for (var j = i + 1; j < a.length; ++j) {
-            if (a[i] === a[j])
-                a.splice(j--, 1);
-        }
-    }
-
-    return a;
-};
-
-if (!Array.from) {
-    Array.from = function(val) {
-        var i, a = [];
-
-        if (val.length === undefined && typeof val === "object") {
-            return Object.values(val);
-        }
-
-        if (val.length !== undefined) {
-            for(i = 0; i < val.length; i++) {
-                a.push(val[i]);
-            }
-            return a;
-        }
-
-        throw new Error("Value can not be converted to array");
-    };
-}
-
-if (typeof Array.contains !== "function") {
-    Array.prototype.contains = function(val, from){
-        return this.indexOf(val, from) > -1;
-    }
-}
-
-/**
- * Number.prototype.format(n, x, s, c)
- *
- * @param  n: length of decimal
- * @param  x: length of whole part
- * @param  s: sections delimiter
- * @param  c: decimal delimiter
- */
-Number.prototype.format = function(n, x, s, c) {
-    var re = '\\d(?=(\\d{' + (x || 3) + '})+' + (n > 0 ? '\\D' : '$') + ')',
-        num = this.toFixed(Math.max(0, ~~n));
-
-    return (c ? num.replace('.', c) : num).replace(new RegExp(re, 'g'), '$&' + (s || ','));
-};
-
-String.prototype.capitalize = function() {
-    return this.charAt(0).toUpperCase() + this.slice(1);
-};
-
-String.prototype.contains = function() {
-    return !!~String.prototype.indexOf.apply(this, arguments);
-};
-
-String.prototype.toDate = function(format, locale) {
-    var result;
-    var normalized, normalizedFormat, formatItems, dateItems, checkValue;
-    var monthIndex, dayIndex, yearIndex, hourIndex, minutesIndex, secondsIndex;
-    var year, month, day, hour, minute, second;
-    var parsedMonth;
-
-    locale = locale || "en-US";
-
-    var monthNameToNumber = function(month){
-        var d, months, index, i;
-
-        month = month.substr(0, 3);
-
-        if (
-               locale !== undefined
-            && locale !== "en-US"
-            && Locales !== undefined
-            && Locales[locale] !== undefined
-            && Locales[locale]['calendar'] !== undefined
-            && Locales[locale]['calendar']['months'] !== undefined
-        ) {
-            months = Locales[locale]['calendar']['months'];
-            for(i = 12; i < months.length; i++) {
-                if (months[i].toLowerCase() === month.toLowerCase()) {
-                    index = i - 12;
-                    break;
-                }
-            }
-            month = Locales["en-US"]['calendar']['months'][index];
-        }
-
-        d = Date.parse(month + " 1, 1972");
-        if(!isNaN(d)){
-            return new Date(d).getMonth() + 1;
-        }
-        return -1;
-    };
-
-    if (format === undefined || format === null || format === "") {
-        return new Date(this);
-    }
-
-    // normalized      = this.replace(/[^a-zA-Z0-9%]/g, '-');
-    normalized      = this.replace(/[\/,.:\s]/g, '-');
-    normalizedFormat= format.toLowerCase().replace(/[^a-zA-Z0-9%]/g, '-');
-    formatItems     = normalizedFormat.split('-');
-    dateItems       = normalized.split('-');
-    checkValue      = normalized.replace(/\-/g,"");
-
-    if (checkValue.trim() === "") {
-        return "Invalid Date";
-    }
-
-    monthIndex  = formatItems.indexOf("mm") > -1 ? formatItems.indexOf("mm") : formatItems.indexOf("%m");
-    dayIndex    = formatItems.indexOf("dd") > -1 ? formatItems.indexOf("dd") : formatItems.indexOf("%d");
-    yearIndex   = formatItems.indexOf("yyyy") > -1 ? formatItems.indexOf("yyyy") : formatItems.indexOf("yy") > -1 ? formatItems.indexOf("yy") : formatItems.indexOf("%y");
-    hourIndex     = formatItems.indexOf("hh") > -1 ? formatItems.indexOf("hh") : formatItems.indexOf("%h");
-    minutesIndex  = formatItems.indexOf("ii") > -1 ? formatItems.indexOf("ii") : formatItems.indexOf("mi") > -1 ? formatItems.indexOf("mi") : formatItems.indexOf("%i");
-    secondsIndex  = formatItems.indexOf("ss") > -1 ? formatItems.indexOf("ss") : formatItems.indexOf("%s");
-
-    if (monthIndex > -1 && dateItems[monthIndex] !== "") {
-        if (isNaN(parseInt(dateItems[monthIndex]))) {
-            dateItems[monthIndex] = monthNameToNumber(dateItems[monthIndex]);
-            if (dateItems[monthIndex] === -1) {
-                return "Invalid Date";
-            }
-        } else {
-            parsedMonth = parseInt(dateItems[monthIndex]);
-            if (parsedMonth < 1 || parsedMonth > 12) {
-                return "Invalid Date";
-            }
-        }
-    } else {
-        return "Invalid Date";
-    }
-
-    year  = yearIndex >-1 && dateItems[yearIndex] !== "" ? dateItems[yearIndex] : null;
-    month = monthIndex >-1 && dateItems[monthIndex] !== "" ? dateItems[monthIndex] : null;
-    day   = dayIndex >-1 && dateItems[dayIndex] !== "" ? dateItems[dayIndex] : null;
-
-    hour    = hourIndex >-1 && dateItems[hourIndex] !== "" ? dateItems[hourIndex] : null;
-    minute  = minutesIndex>-1 && dateItems[minutesIndex] !== "" ? dateItems[minutesIndex] : null;
-    second  = secondsIndex>-1 && dateItems[secondsIndex] !== "" ? dateItems[secondsIndex] : null;
-
-    result = new Date(year,month-1,day,hour,minute,second);
-
-    return result;
-};
-
-String.prototype.toArray = function(delimiter, type, format){
-    var str = this;
-    var a;
-
-    type = type || "string";
-    delimiter = delimiter || ",";
-    format = format === undefined || format === null ? false : format;
-
-    a = (""+str).split(delimiter);
-
-    return a.map(function(s){
-        var result;
-
-        switch (type) {
-            case "int":
-            case "integer": result = parseInt(s); break;
-            case "number":
-            case "float": result = parseFloat(s); break;
-            case "date": result = !format ? new Date(s) : s.toDate(format); break;
-            default: result = s.trim();
-        }
-
-        return result;
-    });
-};
 
 Date.prototype.getWeek = function (dowOffset) {
     var nYear, nday, newYear, day, daynum, weeknum;
@@ -4045,6 +3618,121 @@ Date.prototype.addYears = function(n) {
     this.setFullYear(this.getFullYear() + (n));
     return this;
 };
+
+
+// Source: js/utils/export.js
+
+var Export = {
+
+    init: function(){
+        return this;
+    },
+
+    options: {
+        csvDelimiter: "\t",
+        csvNewLine: "\r\n",
+        includeHeader: true
+    },
+
+    setup: function(options){
+        this.options = $.extend({}, this.options, options);
+        return this;
+    },
+
+    base64: function(data){
+        return window.btoa(unescape(encodeURIComponent(data)));
+    },
+
+    b64toBlob: function (b64Data, contentType, sliceSize) {
+        contentType = contentType || '';
+        sliceSize = sliceSize || 512;
+
+        var byteCharacters = window.atob(b64Data);
+        var byteArrays = [];
+
+        var offset;
+        for (offset = 0; offset < byteCharacters.length; offset += sliceSize) {
+            var slice = byteCharacters.slice(offset, offset + sliceSize);
+
+            var byteNumbers = new Array(slice.length);
+            var i;
+            for (i = 0; i < slice.length; i = i + 1) {
+                byteNumbers[i] = slice.charCodeAt(i);
+            }
+
+            var byteArray = new window.Uint8Array(byteNumbers);
+
+            byteArrays.push(byteArray);
+        }
+
+        return new Blob(byteArrays, {
+            type: contentType
+        });
+    },
+
+    tableToCSV: function(table, filename, options){
+        var that = this, o = this.options;
+        var body, head, data = "";
+        var i, j, row, cell;
+
+        o = $.extend({}, o, options);
+
+        if (Utils.isQ(table)) {
+            table = table[0];
+        }
+
+        if (Utils.bool(o.includeHeader)) {
+
+            head = table.querySelectorAll("thead")[0];
+
+            for(i = 0; i < head.rows.length; i++) {
+                row = head.rows[i];
+                for(j = 0; j < row.cells.length; j++){
+                    cell = row.cells[j];
+                    data += (j ? o.csvDelimiter : '') + cell.textContent.trim();
+                }
+                data += o.csvNewLine;
+            }
+        }
+
+        body = table.querySelectorAll("tbody")[0];
+
+        for(i = 0; i < body.rows.length; i++) {
+            row = body.rows[i];
+            for(j = 0; j < row.cells.length; j++){
+                cell = row.cells[j];
+                data += (j ? o.csvDelimiter : '') + cell.textContent.trim();
+            }
+            data += o.csvNewLine;
+        }
+
+        if (Utils.isValue(filename)) {
+            return this.createDownload(this.base64("\uFEFF" + data), 'application/csv', filename);
+        }
+
+        return data;
+    },
+
+    createDownload: function (data, contentType, filename) {
+        var blob, anchor, url;
+
+        anchor = document.createElement('a');
+        anchor.style.display = "none";
+        document.body.appendChild(anchor);
+
+        blob = this.b64toBlob(data, contentType);
+
+        url = window.URL.createObjectURL(blob);
+        anchor.href = url;
+        anchor.download = filename || Utils.elementId("download");
+        anchor.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(anchor);
+        return true;
+    }
+};
+
+Metro['export'] = Export.init();
 
 
 // Source: js/utils/i18n.js
@@ -4698,52 +4386,35 @@ function bit_rol(num, cnt) {
 }
 
 
-// window.md5 = {
-//     hex: function(val){
-//         return hex_md5(val);
-//     },
-//
-//     b64: function(val){
-//         return b64_md5(val);
-//     },
-//
-//     any: function(s, e){
-//         return any_md5(s, e);
-//     },
-//
-//     hex_hmac: function(k, d){
-//         return hex_hmac_md5(k, d);
-//     },
-//
-//     b64_hmac: function(k, d){
-//         return b64_hmac_md5(k, d);
-//     },
-//
-//     any_hmac: function(k, d, e){
-//         return any_hmac_md5(k, d, e);
-//     }
-// };
+// Source: js/utils/number-ext.js
 
-//$.Metro['md5'] = hex_md5;
+
+/**
+ * Number.prototype.format(n, x, s, c)
+ *
+ * @param  n: length of decimal
+ * @param  x: length of whole part
+ * @param  s: sections delimiter
+ * @param  c: decimal delimiter
+ */
+Number.prototype.format = function(n, x, s, c) {
+    var re = '\\d(?=(\\d{' + (x || 3) + '})+' + (n > 0 ? '\\D' : '$') + ')',
+        num = this.toFixed(Math.max(0, ~~n));
+
+    return (c ? num.replace('.', c) : num).replace(new RegExp(re, 'g'), '$&' + (s || ','));
+};
+
 
 // Source: js/utils/storage.js
 
-var Storage = {
-    options: {
-        key: "METRO:APP",
-        storage: window.localStorage
-    },
 
-    init: function( options, elem ) {
-        this.options = $.extend( {}, this.options, options );
-        this.storage = this.options.storage;
-        this.key = this.options.key;
+var Storage = function(type){
+    return new Storage.init(type);
+};
 
-        return this;
-    },
-
+Storage.prototype = {
     setKey: function(key){
-        this.key = key;
+        this.key = key
     },
 
     getKey: function(){
@@ -4801,12 +4472,145 @@ var Storage = {
     }
 };
 
-Metro['storage'] = Object.create(Storage).init({
-    storage: localStorage
-});
-Metro['session'] = Object.create(Storage).init({
-    storage: sessionStorage
-});
+Storage.init = function(type){
+
+    this.key = "";
+    this.storage = type ? type : window.localStorage;
+
+    return this;
+};
+
+Storage.init.prototype = Storage.prototype;
+
+Metro['storage'] = Storage(window.localStorage);
+Metro['session'] = Storage(window.sessionStorage);
+
+
+// Source: js/utils/string-ext.js
+
+String.prototype.capitalize = function() {
+    return this.charAt(0).toUpperCase() + this.slice(1);
+};
+
+String.prototype.contains = function() {
+    return !!~String.prototype.indexOf.apply(this, arguments);
+};
+
+String.prototype.toDate = function(format, locale) {
+    var result;
+    var normalized, normalizedFormat, formatItems, dateItems, checkValue;
+    var monthIndex, dayIndex, yearIndex, hourIndex, minutesIndex, secondsIndex;
+    var year, month, day, hour, minute, second;
+    var parsedMonth;
+
+    locale = locale || "en-US";
+
+    var monthNameToNumber = function(month){
+        var d, months, index, i;
+
+        month = month.substr(0, 3);
+
+        if (
+            locale !== undefined
+            && locale !== "en-US"
+            && Locales !== undefined
+            && Locales[locale] !== undefined
+            && Locales[locale]['calendar'] !== undefined
+            && Locales[locale]['calendar']['months'] !== undefined
+        ) {
+            months = Locales[locale]['calendar']['months'];
+            for(i = 12; i < months.length; i++) {
+                if (months[i].toLowerCase() === month.toLowerCase()) {
+                    index = i - 12;
+                    break;
+                }
+            }
+            month = Locales["en-US"]['calendar']['months'][index];
+        }
+
+        d = Date.parse(month + " 1, 1972");
+        if(!isNaN(d)){
+            return new Date(d).getMonth() + 1;
+        }
+        return -1;
+    };
+
+    if (format === undefined || format === null || format === "") {
+        return new Date(this);
+    }
+
+    // normalized      = this.replace(/[^a-zA-Z0-9%]/g, '-');
+    normalized      = this.replace(/[\/,.:\s]/g, '-');
+    normalizedFormat= format.toLowerCase().replace(/[^a-zA-Z0-9%]/g, '-');
+    formatItems     = normalizedFormat.split('-');
+    dateItems       = normalized.split('-');
+    checkValue      = normalized.replace(/\-/g,"");
+
+    if (checkValue.trim() === "") {
+        return "Invalid Date";
+    }
+
+    monthIndex  = formatItems.indexOf("mm") > -1 ? formatItems.indexOf("mm") : formatItems.indexOf("%m");
+    dayIndex    = formatItems.indexOf("dd") > -1 ? formatItems.indexOf("dd") : formatItems.indexOf("%d");
+    yearIndex   = formatItems.indexOf("yyyy") > -1 ? formatItems.indexOf("yyyy") : formatItems.indexOf("yy") > -1 ? formatItems.indexOf("yy") : formatItems.indexOf("%y");
+    hourIndex     = formatItems.indexOf("hh") > -1 ? formatItems.indexOf("hh") : formatItems.indexOf("%h");
+    minutesIndex  = formatItems.indexOf("ii") > -1 ? formatItems.indexOf("ii") : formatItems.indexOf("mi") > -1 ? formatItems.indexOf("mi") : formatItems.indexOf("%i");
+    secondsIndex  = formatItems.indexOf("ss") > -1 ? formatItems.indexOf("ss") : formatItems.indexOf("%s");
+
+    if (monthIndex > -1 && dateItems[monthIndex] !== "") {
+        if (isNaN(parseInt(dateItems[monthIndex]))) {
+            dateItems[monthIndex] = monthNameToNumber(dateItems[monthIndex]);
+            if (dateItems[monthIndex] === -1) {
+                return "Invalid Date";
+            }
+        } else {
+            parsedMonth = parseInt(dateItems[monthIndex]);
+            if (parsedMonth < 1 || parsedMonth > 12) {
+                return "Invalid Date";
+            }
+        }
+    } else {
+        return "Invalid Date";
+    }
+
+    year  = yearIndex >-1 && dateItems[yearIndex] !== "" ? dateItems[yearIndex] : null;
+    month = monthIndex >-1 && dateItems[monthIndex] !== "" ? dateItems[monthIndex] : null;
+    day   = dayIndex >-1 && dateItems[dayIndex] !== "" ? dateItems[dayIndex] : null;
+
+    hour    = hourIndex >-1 && dateItems[hourIndex] !== "" ? dateItems[hourIndex] : null;
+    minute  = minutesIndex>-1 && dateItems[minutesIndex] !== "" ? dateItems[minutesIndex] : null;
+    second  = secondsIndex>-1 && dateItems[secondsIndex] !== "" ? dateItems[secondsIndex] : null;
+
+    result = new Date(year,month-1,day,hour,minute,second);
+
+    return result;
+};
+
+String.prototype.toArray = function(delimiter, type, format){
+    var str = this;
+    var a;
+
+    type = type || "string";
+    delimiter = delimiter || ",";
+    format = format === undefined || format === null ? false : format;
+
+    a = (""+str).split(delimiter);
+
+    return a.map(function(s){
+        var result;
+
+        switch (type) {
+            case "int":
+            case "integer": result = parseInt(s); break;
+            case "number":
+            case "float": result = parseFloat(s); break;
+            case "date": result = !format ? new Date(s) : s.toDate(format); break;
+            default: result = s.trim();
+        }
+
+        return result;
+    });
+};
 
 
 // Source: js/utils/tpl.js
@@ -4975,13 +4779,21 @@ var Utils = {
         return true;
     },
 
+    isQ: function(el){
+        return Utils.isM4QObject(el) || Utils.isJQueryObject(el);
+    },
+
     isM4QObject: function(el){
         return (typeof m4q === "function" && el instanceof m4q);
     },
 
+    isJQueryObject: function(el){
+        return (typeof jQuery === "function" && el instanceof jQuery);
+    },
+
     embedObject: function(val){
         if (typeof  val !== "string" ) {
-            val = Utils.isM4QObject(val) ? val.html() : val.innerHTML;
+            val = Utils.isQ(val) ? val.html() : val.innerHTML;
         }
         return "<div class='embed-container'>" + val + "</div>";
     },
@@ -5082,7 +4894,7 @@ var Utils = {
     },
 
     isOutsider: function(el) {
-        el = Utils.isM4QObject(el) ? el[0] : el;
+        el = Utils.isQ(el) ? el[0] : el;
         var rect;
         var clone = el.cloneNode(true), $clone = $(clone);
 
@@ -5116,7 +4928,7 @@ var Utils = {
     },
 
     rect: function(el){
-        if (Utils.isM4QObject(el)) {
+        if (Utils.isQ(el)) {
             el = el[0];
         }
 
@@ -5322,7 +5134,7 @@ var Utils = {
     },
 
     coords: function(el){
-        if (Utils.isM4QObject(el)) {
+        if (Utils.isQ(el)) {
             el = el[0];
         }
 
@@ -5391,7 +5203,7 @@ var Utils = {
     },
 
     getStyle: function(el, pseudo){
-        if (Utils.isM4QObject(el) === true) {
+        if (Utils.isQ(el) === true) {
             el  = el[0];
         }
         return window.getComputedStyle(el, pseudo);
@@ -5470,7 +5282,7 @@ var Utils = {
 
     getInlineStyles: function(el){
         var styles = {};
-        if (Utils.isM4QObject(el)) {
+        if (Utils.isQ(el)) {
             el = el[0];
         }
         for (var i = 0, l = el.style.length; i < l; i++) {
@@ -5639,7 +5451,7 @@ var Utils = {
     },
 
     isVisible: function(el){
-        if (Utils.isM4QObject(el)) {
+        if (Utils.isQ(el)) {
             el = el[0];
         }
 
@@ -5673,7 +5485,7 @@ var Utils = {
     copy: function(el){
         var body = document.body, range, sel;
 
-        if (Utils.isM4QObject(el)) {
+        if (Utils.isQ(el)) {
             el = el[0];
         }
 
@@ -5715,7 +5527,7 @@ var Utils = {
         if (Utils.isNull(form)) {
             return ;
         }
-        if (Utils.isM4QObject(form)) {
+        if (Utils.isQ(form)) {
             form = form[0];
         }
         if (!form || form.nodeName !== "FORM") {
@@ -11143,15 +10955,16 @@ var Dialog = {
             content.appendTo(element);
         }
 
-        if (!Utils.isM4QObject(c) && Utils.isFunc(c)) {
+        if ( !Utils.isQ(c) && Utils.isFunc(c)) {
             c = Utils.exec(c);
         }
 
-        if (Utils.isM4QObject(c)) {
+        if (Utils.isQ(c)) {
             c.appendTo(content);
         } else {
             content.html(c);
         }
+
     },
 
     setTitle: function(t){
@@ -11702,7 +11515,7 @@ var Dropdown = {
 
     _close: function(el){
 
-        if (Utils.isM4QObject(el) === false) {
+        if (Utils.isQ(el) === false) {
             el = $(el);
         }
 
@@ -11720,7 +11533,7 @@ var Dropdown = {
     },
 
     _open: function(el){
-        if (Utils.isM4QObject(el) === false) {
+        if (Utils.isQ(el) === false) {
             el = $(el);
         }
 
@@ -13089,7 +12902,7 @@ var MaterialInput = {
     _setOptionsFromDOM: function(){
         var element = this.element, o = this.options;
 
-        $.each(element.data(), function(key, value){
+        $.each(element.data(), function(value, key){
             if (key in o) {
                 try {
                     o[key] = JSON.parse(value);
@@ -13106,23 +12919,17 @@ var MaterialInput = {
     },
 
     _createStructure: function(){
-        var that = this, element = this.element, o = this.options;
-        var prev = element.prev();
-        var parent = element.parent();
+        var element = this.element, o = this.options;
         var container = $("<div>").addClass("input-material " + element[0].className);
 
         element[0].className = "";
+        element.attr("autocomplete", "nope");
 
         if (element.attr("type") === undefined) {
             element.attr("type", "text");
         }
 
-        if (prev.length === 0) {
-            parent.prepend(container);
-        } else {
-            container.insertAfter(prev);
-        }
-
+        container.insertBefore(element);
         element.appendTo(container);
 
         if (Utils.isValue(o.label)) {
@@ -13153,9 +12960,6 @@ var MaterialInput = {
     },
 
     _createEvents: function(){
-        var that = this, element = this.element, o = this.options;
-        var container = element.closest(".input");
-
     },
 
     clear: function(){

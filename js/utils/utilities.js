@@ -134,13 +134,21 @@ var Utils = {
         return true;
     },
 
+    isQ: function(el){
+        return Utils.isM4QObject(el) || Utils.isJQueryObject(el);
+    },
+
     isM4QObject: function(el){
         return (typeof m4q === "function" && el instanceof m4q);
     },
 
+    isJQueryObject: function(el){
+        return (typeof jQuery === "function" && el instanceof jQuery);
+    },
+
     embedObject: function(val){
         if (typeof  val !== "string" ) {
-            val = Utils.isM4QObject(val) ? val.html() : val.innerHTML;
+            val = Utils.isQ(val) ? val.html() : val.innerHTML;
         }
         return "<div class='embed-container'>" + val + "</div>";
     },
@@ -241,7 +249,7 @@ var Utils = {
     },
 
     isOutsider: function(el) {
-        el = Utils.isM4QObject(el) ? el[0] : el;
+        el = Utils.isQ(el) ? el[0] : el;
         var rect;
         var clone = el.cloneNode(true), $clone = $(clone);
 
@@ -275,7 +283,7 @@ var Utils = {
     },
 
     rect: function(el){
-        if (Utils.isM4QObject(el)) {
+        if (Utils.isQ(el)) {
             el = el[0];
         }
 
@@ -481,7 +489,7 @@ var Utils = {
     },
 
     coords: function(el){
-        if (Utils.isM4QObject(el)) {
+        if (Utils.isQ(el)) {
             el = el[0];
         }
 
@@ -550,7 +558,7 @@ var Utils = {
     },
 
     getStyle: function(el, pseudo){
-        if (Utils.isM4QObject(el) === true) {
+        if (Utils.isQ(el) === true) {
             el  = el[0];
         }
         return window.getComputedStyle(el, pseudo);
@@ -629,7 +637,7 @@ var Utils = {
 
     getInlineStyles: function(el){
         var styles = {};
-        if (Utils.isM4QObject(el)) {
+        if (Utils.isQ(el)) {
             el = el[0];
         }
         for (var i = 0, l = el.style.length; i < l; i++) {
@@ -798,7 +806,7 @@ var Utils = {
     },
 
     isVisible: function(el){
-        if (Utils.isM4QObject(el)) {
+        if (Utils.isQ(el)) {
             el = el[0];
         }
 
@@ -832,7 +840,7 @@ var Utils = {
     copy: function(el){
         var body = document.body, range, sel;
 
-        if (Utils.isM4QObject(el)) {
+        if (Utils.isQ(el)) {
             el = el[0];
         }
 
@@ -874,7 +882,7 @@ var Utils = {
         if (Utils.isNull(form)) {
             return ;
         }
-        if (Utils.isM4QObject(form)) {
+        if (Utils.isQ(form)) {
             form = form[0];
         }
         if (!form || form.nodeName !== "FORM") {
