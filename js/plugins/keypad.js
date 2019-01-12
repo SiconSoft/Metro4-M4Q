@@ -141,7 +141,7 @@ var Keypad = {
             width = factor * key_size + factor * 4,
             key, keys = keypad.find(".keys");
 
-        keys.html("").width(width);
+        keys.html("").outerWidth(width);
 
         $.each(this.keys_to_work, function(el){
             key = $("<span>").addClass("key").addClass(o.clsKey).html(el);

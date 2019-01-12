@@ -881,7 +881,7 @@
 	                    el.style[key] = nonDigit.test(o[key]) ? o[key] : o[key] + 'px';
 	                }
 	            } else if (typeof o === "string") {
-	                el.style[o] = v;
+	                el.style[o] = nonDigit.test(v) ? v : v + 'px';
 	            }
 	        });
 	
@@ -992,82 +992,68 @@
 	
 
 	m4q.fn.extend({
-	    _size: function(property, value, unit){
+	    _size: function(prop, val){
 	        if (this.length === 0) {
 	            return ;
 	        }
 	
-	        if (value === undefined) {
+	        if (val === undefined) {
 	
 	            var el = this[0];
 	
-	            if (property === 'height') {
-	                return el === window ? window.innerHeight : el.clientHeight;
+	            if (prop === 'height') {
+	                return el === window ? window.innerHeight : el === document ? el.body.clientHeight : el.clientHeight;
 	            }
-	            if (property === 'width') {
-	                return el === window ? window.innerWidth : el.clientWidth;
+	            if (prop === 'width') {
+	                return el === window ? window.innerWidth : el === document ? el.body.clientWidth : el.clientWidth;
 	            }
-	        }
-	
-	        if (!unit) {
-	            unit = 'px';
 	        }
 	
 	        return this.each(function(el){
-	            var bs, pa;
-	            if (el !== window) {
-	                bs = property === "width" ?
-	                    parseInt(getComputedStyle(el, null)['border-left-width']) + parseInt(getComputedStyle(el, null)['border-right-width']) :
-	                    parseInt(getComputedStyle(el, null)['border-top-width']) + parseInt(getComputedStyle(el, null)['border-bottom-width']);
-	
-	                pa = property === "width" ?
-	                    parseInt(getComputedStyle(el, null)['padding-left']) + parseInt(getComputedStyle(el, null)['padding-right']) :
-	                    parseInt(getComputedStyle(el, null)['padding-top']) + parseInt(getComputedStyle(el, null)['padding-bottom']);
-	
-	                el.style[property] = (parseInt(value) + bs + pa)+unit;
-	            }
+	            if (el !== window || el === document) {return ;}
+	            el.style[prop] = nonDigit.test(val) ? val : val + 'px';
 	        });
 	    },
 	
-	    height: function(value, unit){
-	        return this._size.call(this, 'height', value, unit);
+	    height: function(val){
+	        return this._size.call(this, 'height', val);
 	    },
 	
-	    width: function(value, unit){
-	        return this._size.call(this, 'width', value, unit);
+	    width: function(val){
+	        return this._size.call(this, 'width', val);
 	    },
 	
-	    _sizeOut: function(prop, value, unit){
+	    _sizeOut: function(prop, val){
 	        var el, size, style, result;
 	
 	        if (this.length === 0) {
 	            return ;
 	        }
 	
-	        if (arguments.length > 1) {
-	            value = arguments[1];
-	        }
+	        if (val !== undefined && typeof val !== "boolean") {
+	            return this.each(function(el){
+	                var style = getComputedStyle(el, null),
+	                    bs = prop === 'width' ? parseInt(style['border-left-width']) + parseInt(style['border-right-width']) : parseInt(style['border-top-width']) + parseInt(style['border-bottom-width']),
+	                    pa = prop === 'width' ? parseInt(style['padding-left']) + parseInt(style['padding-right']) : parseInt(style['padding-top']) + parseInt(style['padding-bottom']);
 	
-	        if (value !== undefined && typeof value !== "boolean") {
-	            if (arguments[2]) {
-	                unit = arguments[2];
-	            }
-	            return this[prop](value, unit);
+	                val = parseInt(val);
+	                el.style[prop] = val + bs + pa + 'px';
+	            });
 	        }
 	
 	        el = this[0];
 	        size = el[prop === 'width' ? 'offsetWidth' : 'offsetHeight'];
 	        style = getComputedStyle(el);
-	        result = size + parseInt(style[prop === 'width' ? 'marginLeft' : 'marginTop']) + parseInt(style[prop === 'width' ? 'marginRight' : 'marginBottom']);
-	        return value === true ? result : size;
+	        result = size + parseInt(style[prop === 'width' ? 'margin-left' : 'margin-top']) + parseInt(style[prop === 'width' ? 'margin-right' : 'margin-bottom']);
+	        return val === true ? result : size;
 	    },
 	
-	    outerWidth: function(){
-	        return this._sizeOut.call(this, 'width', arguments[0], arguments[1]);
+	    outerWidth: function(val){
+	        return this._sizeOut.call(this, 'width', val);
 	    },
 	
-	    outerHeight: function(){
-	        return this._sizeOut.call(this, 'height', arguments[0], arguments[1]);
+	    outerHeight: function(val){
+	        return this._sizeOut.call(this, 'height', val);
 	    }
 	});
 
@@ -13570,7 +13556,7 @@ var Keypad = {
             width = factor * key_size + factor * 4,
             key, keys = keypad.find(".keys");
 
-        keys.html("").width(width);
+        keys.html("").outerWidth(width);
 
         $.each(this.keys_to_work, function(el){
             key = $("<span>").addClass("key").addClass(o.clsKey).html(el);
