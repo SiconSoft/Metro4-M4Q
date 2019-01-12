@@ -51,7 +51,7 @@ var Keypad = {
     _setOptionsFromDOM: function(){
         var element = this.element, o = this.options;
 
-        $.each(element.data(), function(key, value){
+        $.each(element.data(), function(value, key){
             if (key in o) {
                 try {
                     o[key] = JSON.parse(value);
@@ -75,17 +75,11 @@ var Keypad = {
 
     _createKeypad: function(){
         var element = this.element, o = this.options;
-        var prev = element.prev();
-        var parent = element.parent();
-        var keypad, keys;
-
-        if (parent.hasClass("input")) {
-            keypad = parent;
-        } else {
-            keypad = $("<div>").addClass("input").addClass(element[0].className);
-        }
+        var keypad = $("<div>").addClass("input").addClass(element[0].className),
+            keys;
 
         keypad.addClass("keypad");
+
         if (keypad.css("position") === "static" || keypad.css("position") === "") {
             keypad.css({
                 position: "relative"
@@ -96,17 +90,13 @@ var Keypad = {
             element.attr("type", "text");
         }
 
-        if (prev.length === 0) {
-            parent.prepend(keypad);
-        } else {
-            keypad.insertAfter(prev);
-        }
-
+        keypad.insertBefore(element);
         element.attr("readonly", true);
         element.appendTo(keypad);
 
         keys = $("<div>").addClass("keys").addClass(o.clsKeys);
         keys.appendTo(keypad);
+
         this._setKeysPosition();
 
         if (o.open === true) {
@@ -144,22 +134,22 @@ var Keypad = {
     },
 
     _createKeys: function(){
-        var element = this.element, o = this.options;
-        var keypad = element.parent();
-        var factor = Math.round(Math.sqrt(this.keys.length + 2));
-        var key_size = o.keySize;
-        var width = factor * key_size + factor * 4;
-        var key, keys = keypad.find(".keys");
+        var o = this.options,
+            keypad = this.keypad,
+            factor = Math.round(Math.sqrt(this.keys.length + 2)),
+            key_size = o.keySize,
+            width = factor * key_size + factor * 4,
+            key, keys = keypad.find(".keys");
 
-        keys.html("");
+        keys.html("").width(width);
 
-        $.each(this.keys_to_work, function(){
-            key = $("<span>").addClass("key").addClass(o.clsKey).html(this);
-            key.data("key", this);
+        $.each(this.keys_to_work, function(el){
+            key = $("<span>").addClass("key").addClass(o.clsKey).html(el);
+            key.data("key", el);
             key.css({
                 width: o.keySize,
                 height: o.keySize,
-                lineHeight: o.keySize - 4 + "px"
+                lineHeight: o.keySize - 4
             }).appendTo(keys);
         });
 
@@ -184,8 +174,6 @@ var Keypad = {
             });
         }
 
-        keys.width(width);
-
         if (o.sizeAsKeys === true && ['top-left', 'top', 'top-right', 'bottom-left', 'bottom', 'bottom-right'].indexOf(o.position) !== -1) {
             keypad.outerWidth(keys.outerWidth());
         }
@@ -195,24 +183,6 @@ var Keypad = {
         var that = this, element = this.element, o = this.options;
         var keypad = element.parent();
         var keys = keypad.find(".keys");
-
-        keypad.on(Metro.events.click, ".keys", function(e){
-            e.preventDefault();
-            e.stopPropagation();
-        });
-
-        keypad.on(Metro.events.click, function(e){
-            if (o.open === true) {
-                return ;
-            }
-            if (keys.hasClass("open") === true) {
-                keys.removeClass("open");
-            } else {
-                keys.addClass("open");
-            }
-            e.preventDefault();
-            e.stopPropagation();
-        });
 
         keypad.on(Metro.events.click, ".key", function(e){
             var key = $(this);
@@ -257,6 +227,24 @@ var Keypad = {
             element.trigger('change');
             Utils.exec(o.onChange, [that.value, element]);
 
+            e.preventDefault();
+            e.stopPropagation();
+        });
+
+        keypad.on(Metro.events.click, ".keys", function(e){
+            e.preventDefault();
+            e.stopPropagation();
+        });
+
+        keypad.on(Metro.events.click, function(e){
+            if (o.open === true) {
+                return ;
+            }
+            if (keys.hasClass("open") === true) {
+                keys.removeClass("open");
+            } else {
+                keys.addClass("open");
+            }
             e.preventDefault();
             e.stopPropagation();
         });

@@ -985,8 +985,17 @@
 	        }
 	
 	        return this.each(function(el){
+	            var bs, pa;
 	            if (el !== window) {
-	                el.style[property] = parseInt(value)+unit;
+	                bs = property === "width" ?
+	                    parseInt(getComputedStyle(el, null)['border-left-width']) + parseInt(getComputedStyle(el, null)['border-right-width']) :
+	                    parseInt(getComputedStyle(el, null)['border-top-width']) + parseInt(getComputedStyle(el, null)['border-bottom-width']);
+	
+	                pa = property === "width" ?
+	                    parseInt(getComputedStyle(el, null)['padding-left']) + parseInt(getComputedStyle(el, null)['padding-right']) :
+	                    parseInt(getComputedStyle(el, null)['padding-top']) + parseInt(getComputedStyle(el, null)['padding-bottom']);
+	
+	                el.style[property] = (parseInt(value) + bs + pa)+unit;
 	            }
 	        });
 	    },
