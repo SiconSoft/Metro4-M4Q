@@ -44,7 +44,7 @@
 - [x] Image comparer
 - [x] Image magnifier
 - [x] InfoBox
-- [ ] Input
+- [x] Input
 - [ ] Input Material
 - [ ] Keypad
 - [ ] List

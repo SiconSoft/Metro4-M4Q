@@ -191,7 +191,7 @@ var File = {
         var element = this.element;
         var parent = element.parent();
         element.off(Metro.events.change);
-        parent.off(Metro.events.click, "button, .caption");
+        parent.off(Metro.events.click, "button");
         element.insertBefore(parent);
         parent.remove();
     }

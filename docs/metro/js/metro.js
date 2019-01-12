@@ -11959,7 +11959,7 @@ var File = {
         var element = this.element;
         var parent = element.parent();
         element.off(Metro.events.change);
-        parent.off(Metro.events.click, "button, .caption");
+        parent.off(Metro.events.click, "button");
         element.insertBefore(parent);
         parent.remove();
     }
@@ -13257,7 +13257,7 @@ var Input = {
     _setOptionsFromDOM: function(){
         var element = this.element, o = this.options;
 
-        $.each(element.data(), function(key, value){
+        $.each(element.data(), function(value, key){
             if (key in o) {
                 try {
                     o[key] = JSON.parse(value);
@@ -13275,8 +13275,6 @@ var Input = {
 
     _createStructure: function(){
         var that = this, element = this.element, o = this.options;
-        var prev = element.prev();
-        var parent = element.parent();
         var container = $("<div>").addClass("input " + element[0].className);
         var buttons = $("<div>").addClass("button-group");
         var clearButton, revealButton, searchButton;
@@ -13292,12 +13290,7 @@ var Input = {
             element.attr("type", "text");
         }
 
-        if (prev.length === 0) {
-            parent.prepend(container);
-        } else {
-            container.insertAfter(prev);
-        }
-
+        container.insertBefore(element);
         element.appendTo(container);
         buttons.appendTo(container);
 
@@ -13418,7 +13411,7 @@ var Input = {
             if (o.searchButtonClick !== 'submit') {
                 Utils.exec(o.onSearchButtonClick, [element.val(), $(this)], element[0]);
             } else {
-                this.form.submit();
+                if (!Utils.isNull(this.form)) this.form.submit();
             }
         });
 
