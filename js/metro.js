@@ -431,20 +431,13 @@ var Metro = {
         $.each(widgets, function () {
             var $this = $(this), w = this;
             var roles = $this.attr('data-role').split(/\s*,\s*/);
+            var $$ = METRO_JQUERY && jQueryPresent ? jQuery : $;
 
             roles.map(function (func) {
-                if ($.fn[func] !== undefined && $this.attr("data-role-"+func) === undefined) {
-
-                    if (METRO_JQUERY && jQueryPresent) {
-                        jQuery.fn[func].call($this);
-                    } else {
-                        $.fn[func].call($this);
-                    }
-
-                    $this.attr("data-role-"+func, true);
-
+                if ($$.fn[func] !== undefined && $this.attr("data-role-"+func) === undefined) {
+                    $$.fn[func].call($this);
+                    $this.attr("data-role-" + func, true);
                     var mc = $this.data('metroComponent');
-
                     if (mc === undefined) {
                         mc = [func];
                     } else {
@@ -457,18 +450,13 @@ var Metro = {
     },
 
     plugin: function(name, object){
-        $.fn[name] = function( options ) {
+        var $$ = METRO_JQUERY && jQueryPresent ? jQuery : $;
+
+        $$.fn[name] = function( options ) {
             return this.each(function() {
-                $.data( this, name, Object.create(object).init(options, this ));
+                $$.data( this, name, Object.create(object).init(options, this ));
             });
         };
-        if (METRO_JQUERY && jQueryPresent) {
-            jQuery.fn[name] = function( options ) {
-                return this.each(function() {
-                    jQuery.data( this, name, Object.create(object).init(options, this ));
-                });
-            };
-        }
     },
 
     destroyPlugin: function(element, name){

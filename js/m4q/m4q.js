@@ -229,6 +229,20 @@
 	
 	        this.each(function(el){
 	            el[property] = value;
+	
+	            if (property === "innerHTML") {
+	                m4q.each(m4q(el).find("script"), function(script){
+	                    var s = document.createElement('script');
+	                    s.type = 'text/javascript';
+	                    if (script.src) {
+	                        s.src = script.src;
+	                    } else {
+	                        s.textContent = script.innerText;
+	                    }
+	                    document.body.appendChild(s);
+	                    script.parentNode.removeChild(script);
+	                });
+	            }
 	        });
 	
 	        return this;

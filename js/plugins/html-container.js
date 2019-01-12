@@ -22,7 +22,7 @@ var HtmlContainer = {
     },
 
     _setOptionsFromDOM: function(){
-        var that = this, element = this.element, o = this.options;
+        var element = this.element, o = this.options;
 
         $.each(element.data(), function(value, key){
             if (key in o) {
@@ -36,7 +36,7 @@ var HtmlContainer = {
     },
 
     _create: function(){
-        var that = this, element = this.element, o = this.options;
+        var element = this.element, o = this.options;
 
         if (Utils.isValue(o.htmlSource)) {
             this._load();
@@ -51,7 +51,7 @@ var HtmlContainer = {
 
         html = o.htmlSource;
 
-        $.get(html, null, function(response, status, xhr){
+        $.get(html, null, function(response, status, statusText, xhr){
             switch (o.insertMode.toLowerCase()) {
                 case "prepend": element.prepend(response); break;
                 case "append": element.append(response); break;
@@ -67,7 +67,7 @@ var HtmlContainer = {
     },
 
     changeAttribute: function(attributeName){
-        var that = this, element = this.element, elem = this.elem, o = this.options;
+        var element = this.element, o = this.options;
 
         var changeHTMLSource = function(){
             var html = element.attr("data-html-source");

@@ -157,17 +157,18 @@
 </nav>
 
 <script>
-    var href = window.location.pathname.substring(window.location.pathname.lastIndexOf('/')+1);
-    var link = $("#doc-nav a[href='"+href+"']");
-    var item = link.closest(".doc-nav-item");
-    var menu = item.find(".toc-nav");
-    var dov_nav = $("#doc-nav");
+    var href = window.location.pathname.substring(window.location.pathname.lastIndexOf('/')+1),
+        link = $("#doc-nav a[href='"+href+"']"),
+        item = link.closest(".doc-nav-item"),
+        menu = item.find(".toc-nav"),
+        doc_nav = $("#doc-nav"),
+        scrollTop = (link.parent().position().top + 28);
 
-    dov_nav.find(".toc-nav").hide(0);
-    menu.show(0, function(){
+    doc_nav.find(".toc-nav").hide();
+    menu.show(function(){
         link.parent().addClass("active");
-        dov_nav.animate({
-            scrollTop: link.offset().top - dov_nav.offset().top
-        });
-    })
+        doc_nav.animate(function(p){
+            this.scrollTop = scrollTop * p
+        }, 500);
+    });
 </script>
