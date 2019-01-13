@@ -169,7 +169,7 @@
 	        if (typeof  selector === "string") {
 	            this.each(function(el){
 	                if (matches.call(el, selector)) {
-	                    return true;
+	                    result = true;
 	                }
 	            });
 	        } else

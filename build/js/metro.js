@@ -198,7 +198,7 @@
 	        if (typeof  selector === "string") {
 	            this.each(function(el){
 	                if (matches.call(el, selector)) {
-	                    return true;
+	                    result = true;
 	                }
 	            });
 	        } else
@@ -14650,7 +14650,7 @@ Metro.plugin('list', List);
 
 // Source: js/plugins/listview.js
 
-var Listview = {
+var ListView = {
     init: function( options, elem ) {
         this.options = $.extend( {}, this.options, options );
         this.elem  = elem;
@@ -14677,13 +14677,13 @@ var Listview = {
         onExpandNode: Metro.noop,
         onGroupNodeClick: Metro.noop,
         onNodeClick: Metro.noop,
-        onListviewCreate: Metro.noop
+        onListViewCreate: Metro.noop
     },
 
     _setOptionsFromDOM: function(){
-        var that = this, element = this.element, o = this.options;
+        var element = this.element, o = this.options;
 
-        $.each(element.data(), function(key, value){
+        $.each(element.data(), function(value, key){
             if (key in o) {
                 try {
                     o[key] = JSON.parse(value);
@@ -14695,20 +14695,20 @@ var Listview = {
     },
 
     _create: function(){
-        var that = this, element = this.element, o = this.options;
+        var element = this.element, o = this.options;
 
         this._createView();
         this._createEvents();
 
-        Utils.exec(o.onListviewCreate, [element]);
+        Utils.exec(o.onListViewCreate, [element]);
     },
 
     _createIcon: function(data){
         var icon, src;
 
-        src = Utils.isTag(data) ? $(data) : $("<img>").attr("src", data);
+        src = Utils.isTag(data) ? $(data) : $("<img src='' alt=''>").attr("src", data);
         icon = $("<span>").addClass("icon");
-        icon.html(src);
+        icon.html(src.outerHTML());
 
         return icon;
     },
@@ -14726,7 +14726,7 @@ var Listview = {
     },
 
     _createNode: function(data){
-        var that = this, element = this.element, o = this.options;
+        var that = this, o = this.options;
         var node;
 
         node = $("<li>");
@@ -14742,7 +14742,7 @@ var Listview = {
             node.prepend(this._createIcon(data.icon));
         }
 
-        if (Utils.objectLength(o.structure) > 0) $.each(o.structure, function(key, val){
+        if (Utils.objectLength(o.structure) > 0) $.each(o.structure, function(val, key){
             if (data[key] !== undefined) {
                 $("<div>").addClass("node-data item-data-"+key).addClass(data[val]).html(data[key]).appendTo(node);
             }
@@ -14761,6 +14761,7 @@ var Listview = {
 
         $.each(nodes, function(){
             var node = $(this);
+            var icon = node.data('icon');
 
             if (node.data("caption") !== undefined || node.data("content") !== undefined) {
                 var data = $("<div>").addClass("data");
@@ -14769,8 +14770,8 @@ var Listview = {
                 if (node.data("content") !== undefined) data.append(that._createContent(node.data("content")));
             }
 
-            if (node.data('icon') !== undefined) {
-                node.prepend(that._createIcon(node.data('icon')));
+            if (icon !== undefined) {
+                node.prepend(that._createIcon(icon));
             }
 
             if (node.children("ul").length > 0) {
@@ -14787,7 +14788,7 @@ var Listview = {
                 node.prepend(cb);
             }
 
-            if (struct_length > 0) $.each(o.structure, function(key, val){
+            if (struct_length > 0) $.each(o.structure, function(val, key){
                 if (node.data(key) !== undefined) {
                     $("<div>").addClass("node-data item-data-"+key).addClass(node.data(key)).html(node.data(key)).appendTo(node);
                 }
@@ -14840,7 +14841,7 @@ var Listview = {
 
         o.view = v;
 
-        $.each(Metro.listView, function(i, v){
+        $.each(Metro.listView, function(v){
             element.removeClass("view-"+v);
             element.find("ul").removeClass("view-"+v);
         });
@@ -14871,14 +14872,14 @@ var Listview = {
     },
 
     toggleSelectable: function(){
-        var that = this, element = this.element, o = this.options;
+        var element = this.element, o = this.options;
         var func = o.selectable === true ? "addClass" : "removeClass";
         element[func]("selectable");
         element.find("ul")[func]("selectable");
     },
 
     add: function(node, data){
-        var that = this, element = this.element, o = this.options;
+        var element = this.element, o = this.options;
         var target;
         var new_node;
         var toggle;
@@ -14915,7 +14916,7 @@ var Listview = {
     },
 
     addGroup: function(data){
-        var that = this, element = this.element, o = this.options;
+        var element = this.element, o = this.options;
         var node;
 
         delete data['icon'];
@@ -14933,6 +14934,9 @@ var Listview = {
 
     insertBefore: function(node, data){
         var element = this.element, o = this.options;
+
+        if (!node.length) {return ;}
+
         var new_node = this._createNode(data);
         new_node.addClass("node").insertBefore(node);
         Utils.exec(o.onNodeInsert, [new_node, element]);
@@ -14941,6 +14945,9 @@ var Listview = {
 
     insertAfter: function(node, data){
         var element = this.element, o = this.options;
+
+        if (!node.length) {return ;}
+
         var new_node = this._createNode(data);
         new_node.addClass("node").insertAfter(node);
         Utils.exec(o.onNodeInsert, [new_node, element]);
@@ -14949,6 +14956,9 @@ var Listview = {
 
     del: function(node){
         var element = this.element, o = this.options;
+
+        if (!node.length) {return ;}
+
         var parent_list = node.closest("ul");
         var parent_node = parent_list.closest("li");
         node.remove();
@@ -14962,6 +14972,9 @@ var Listview = {
 
     clean: function(node){
         var element = this.element, o = this.options;
+
+        if (!node.length) {return ;}
+
         node.children("ul").remove();
         node.removeClass("expanded");
         node.children(".node-toggle").remove();
@@ -14969,7 +14982,7 @@ var Listview = {
     },
 
     getSelected: function(){
-        var that = this, element = this.element, o = this.options;
+        var element = this.element;
         var nodes = [];
 
         $.each(element.find(":checked"), function(){
@@ -14993,12 +15006,12 @@ var Listview = {
 
         var changeView = function(){
             var new_view = "view-"+element.attr("data-view");
-            this.view(new_view);
+            that.view(new_view);
         };
 
         var changeSelectable = function(){
             o.selectable = JSON.parse(element.attr("data-selectable")) === true;
-            this.toggleSelectable();
+            that.toggleSelectable();
         };
 
         switch (attributeName) {
@@ -15008,7 +15021,7 @@ var Listview = {
     }
 };
 
-Metro.plugin('listview', Listview);
+Metro.plugin('listview', ListView);
 
 // Source: js/plugins/master.js
 
@@ -16235,9 +16248,9 @@ var Radio = {
     },
 
     _setOptionsFromDOM: function(){
-        var that = this, element = this.element, o = this.options;
+        var element = this.element, o = this.options;
 
-        $.each(element.data(), function(key, value){
+        $.each(element.data(), function(value, key){
             if (key in o) {
                 try {
                     o[key] = JSON.parse(value);
@@ -16249,21 +16262,14 @@ var Radio = {
     },
 
     _create: function(){
-        var that = this, element = this.element, o = this.options;
-        var prev = element.prev();
-        var parent = element.parent();
+        var element = this.element, o = this.options;
         var radio = $("<label>").addClass("radio " + element[0].className).addClass(o.style === 2 ? "style2" : "");
         var check = $("<span>").addClass("check");
         var caption = $("<span>").addClass("caption").html(o.caption);
 
         element.attr("type", "radio");
 
-        if (prev.length === 0) {
-            parent.prepend(radio);
-        } else {
-            radio.insertAfter(prev);
-        }
-
+        radio.insertBefore(element);
         element.appendTo(radio);
         check.appendTo(radio);
         caption.appendTo(radio);
@@ -16305,7 +16311,7 @@ var Radio = {
     },
 
     changeAttribute: function(attributeName){
-        var that = this, element = this.element, o = this.options;
+        var element = this.element, o = this.options;
         var parent = element.parent();
 
         var changeStyle = function(){

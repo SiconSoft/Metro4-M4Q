@@ -494,7 +494,7 @@
     <script src="js/site.js"></script>
     <script>
         $("input[name=r1]").on("click", function(){
-            var checked = $(this).is(":checked");
+            var checked = this.checked;
             if (checked) {
                 $("#listview-1").data("listview").view(this.value);
             }
