@@ -44,7 +44,7 @@ var Select = {
     _setOptionsFromDOM: function(){
         var element = this.element, o = this.options;
 
-        $.each(element.data(), function(key, value){
+        $.each(element.data(), function(value, key){
             if (key in o) {
                 try {
                     o[key] = JSON.parse(value);
@@ -72,7 +72,7 @@ var Select = {
         l = $("<li>").addClass(o.clsOption).data("option", item).attr("data-text", item.text).attr('data-value', Utils.isValue(item.value) ? item.value : "").appendTo(parent);
         a = $("<a>").html(html).appendTo(l).addClass(item.className);
 
-        if (option.is(":selected")) {
+        if (item.selected) {
             if (multiple) {
                 l.addClass("d-none");
                 tag = $("<div>").addClass("selected-item").addClass(o.clsSelectedItem).html("<span class='title'>"+html+"</span>").appendTo(input);
@@ -115,10 +115,7 @@ var Select = {
     },
 
     _createSelect: function(){
-        var that = this, element = this.element, o = this.options;
-
-        var prev = element.prev();
-        var parent = element.parent();
+        var element = this.element, o = this.options;
         var container = $("<label>").addClass("select " + element[0].className).addClass(o.clsSelect);
         var multiple = element[0].multiple;
         var select_id = Utils.elementId("select");
@@ -131,12 +128,7 @@ var Select = {
             container.addClass("multiple");
         }
 
-        if (prev.length === 0) {
-            parent.prepend(container);
-        } else {
-            container.insertAfter(prev);
-        }
-
+        container.insertBefore(element);
         element.appendTo(container);
         buttons.appendTo(container);
 
@@ -179,12 +171,12 @@ var Select = {
 
                 target = list.find("li.active").length > 0 ? $(list.find("li.active")[0]) : undefined;
                 if (target !== undefined) {
-                    list.scrollTop(0);
-                    setTimeout(function(){
-                        list.animate({
-                            scrollTop: target.position().top - ( (list.height() - target.height() )/ 2)
-                        }, 100);
-                    }, 200);
+                    list.scrollTop(target.position().top - ( (list.height() - target.height() )/ 2));
+                    // setTimeout(function(){
+                    //     list.animate({
+                    //         scrollTop: target.position().top - ( (list.height() - target.height() )/ 2)
+                    //     }, 100);
+                    // }, 200);
                 }
 
                 Utils.exec(o.onDrop, [list, element], list[0]);
@@ -369,7 +361,8 @@ var Select = {
         var element = this.element;
         var result = [];
 
-        element.find("option:selected").each(function(){
+        element.find("option").each(function(){
+            if (!this.selected) return;
             result.push(this.value);
         });
 
@@ -377,7 +370,7 @@ var Select = {
     },
 
     val: function(val){
-        var that = this, element = this.element, o = this.options;
+        var element = this.element, o = this.options;
         var input = element.siblings(".select-input");
         var options = element.find("option");
         var list_items = this.list.find("li");

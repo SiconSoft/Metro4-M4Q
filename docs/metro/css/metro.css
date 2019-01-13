@@ -22061,9 +22061,6 @@ input:-webkit-autofill:active {
   white-space: nowrap;
   text-overflow: ellipsis;
 }
-.select .d-menu li a .icon {
-  top: 0.3rem;
-}
 .select .d-menu .active {
   border: none;
   color: #ffffff;

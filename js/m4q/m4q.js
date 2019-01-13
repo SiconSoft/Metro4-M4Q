@@ -803,10 +803,10 @@
 	    xhr.send(params.data);
 	};
 	
-	['get', 'post', 'put', 'patch', 'delete'].forEach(function(method){
+	['get', 'post', 'put', 'patch', 'delete', 'json'].forEach(function(method){
 	    m4q[method] = function(url, data, success, error, dataType, headers){
 	        return m4q.ajax({
-	            method: method.toUpperCase(),
+	            method: method.toUpperCase() === 'JSON' ? 'GET' : method.toUpperCase(),
 	            url: url,
 	            data: data,
 	            success: success,

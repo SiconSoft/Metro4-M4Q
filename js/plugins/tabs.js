@@ -171,6 +171,8 @@ var Tabs = {
         var that = this, element = this.element;
         var tabs = element.find("li");
 
+        this._targets = [];
+
         $.each(tabs, function(){
             var target = $(this).find("a").attr("href").trim();
             if (target.length > 1 && target[0] === "#") {

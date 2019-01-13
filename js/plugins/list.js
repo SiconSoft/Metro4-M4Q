@@ -97,6 +97,7 @@ var List = {
         onSearch: Metro.noop,
         onRowsCountChange: Metro.noop,
         onDataLoad: Metro.noop,
+        onDataLoadError: Metro.noop,
         onDataLoaded: Metro.noop,
         onFilterItemAccepted: Metro.noop,
         onFilterItemDeclined: Metro.noop,
@@ -107,7 +108,7 @@ var List = {
     _setOptionsFromDOM: function(){
         var element = this.element, o = this.options;
 
-        $.each(element.data(), function(key, value){
+        $.each(element.data(), function(value, key){
             if (key in o) {
                 try {
                     o[key] = JSON.parse(value);
@@ -124,11 +125,11 @@ var List = {
         if (o.source !== null) {
             Utils.exec(o.onDataLoad, [o.source], element[0]);
 
-            $.get(o.source, function(data){
+            $.json(o.source, {}, function(data){
                 that._build(data);
                 Utils.exec(o.onDataLoaded, [o.source, data], element[0]);
-            }).fail(function( jqXHR, textStatus, errorThrown) {
-                console.log(textStatus); console.log(jqXHR); console.log(errorThrown);
+            }, function( status, statusText, xhr) {
+                Utils.exec(o.onDataLoadError, [o.source, status, statusText, xhr], element[0]);
             });
         } else {
             that._build();
@@ -175,7 +176,7 @@ var List = {
                 var li = document.createElement("li");
                 var inner = Utils.isValue(that.header.template) ? that.header.template : "";
 
-                $.each(row, function(k, v){
+                $.each(row, function(v, k){
                     inner = inner.replace("$"+k, v);
                 });
 
@@ -693,7 +694,7 @@ var List = {
 
         Utils.exec(o.onDataLoad, [o.source], element[0]);
 
-        $.get(o.source, function(data){
+        $.json(o.source, {}, function(data){
             Utils.exec(o.onDataLoaded, [o.source, data], element[0]);
 
             that._createItemsFromJSON(data);
@@ -727,8 +728,8 @@ var List = {
 
             that.sorting(o.sortClass, o.sortDir, true);
 
-        }).fail(function( jqXHR, textStatus, errorThrown) {
-            console.log(textStatus); console.log(jqXHR); console.log(errorThrown);
+        }, function( status, statusText, xhr) {
+            Utils.exec(o.onDataLoadError, [o.source, status, statusText, xhr], element[0]);
         });
     },
 

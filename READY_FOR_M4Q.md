@@ -47,7 +47,7 @@
 - [x] Input
 - [x] Input Material
 - [x] Keypad
-- [ ] List
+- [x] List
 - [ ] ListView
 - [ ] Master
 - [ ] NavView
@@ -60,7 +60,7 @@
 - [ ] Resizable
 - [ ] Ribbon Menu
 - [ ] Ripple
-- [ ] Select
+- [x] Select
 - [ ] Sidebar
 - [x] Slider
 - [ ] Sorter
