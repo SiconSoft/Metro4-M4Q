@@ -849,7 +849,8 @@
 	
 
 	
-	var nonDigit = /[^0-9.]/;
+	var nonDigit = /[^0-9.\-]/;
+	var numProps = ['opacity'];
 	
 	m4q.fn.extend({
 	    style: function(name){
@@ -878,10 +879,10 @@
 	        this.each(function(el){
 	            if (typeof o === "object") {
 	                for (var key in o) {
-	                    el.style[key] = nonDigit.test(o[key]) ? o[key] : o[key] + 'px';
+	                    el.style[key] = numProps.indexOf(key) > -1 || nonDigit.test(o[key]) ? o[key] : o[key] + 'px';
 	                }
 	            } else if (typeof o === "string") {
-	                el.style[o] = nonDigit.test(v) ? v : v + 'px';
+	                el.style[o] = numProps.indexOf(o) > -1 || nonDigit.test(v) ? v : v + 'px';
 	            }
 	        });
 	
@@ -1010,7 +1011,7 @@
 	        }
 	
 	        return this.each(function(el){
-	            if (el !== window || el === document) {return ;}
+	            if (el === window || el === document) {return ;}
 	            el.style[prop] = nonDigit.test(val) ? val : val + 'px';
 	        });
 	    },
@@ -1032,6 +1033,7 @@
 	
 	        if (val !== undefined && typeof val !== "boolean") {
 	            return this.each(function(el){
+	                if (el === window || el === document) {return ;}
 	                var style = getComputedStyle(el, null),
 	                    bs = prop === 'width' ? parseInt(style['border-left-width']) + parseInt(style['border-right-width']) : parseInt(style['border-top-width']) + parseInt(style['border-bottom-width']),
 	                    pa = prop === 'width' ? parseInt(style['padding-left']) + parseInt(style['padding-right']) : parseInt(style['padding-top']) + parseInt(style['padding-bottom']);
@@ -1493,6 +1495,7 @@
 	});
 
 	m4q.extend({
+	    easingDef: "linear",
 	    easing: {
 	        linear: function (t) { return t },
 	        swing: function(t) { return 0.5 - Math.cos( t * Math.PI ) / 2; },
@@ -1530,12 +1533,12 @@
 	        var $el = m4q(el), start = performance.now();
 	
 	        duration = duration || 100;
-	        timing = timing || this.easing.linear;
+	        timing = timing || this.easingDef;
 	
 	        $el.origin("animation", requestAnimationFrame(function animate(time) {
 	            var t = (time - start) / duration;
 	            if (t > 1) t = 1;
-	            var progress = typeof timing === "string" ? m4q.easing[timing](t) : timing(t);
+	            var progress = typeof timing === "string" ? m4q.easing[timing] ? m4q.easing[timing](t) : m4q.easing[m4q.easingDef](t) : timing(t);
 	
 	            m4q.proxy(draw, $el[0])(progress);
 	
@@ -1584,6 +1587,9 @@
 	    show: function(el, callback){
 	        var display = m4q(el).origin('display', undefined, "block");
 	        el.style.display = display ? display : '';
+	        if (parseInt(el.style.opacity) === 0) {
+	            el.style.opacity = "1";
+	        }
 	        if (typeof callback === "function") callback.call(el, arguments);
 	        return this;
 	    },
@@ -1597,8 +1603,6 @@
 	    },
 	
 	    fadeIn: function(el, duration, easing, callback){
-	        var $el = m4q(el);
-	
 	        if (not(duration) && not(easing) && not(callback)) {
 	            callback = null;
 	            duration = 1000;
@@ -1608,8 +1612,8 @@
 	            duration = 1000;
 	        }
 	
-	        el.style.opacity = 0;
-	        el.style.display = $el.origin("display", undefined, 'block');
+	        el.style.opacity = "0";
+	        el.style.display = m4q(el).origin("display", undefined, 'block');
 	
 	        return this.animate(el, function(progress){
 	            el.style.opacity = progress;
@@ -1628,7 +1632,7 @@
 	            duration = 1000;
 	        }
 	
-	        el.style.opacity = 1;
+	        el.style.opacity = "1";
 	
 	        return this.animate(el, function(progress){
 	            el.style.opacity = 1 - progress;
@@ -2421,12 +2425,13 @@ var Animation = {
     duration: METRO_ANIMATION_DURATION,
     easing: "linear",
 
-    switch: function(current, next){
+    switch: function(current, next, done){
         current.hide();
         next.css({top: 0, left: 0}).show();
+        Utils.exec(done, [current, next]);
     },
 
-    slideUp: function(current, next, duration, easing){
+    slideUp: function(current, next, duration, easing, done){
         var h = current.parent().outerHeight(true);
         if (duration === undefined) {duration = this.duration;}
         if (easing === undefined) {easing = this.easing;}
@@ -2435,8 +2440,7 @@ var Animation = {
             zIndex: 1
         }).animate(function(p){
             $(this).css({
-                top: -(h-(h * (1-p))) + 'px',
-                opacity: 1 - p
+                top: -(h-(h * (1-p))) + 'px'
             })
         }, duration, easing);
 
@@ -2446,13 +2450,16 @@ var Animation = {
             zIndex: 2
         }).animate(function(p){
             $(this).css({
-                top: h - (h * p) + 'px',
-                opacity: p
+                top: h - (h * p) + 'px'
             })
         }, duration, easing);
+
+        setTimeout(function(){
+            Utils.exec(done, [current, next]);
+        }, duration)
     },
 
-    slideDown: function(current, next, duration, easing){
+    slideDown: function(current, next, duration, easing, done){
         var h = current.parent().outerHeight(true);
         if (duration === undefined) {duration = this.duration;}
         if (easing === undefined) {easing = this.func;}
@@ -2460,8 +2467,7 @@ var Animation = {
             zIndex: 1
         }).animate(function(p){
             $(this).css({
-                top: (h * p) + 'px',
-                opacity: 1 - p
+                top: (h * p) + 'px'
             })
         }, duration, easing);
 
@@ -2471,13 +2477,16 @@ var Animation = {
             zIndex: 2
         }).animate(function(p){
             $(this).css({
-                top: -h + (h * p) + 'px',
-                opacity: p
+                top: -h + (h * p) + 'px'
             })
         }, duration, easing);
+
+        setTimeout(function(){
+            Utils.exec(done, [current, next]);
+        }, duration)
     },
 
-    slideLeft: function(current, next, duration, easing){
+    slideLeft: function(current, next, duration, easing, done){
         var w = current.parent().outerWidth(true);
         if (duration === undefined) {duration = this.duration;}
         if (easing === undefined) {easing = this.easing;}
@@ -2486,8 +2495,7 @@ var Animation = {
             zIndex: 1
         }).animate(function(p){
             $(this).css({
-                left: -(w * p) + 'px',
-                opacity: 1 - p
+                left: -(w * p) + 'px'
             });
         }, duration, easing);
 
@@ -2496,13 +2504,16 @@ var Animation = {
             zIndex: 2
         }).animate(function(p){
             $(this).css({
-                left: (w * (1 - p)) + 'px',
-                opacity: p
+                left: (w * (1 - p)) + 'px'
             });
         }, duration, easing);
+
+        setTimeout(function(){
+            Utils.exec(done, [current, next]);
+        }, duration)
     },
 
-    slideRight: function(current, next, duration, easing){
+    slideRight: function(current, next, duration, easing, done){
         var w = current.parent().outerWidth(true);
         if (duration === undefined) {duration = this.duration;}
         if (easing === undefined) {easing = this.easing;}
@@ -2511,8 +2522,7 @@ var Animation = {
             zIndex: 1
         }).animate(function(p){
             $(this).css({
-                left: w * p + 'px',
-                opacity: 1 - p
+                left: w * p + 'px'
             })
         }, duration, easing);
 
@@ -2521,22 +2531,28 @@ var Animation = {
             zIndex: 2
         }).animate(function(p){
             $(this).css({
-                left: -w * (1 - p) + 'px',
-                opacity: p
+                left: -w * (1 - p) + 'px'
             });
         }, duration, easing);
+
+        setTimeout(function(){
+            Utils.exec(done, [current, next]);
+        }, duration)
     },
 
-    fade: function(current, next, duration){
+    fade: function(current, next, duration, done){
         if (duration === undefined) {duration = this.duration;}
-        current.fadeOut(duration);
         next.css({
             top: 0,
             left: 0,
             opacity: 0
         }).fadeIn(duration);
-    }
+        current.fadeOut(duration);
 
+        setTimeout(function(){
+            Utils.exec(done, [current, next]);
+        }, duration)
+    }
 };
 
 Metro['animation'] = Animation;
@@ -4871,7 +4887,7 @@ var Utils = {
 
     exec: function(f, args, context){
         var result;
-        if (f === undefined || f === null) {return false;}
+        if (!Utils.isValue(f)) {return false;}
         var func = Utils.isFunc(f);
         if (func === false) {
             func = Utils.func(f);
@@ -4880,6 +4896,7 @@ var Utils = {
         try {
             result = func.apply(context, args);
         } catch (err) {
+            console.log(context, args);
             result = null;
             if (METRO_THROWS === true) {
                 throw err;
@@ -8290,7 +8307,7 @@ var Carousel = {
     },
 
     _resize: function(){
-        var that = this, element = this.element, o = this.options;
+        var element = this.element, o = this.options;
         var width = element.outerWidth();
         var height;
         var medias = [];
@@ -8497,7 +8514,7 @@ var Carousel = {
     },
 
     _slideTo: function(to, interval){
-        var that = this, element = this.element, o = this.options;
+        var element = this.element, o = this.options;
         var current, next;
 
         if (to === undefined) {
@@ -8570,7 +8587,7 @@ var Carousel = {
         switch (effect) {
             case 'slide': Animation[func](current, next, duration, effectFunc); break;
             case 'slide-v': Animation[func](current, next, duration, effectFunc); break;
-            case 'fade': Animation['fade'](current, next, duration, effectFunc); break;
+            case 'fade': Animation['fade'](current, next, duration); break;
             default: Animation['switch'](current, next);
         }
 
@@ -15065,9 +15082,9 @@ var Master = {
     },
 
     _setOptionsFromDOM: function(){
-        var that = this, element = this.element, o = this.options;
+        var element = this.element, o = this.options;
 
-        $.each(element.data(), function(key, value){
+        $.each(element.data(), function(value, key){
             if (key in o) {
                 try {
                     o[key] = JSON.parse(value);
@@ -15079,7 +15096,7 @@ var Master = {
     },
 
     _create: function(){
-        var that = this, element = this.element, o = this.options;
+        var element = this.element, o = this.options;
 
         element.addClass("master").addClass(o.clsMaster);
         element.css({
@@ -15094,9 +15111,9 @@ var Master = {
     },
 
     _createControls: function(){
-        var that = this, element = this.element, o = this.options;
+        var element = this.element, o = this.options;
         var controls_position = ['top', 'bottom'];
-        var i, controls, title, pages = element.find(".page");
+        var controls, title, pages = element.find(".page");
 
         title = String(o.controlTitle).replace("$1", "1");
         title = String(title).replace("$2", pages.length);
@@ -15206,7 +15223,7 @@ var Master = {
             }
         });
 
-        $(window).on(Metro.events.resize + "-master" + element.attr("id"), function(){
+        $(window).on(Metro.events.resize + ".master-" + element.attr("id"), function(){
             element.find(".pages").height(that.pages[that.currentIndex].outerHeight(true) + 2);
         });
     },
@@ -15279,10 +15296,15 @@ var Master = {
         this.isAnimate = true;
 
         setTimeout(function(){
-            pages.animate({
-                height: next.outerHeight(true) + 2
-            });
-        },0);
+            var pages_height = pages.outerHeight();
+            var delta_height = pages_height - next.outerHeight(true);
+
+            pages.animate(function(complete){
+                $(this).css({
+                    height: pages_height - delta_height * complete + 2
+                })
+            }, 100);
+        }, 50);
 
         pages.css("overflow", "hidden");
 
@@ -15301,25 +15323,33 @@ var Master = {
         }
 
         function _slide(){
-            current.stop(true, true).animate({
-                left: to === "next" ? -out : out
+            current.stop().animate(function(complete){
+                $(this).css({
+                    left: ( to === "next" ? -out : out ) * complete
+                })
             }, o.duration, o.effectFunc, function(){
-                current.hide(0);
+                current.hide();
             });
 
-            next.stop(true, true).css({
+            next.stop().css({
                 left: to === "next" ? out : -out
-            }).show(0).animate({
-                left: 0
+            }).show().animate(function(complete){
+                $(this).css({
+                    left: (to === "next" ? out : -out) * (1-complete)
+                });
             }, o.duration, o.effectFunc, function(){
                 finish();
             });
         }
 
         function _switch(){
-            current.hide(0);
+            current.hide();
 
-            next.hide(0).css("left", 0).show(0, function(){
+            next.css({
+                top: 0,
+                left: 0,
+                opacity: 0
+            }).show(function(){
                 finish();
             });
         }
@@ -15327,7 +15357,11 @@ var Master = {
         function _fade(){
             current.fadeOut(o.duration);
 
-            next.hide(0).css("left", 0).fadeIn(o.duration, function(){
+            next.css({
+                top: 0,
+                left: 0,
+                opacity: 0
+            }).fadeIn(o.duration, "linear", function(){
                 finish();
             });
         }

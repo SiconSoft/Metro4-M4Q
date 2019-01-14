@@ -161,7 +161,7 @@ var Carousel = {
     },
 
     _resize: function(){
-        var that = this, element = this.element, o = this.options;
+        var element = this.element, o = this.options;
         var width = element.outerWidth();
         var height;
         var medias = [];
@@ -368,7 +368,7 @@ var Carousel = {
     },
 
     _slideTo: function(to, interval){
-        var that = this, element = this.element, o = this.options;
+        var element = this.element, o = this.options;
         var current, next;
 
         if (to === undefined) {
@@ -441,7 +441,7 @@ var Carousel = {
         switch (effect) {
             case 'slide': Animation[func](current, next, duration, effectFunc); break;
             case 'slide-v': Animation[func](current, next, duration, effectFunc); break;
-            case 'fade': Animation['fade'](current, next, duration, effectFunc); break;
+            case 'fade': Animation['fade'](current, next, duration); break;
             default: Animation['switch'](current, next);
         }
 

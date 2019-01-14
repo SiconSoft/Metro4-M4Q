@@ -3,12 +3,13 @@ var Animation = {
     duration: METRO_ANIMATION_DURATION,
     easing: "linear",
 
-    switch: function(current, next){
+    switch: function(current, next, done){
         current.hide();
         next.css({top: 0, left: 0}).show();
+        Utils.exec(done, [current, next]);
     },
 
-    slideUp: function(current, next, duration, easing){
+    slideUp: function(current, next, duration, easing, done){
         var h = current.parent().outerHeight(true);
         if (duration === undefined) {duration = this.duration;}
         if (easing === undefined) {easing = this.easing;}
@@ -17,8 +18,7 @@ var Animation = {
             zIndex: 1
         }).animate(function(p){
             $(this).css({
-                top: -(h-(h * (1-p))) + 'px',
-                opacity: 1 - p
+                top: -(h-(h * (1-p))) + 'px'
             })
         }, duration, easing);
 
@@ -28,13 +28,16 @@ var Animation = {
             zIndex: 2
         }).animate(function(p){
             $(this).css({
-                top: h - (h * p) + 'px',
-                opacity: p
+                top: h - (h * p) + 'px'
             })
         }, duration, easing);
+
+        setTimeout(function(){
+            Utils.exec(done, [current, next]);
+        }, duration)
     },
 
-    slideDown: function(current, next, duration, easing){
+    slideDown: function(current, next, duration, easing, done){
         var h = current.parent().outerHeight(true);
         if (duration === undefined) {duration = this.duration;}
         if (easing === undefined) {easing = this.func;}
@@ -42,8 +45,7 @@ var Animation = {
             zIndex: 1
         }).animate(function(p){
             $(this).css({
-                top: (h * p) + 'px',
-                opacity: 1 - p
+                top: (h * p) + 'px'
             })
         }, duration, easing);
 
@@ -53,13 +55,16 @@ var Animation = {
             zIndex: 2
         }).animate(function(p){
             $(this).css({
-                top: -h + (h * p) + 'px',
-                opacity: p
+                top: -h + (h * p) + 'px'
             })
         }, duration, easing);
+
+        setTimeout(function(){
+            Utils.exec(done, [current, next]);
+        }, duration)
     },
 
-    slideLeft: function(current, next, duration, easing){
+    slideLeft: function(current, next, duration, easing, done){
         var w = current.parent().outerWidth(true);
         if (duration === undefined) {duration = this.duration;}
         if (easing === undefined) {easing = this.easing;}
@@ -68,8 +73,7 @@ var Animation = {
             zIndex: 1
         }).animate(function(p){
             $(this).css({
-                left: -(w * p) + 'px',
-                opacity: 1 - p
+                left: -(w * p) + 'px'
             });
         }, duration, easing);
 
@@ -78,13 +82,16 @@ var Animation = {
             zIndex: 2
         }).animate(function(p){
             $(this).css({
-                left: (w * (1 - p)) + 'px',
-                opacity: p
+                left: (w * (1 - p)) + 'px'
             });
         }, duration, easing);
+
+        setTimeout(function(){
+            Utils.exec(done, [current, next]);
+        }, duration)
     },
 
-    slideRight: function(current, next, duration, easing){
+    slideRight: function(current, next, duration, easing, done){
         var w = current.parent().outerWidth(true);
         if (duration === undefined) {duration = this.duration;}
         if (easing === undefined) {easing = this.easing;}
@@ -93,8 +100,7 @@ var Animation = {
             zIndex: 1
         }).animate(function(p){
             $(this).css({
-                left: w * p + 'px',
-                opacity: 1 - p
+                left: w * p + 'px'
             })
         }, duration, easing);
 
@@ -103,22 +109,28 @@ var Animation = {
             zIndex: 2
         }).animate(function(p){
             $(this).css({
-                left: -w * (1 - p) + 'px',
-                opacity: p
+                left: -w * (1 - p) + 'px'
             });
         }, duration, easing);
+
+        setTimeout(function(){
+            Utils.exec(done, [current, next]);
+        }, duration)
     },
 
-    fade: function(current, next, duration){
+    fade: function(current, next, duration, done){
         if (duration === undefined) {duration = this.duration;}
-        current.fadeOut(duration);
         next.css({
             top: 0,
             left: 0,
             opacity: 0
         }).fadeIn(duration);
-    }
+        current.fadeOut(duration);
 
+        setTimeout(function(){
+            Utils.exec(done, [current, next]);
+        }, duration)
+    }
 };
 
 Metro['animation'] = Animation;

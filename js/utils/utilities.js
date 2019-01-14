@@ -231,7 +231,7 @@ var Utils = {
 
     exec: function(f, args, context){
         var result;
-        if (f === undefined || f === null) {return false;}
+        if (!Utils.isValue(f)) {return false;}
         var func = Utils.isFunc(f);
         if (func === false) {
             func = Utils.func(f);
@@ -240,6 +240,7 @@ var Utils = {
         try {
             result = func.apply(context, args);
         } catch (err) {
+            console.log(context, args);
             result = null;
             if (METRO_THROWS === true) {
                 throw err;

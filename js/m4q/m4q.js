@@ -820,7 +820,8 @@
 	
 
 	
-	var nonDigit = /[^0-9.]/;
+	var nonDigit = /[^0-9.\-]/;
+	var numProps = ['opacity'];
 	
 	m4q.fn.extend({
 	    style: function(name){
@@ -849,10 +850,10 @@
 	        this.each(function(el){
 	            if (typeof o === "object") {
 	                for (var key in o) {
-	                    el.style[key] = nonDigit.test(o[key]) ? o[key] : o[key] + 'px';
+	                    el.style[key] = numProps.indexOf(key) > -1 || nonDigit.test(o[key]) ? o[key] : o[key] + 'px';
 	                }
 	            } else if (typeof o === "string") {
-	                el.style[o] = nonDigit.test(v) ? v : v + 'px';
+	                el.style[o] = numProps.indexOf(o) > -1 || nonDigit.test(v) ? v : v + 'px';
 	            }
 	        });
 	
@@ -981,7 +982,7 @@
 	        }
 	
 	        return this.each(function(el){
-	            if (el !== window || el === document) {return ;}
+	            if (el === window || el === document) {return ;}
 	            el.style[prop] = nonDigit.test(val) ? val : val + 'px';
 	        });
 	    },
@@ -1003,6 +1004,7 @@
 	
 	        if (val !== undefined && typeof val !== "boolean") {
 	            return this.each(function(el){
+	                if (el === window || el === document) {return ;}
 	                var style = getComputedStyle(el, null),
 	                    bs = prop === 'width' ? parseInt(style['border-left-width']) + parseInt(style['border-right-width']) : parseInt(style['border-top-width']) + parseInt(style['border-bottom-width']),
 	                    pa = prop === 'width' ? parseInt(style['padding-left']) + parseInt(style['padding-right']) : parseInt(style['padding-top']) + parseInt(style['padding-bottom']);
@@ -1464,6 +1466,7 @@
 	});
 
 	m4q.extend({
+	    easingDef: "linear",
 	    easing: {
 	        linear: function (t) { return t },
 	        swing: function(t) { return 0.5 - Math.cos( t * Math.PI ) / 2; },
@@ -1501,12 +1504,12 @@
 	        var $el = m4q(el), start = performance.now();
 	
 	        duration = duration || 100;
-	        timing = timing || this.easing.linear;
+	        timing = timing || this.easingDef;
 	
 	        $el.origin("animation", requestAnimationFrame(function animate(time) {
 	            var t = (time - start) / duration;
 	            if (t > 1) t = 1;
-	            var progress = typeof timing === "string" ? m4q.easing[timing](t) : timing(t);
+	            var progress = typeof timing === "string" ? m4q.easing[timing] ? m4q.easing[timing](t) : m4q.easing[m4q.easingDef](t) : timing(t);
 	
 	            m4q.proxy(draw, $el[0])(progress);
 	
@@ -1555,6 +1558,9 @@
 	    show: function(el, callback){
 	        var display = m4q(el).origin('display', undefined, "block");
 	        el.style.display = display ? display : '';
+	        if (parseInt(el.style.opacity) === 0) {
+	            el.style.opacity = "1";
+	        }
 	        if (typeof callback === "function") callback.call(el, arguments);
 	        return this;
 	    },
@@ -1568,8 +1574,6 @@
 	    },
 	
 	    fadeIn: function(el, duration, easing, callback){
-	        var $el = m4q(el);
-	
 	        if (not(duration) && not(easing) && not(callback)) {
 	            callback = null;
 	            duration = 1000;
@@ -1579,8 +1583,8 @@
 	            duration = 1000;
 	        }
 	
-	        el.style.opacity = 0;
-	        el.style.display = $el.origin("display", undefined, 'block');
+	        el.style.opacity = "0";
+	        el.style.display = m4q(el).origin("display", undefined, 'block');
 	
 	        return this.animate(el, function(progress){
 	            el.style.opacity = progress;
@@ -1599,7 +1603,7 @@
 	            duration = 1000;
 	        }
 	
-	        el.style.opacity = 1;
+	        el.style.opacity = "1";
 	
 	        return this.animate(el, function(progress){
 	            el.style.opacity = 1 - progress;

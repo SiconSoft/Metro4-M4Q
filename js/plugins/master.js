@@ -38,9 +38,9 @@ var Master = {
     },
 
     _setOptionsFromDOM: function(){
-        var that = this, element = this.element, o = this.options;
+        var element = this.element, o = this.options;
 
-        $.each(element.data(), function(key, value){
+        $.each(element.data(), function(value, key){
             if (key in o) {
                 try {
                     o[key] = JSON.parse(value);
@@ -52,7 +52,7 @@ var Master = {
     },
 
     _create: function(){
-        var that = this, element = this.element, o = this.options;
+        var element = this.element, o = this.options;
 
         element.addClass("master").addClass(o.clsMaster);
         element.css({
@@ -67,9 +67,9 @@ var Master = {
     },
 
     _createControls: function(){
-        var that = this, element = this.element, o = this.options;
+        var element = this.element, o = this.options;
         var controls_position = ['top', 'bottom'];
-        var i, controls, title, pages = element.find(".page");
+        var controls, title, pages = element.find(".page");
 
         title = String(o.controlTitle).replace("$1", "1");
         title = String(title).replace("$2", pages.length);
@@ -179,7 +179,7 @@ var Master = {
             }
         });
 
-        $(window).on(Metro.events.resize + "-master" + element.attr("id"), function(){
+        $(window).on(Metro.events.resize + ".master-" + element.attr("id"), function(){
             element.find(".pages").height(that.pages[that.currentIndex].outerHeight(true) + 2);
         });
     },
@@ -252,10 +252,15 @@ var Master = {
         this.isAnimate = true;
 
         setTimeout(function(){
-            pages.animate({
-                height: next.outerHeight(true) + 2
-            });
-        },0);
+            var pages_height = pages.outerHeight();
+            var delta_height = pages_height - next.outerHeight(true);
+
+            pages.animate(function(complete){
+                $(this).css({
+                    height: pages_height - delta_height * complete + 2
+                })
+            }, 100);
+        }, 50);
 
         pages.css("overflow", "hidden");
 
@@ -274,25 +279,33 @@ var Master = {
         }
 
         function _slide(){
-            current.stop(true, true).animate({
-                left: to === "next" ? -out : out
+            current.stop().animate(function(complete){
+                $(this).css({
+                    left: ( to === "next" ? -out : out ) * complete
+                })
             }, o.duration, o.effectFunc, function(){
-                current.hide(0);
+                current.hide();
             });
 
-            next.stop(true, true).css({
+            next.stop().css({
                 left: to === "next" ? out : -out
-            }).show(0).animate({
-                left: 0
+            }).show().animate(function(complete){
+                $(this).css({
+                    left: (to === "next" ? out : -out) * (1-complete)
+                });
             }, o.duration, o.effectFunc, function(){
                 finish();
             });
         }
 
         function _switch(){
-            current.hide(0);
+            current.hide();
 
-            next.hide(0).css("left", 0).show(0, function(){
+            next.css({
+                top: 0,
+                left: 0,
+                opacity: 0
+            }).show(function(){
                 finish();
             });
         }
@@ -300,7 +313,11 @@ var Master = {
         function _fade(){
             current.fadeOut(o.duration);
 
-            next.hide(0).css("left", 0).fadeIn(o.duration, function(){
+            next.css({
+                top: 0,
+                left: 0,
+                opacity: 0
+            }).fadeIn(o.duration, "linear", function(){
                 finish();
             });
         }
