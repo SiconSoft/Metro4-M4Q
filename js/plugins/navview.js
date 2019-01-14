@@ -21,9 +21,9 @@ var NavigationView = {
     },
 
     _setOptionsFromDOM: function(){
-        var that = this, element = this.element, o = this.options;
+        var element = this.element, o = this.options;
 
-        $.each(element.data(), function(key, value){
+        $.each(element.data(), function(value, key){
             if (key in o) {
                 try {
                     o[key] = JSON.parse(value);
@@ -35,7 +35,7 @@ var NavigationView = {
     },
 
     _create: function(){
-        var that = this, element = this.element, o = this.options;
+        var element = this.element, o = this.options;
 
         this._createView();
         this._createEvents();
@@ -44,7 +44,7 @@ var NavigationView = {
     },
 
     _createView: function(){
-        var that = this, element = this.element, o = this.options;
+        var element = this.element, o = this.options;
         var pane, content, toggle, menu;
 
         element
@@ -77,7 +77,7 @@ var NavigationView = {
 
     _createEvents: function(){
         var that = this, element = this.element, o = this.options;
-        var pane = this.pane, content = this.content;
+        var pane = this.pane;
 
         element.on(Metro.events.click, ".pull-button, .holder", function(e){
             var pane_compact = pane.width() < 280;

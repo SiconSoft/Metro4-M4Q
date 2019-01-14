@@ -139,7 +139,7 @@
 	        return m4q.merge(out, res);
 	    },
 	
-	    origin: function(name, value, defaultValue){
+	    origin: function(name, value, def){
 	
 	        if (this.length === 0) {
 	            return ;
@@ -151,7 +151,7 @@
 	
 	        if (not(value)) {
 	            var res = m4q.data(this[0], "origin-"+name);
-	            return !not(res) ? res : defaultValue;
+	            return !not(res) ? res : def;
 	        }
 	
 	        this.data("origin-"+name, value);
@@ -159,24 +159,24 @@
 	        return this;
 	    },
 	
-	    contains: function(selector){
-	        return this.find(selector).length > 0;
+	    contains: function(s){
+	        return this.find(s).length > 0;
 	    },
 	
-	    is: function(selector){
+	    is: function(s){
 	        var result = false;
 	
-	        if (typeof  selector === "string") {
+	        if (typeof  s === "string") {
 	            this.each(function(el){
-	                if (matches.call(el, selector)) {
+	                if (matches.call(el, s)) {
 	                    result = true;
 	                }
 	            });
 	        } else
 	
-	        if (isArrayLike(selector)) {
+	        if (isArrayLike(s)) {
 	            this.each(function(el){
-	                m4q.each(selector, function(sel){
+	                m4q.each(s, function(sel){
 	                    if (el === sel) {
 	                        result = true;
 	                    }
@@ -184,9 +184,9 @@
 	            });
 	        } else
 	
-	        if (typeof selector === "object" && selector.nodeType === 1) {
+	        if (typeof s === "object" && s.nodeType === 1) {
 	            this.each(function(el){
-	                if  (el === selector) {
+	                if  (el === s) {
 	                    result = true;
 	                }
 	            })
@@ -219,18 +219,18 @@
 	        }));
 	    },
 	
-	    _property: function(property, value){
+	    _prop: function(prop, value){
 	        if (this.length === 0) {
 	            return ;
 	        }
 	        if (value === undefined) {
-	            return this[0][property];
+	            return this[0][prop];
 	        }
 	
 	        this.each(function(el){
-	            el[property] = value;
+	            el[prop] = value;
 	
-	            if (property === "innerHTML") {
+	            if (prop === "innerHTML") {
 	                m4q.each(m4q(el).find("script"), function(script){
 	                    var s = document.createElement('script');
 	                    s.type = 'text/javascript';
@@ -248,8 +248,8 @@
 	        return this;
 	    },
 	
-	    val: function(value){
-	        return this._property("value", value);
+	    val: function(val){
+	        return this._prop("value", val);
 	    },
 	
 	    push: [].push,
@@ -285,27 +285,27 @@
 	};
 	
 
-	m4q.each = function(context, callback){
+	m4q.each = function(ctx, cb){
 	    var index = 0;
-	    if (isArrayLike(context)) {
-	        [].forEach.call(context, function(el) {
+	    if (isArrayLike(ctx)) {
+	        [].forEach.call(ctx, function(el) {
 	            'use strict';
-	            callback.apply(el, arguments);
+	            cb.apply(el, arguments);
 	        });
 	    } else {
-	        for(var el in context) {
-	            if (context.hasOwnProperty(el))
-	                callback.apply(context[el], [context[el], el,  index++]);
+	        for(var key in ctx) {
+	            if (ctx.hasOwnProperty(key))
+	                cb.apply(ctx[key], [ctx[key], key,  index++]);
 	        }
 	    }
 	
-	    return context;
+	    return ctx;
 	};
 	
 	m4q.fn.extend({
-	    each: function(callback){
+	    each: function(cb){
 	        [].forEach.call(this, function(el) {
-	            callback.apply(el, arguments);
+	            cb.apply(el, arguments);
 	        });
 	
 	        return this;
@@ -709,6 +709,12 @@
 	        if (this.length === 0) {
 	            return ;
 	        }
+	
+	        if (['focus', 'blur'].indexOf(name) > -1) {
+	            this[0][name]();
+	            return this;
+	        }
+	
 	        e = new CustomEvent(name, data || {});
 	        this.each(function(el){
 	            el.dispatchEvent(e);
@@ -741,19 +747,19 @@
 
 	m4q.fn.extend({
 	    html: function(value){
-	        return this._property('innerHTML', value);
+	        return this._prop('innerHTML', value);
 	    },
 	
 	    outerHTML: function(){
-	        return this._property('outerHTML');
+	        return this._prop('outerHTML');
 	    },
 	
 	    text: function(value){
-	        return this._property('textContent', value);
+	        return this._prop('textContent', value);
 	    },
 	
 	    innerText: function(value){
-	        return this._property('innerText', value);
+	        return this._prop('innerText', value);
 	    },
 	
 	    empty: function(){
@@ -771,32 +777,32 @@
 	
 	
 
-	m4q.ajax = function(params){
+	m4q.ajax = function(p){
 	    var xhr = new XMLHttpRequest();
 	
 	    xhr.onload = function(){
 	        if (xhr.status >= 200 && xhr.status < 300) {
-	            if (typeof params.success === "function")
-	                params.success(params.parseJson ? JSON.parse(xhr.response) : xhr.response, xhr.status, xhr.statusText, xhr);
+	            if (typeof p.success === "function")
+	                p.success(p.parseJson ? JSON.parse(xhr.response) : xhr.response, xhr.status, xhr.statusText, xhr);
 	        } else {
-	            if (typeof params.error === "function")
-	                params.error(xhr.status, xhr.statusText, xhr);
+	            if (typeof p.error === "function")
+	                p.error(xhr.status, xhr.statusText, xhr);
 	        }
 	    };
 	
 	    xhr.onerror = function(){
-	        if (typeof params.error === "function")
-	            params.error(xhr.status, xhr.statusText, xhr);
+	        if (typeof p.error === "function")
+	            p.error(xhr.status, xhr.statusText, xhr);
 	    };
 	
-	    if (params.headers) {
-	        m4q.each(function(name, value){
-	            xhr.setRequestHeader(name, value);
+	    if (p.headers) {
+	        m4q.each(function(n, v){
+	            xhr.setRequestHeader(n, v);
 	        });
 	    }
 	
-	    xhr.open(params.method || 'GET', params.url, true);
-	    xhr.send(params.data);
+	    xhr.open(p.method || 'GET', p.url, true);
+	    xhr.send(p.data);
 	};
 	
 	['get', 'post', 'put', 'patch', 'delete', 'json'].forEach(function(method){
@@ -882,15 +888,15 @@
 	    removeClass: function(){},
 	    toggleClass: function(){},
 	
-	    containsClass: function(className){
-	        return this.hasClass(className);
+	    containsClass: function(cls){
+	        return this.hasClass(cls);
 	    },
 	
-	    hasClass: function(className){
+	    hasClass: function(cls){
 	        var result = false;
 	
 	        this.each(function(el){
-	            if (el.classList.contains(className)) {
+	            if (el.classList.contains(cls)) {
 	                result = true;
 	            }
 	        });
@@ -911,8 +917,8 @@
 	        return this.each(function(el){
 	            m4q.each(cls.split(" ").filter(function(v){
 	                return (""+v).trim() !== "";
-	            }), function(className){
-	                el.classList[method](className);
+	            }), function(name){
+	                el.classList[method](name);
 	            });
 	        });
 	    }
@@ -1067,11 +1073,11 @@
 	});
 
 	m4q.fn.extend({
-	    filter: function(filterFunc){
-	        return [].filter.call(this, filterFunc);
+	    filter: function(fn){
+	        return [].filter.call(this, fn);
 	    },
 	
-	    find: function(selector){
+	    find: function(s){
 	        var res = [], out = m4q();
 	
 	        if (this.length === 0) {
@@ -1079,71 +1085,71 @@
 	        }
 	
 	        this.each(function(el){
-	            if (el.nodeType === 1) res = [].slice.call(el.querySelectorAll(selector));
+	            if (el.nodeType === 1) res = [].slice.call(el.querySelectorAll(s));
 	        });
 	        return m4q.merge(out, res);
 	    },
 	
-	    children: function(selector){
-	        var i, result = [], out = m4q();
+	    children: function(s){
+	        var i, res = [], out = m4q();
 	        this.each(function(el){
 	            for(i = 0; i < el.children.length; i++) {
 	                if (el.children[i].nodeType === 1)
-	                    result.push(el.children[i]);
+	                    res.push(el.children[i]);
 	            }
 	        });
-	        result = selector ? result.filter(function(el){
-	            return matches.call(el, selector);
-	        }) : result;
-	        return m4q.merge(out, result);
+	        res = s ? res.filter(function(el){
+	            return matches.call(el, s);
+	        }) : res;
+	        return m4q.merge(out, res);
 	    },
 	
-	    parent: function(selector){
-	        var result = [], out = m4q();
+	    parent: function(s){
+	        var res = [], out = m4q();
 	        if (this.length === 0) {
 	            return;
 	        }
 	        this.each(function(el){
 	            if (el.parentNode) {
-	                result.push(el.parentNode);
+	                res.push(el.parentNode);
 	            }
 	        });
-	        result = selector ? result.filter(function(el){
-	            return matches.call(el, selector);
-	        }) : result;
-	        return m4q.merge(out, result);
+	        res = s ? res.filter(function(el){
+	            return matches.call(el, s);
+	        }) : res;
+	        return m4q.merge(out, res);
 	    },
 	
-	    parents: function(selector){
-	        var result = [], out = m4q();
+	    parents: function(s){
+	        var res = [], out = m4q();
 	
 	        if (this.length === 0) {
 	            return;
 	        }
 	
 	        this.each(function(el){
-	            var parent = el.parentNode;
-	            while (parent) {
-	                if (parent.nodeType === 1) {
+	            var par = el.parentNode;
+	            while (par) {
+	                if (par.nodeType === 1) {
 	
-	                    if (!not(selector)) {
-	                        if (matches.call(parent, selector)) {
-	                            result.push(parent);
+	                    if (!not(s)) {
+	                        if (matches.call(par, s)) {
+	                            res.push(par);
 	                        }
 	                    } else {
-	                        result.push(parent);
+	                        res.push(par);
 	                    }
 	
 	
 	                }
-	                parent = parent.parentNode;
+	                par = par.parentNode;
 	            }
 	        });
 	
-	        return m4q.merge(out, result);
+	        return m4q.merge(out, res);
 	    },
 	
-	    siblings: function(selector){
+	    siblings: function(s){
 	        var res = [], out = m4q();
 	
 	        if (this.length === 0) {
@@ -1153,18 +1159,43 @@
 	        out = m4q();
 	
 	        this.each(function(el){
-	            var elements = [].filter.call(el.parentNode.children, function(child){
-	                return child !== el && (selector ? matches.call(child, selector) : true);
+	            var elems = [].filter.call(el.parentNode.children, function(child){
+	                return child !== el && (s ? matches.call(child, s) : true);
 	            });
 	
-	            elements.forEach(function(el){
+	            elems.forEach(function(el){
 	                res.push(el);
 	            })
 	        });
+	
 	        return m4q.merge(out, res);
 	    },
 	
-	    _siblings: function(direction, selector){
+	    _siblingAll: function(dir, s){
+	        var out = m4q();
+	
+	        if (this.length === 0) {
+	            return ;
+	        }
+	
+	        this.each(function(el){
+	            while (el) {
+	                el = el[dir];
+	                if (!el) break;
+	                if (!s) {
+	                    m4q.merge(out, m4q(el));
+	                } else {
+	                    if (matches.call(el, s)) {
+	                        m4q.merge(out, m4q(el));
+	                    }
+	                }
+	            }
+	        });
+	
+	        return out;
+	    },
+	
+	    _sibling: function(dir, s){
 	        var out = m4q();
 	
 	        if (this.length === 0) {
@@ -1174,38 +1205,46 @@
 	        out = m4q();
 	
 	        this.each(function(el){
-	            while (el) {
-	                el = el[direction];
-	                if (!el) break;
-	                if (!selector) {
-	                    m4q.merge(out, m4q(el));
+	            var sib = el[dir];
+	            if (sib && sib.nodeType === 1) {
+	                if (not(s)) {
+	                    m4q.merge(out, m4q(sib));
 	                } else {
-	                    if (matches.call(el, selector)) {
-	                        m4q.merge(out, m4q(el));
+	                    if (matches.call(sib, s)) {
+	                        m4q.merge(out, m4q(sib));
 	                    }
 	                }
 	            }
 	        });
+	
 	        return out;
 	    },
 	
-	    prev: function(selector){
-	        return this._siblings('previousElementSibling', selector);
+	    prev: function(s){
+	        return this._sibling('previousElementSibling', s);
 	    },
 	
-	    next: function(selector){
-	        return this._siblings('nextElementSibling', selector);
+	    next: function(s){
+	        return this._sibling('nextElementSibling', s);
 	    },
 	
-	    closest: function(selector){
+	    prevAll: function(s){
+	        return this._siblingAll('previousElementSibling', s);
+	    },
+	
+	    nextAll: function(s){
+	        return this._siblingAll('nextElementSibling', s);
+	    },
+	
+	    closest: function(s){
 	        var out = m4q();
 	
 	        if (this.length === 0) {
 	            return ;
 	        }
 	
-	        if (!selector) {
-	            return this.parent(selector);
+	        if (!s) {
+	            return this.parent(s);
 	        }
 	
 	        out = m4q();
@@ -1214,7 +1253,7 @@
 	            while (el) {
 	                el = el.parentElement;
 	                if (!el) break;
-	                if (matches.call(el, selector)) {
+	                if (matches.call(el, s)) {
 	                    m4q.merge(out, m4q(el));
 	                    return ;
 	                }
@@ -1226,7 +1265,7 @@
 	});
 
 	m4q.fn.extend({
-	    attr: function(name, value){
+	    attr: function(name, val){
 	        var attributes = {};
 	
 	        if (this.length === 0) {
@@ -1235,7 +1274,7 @@
 	
 	        if (arguments.length === 0) {
 	            m4q.each(this[0].attributes, function(a){
-	                attributes[a.nodeName] = a.nodeValue;
+	                attributes[a.nodeName] = a.nodeval;
 	            });
 	            return attributes;
 	        }
@@ -1247,7 +1286,7 @@
 	            return null;
 	        }
 	
-	        if (name && !isPlainObject(name) && value === undefined) {
+	        if (name && !isPlainObject(name) && val === undefined) {
 	            return this[0].nodeType === 1 && this[0].hasAttribute(name) ? this[0].getAttribute(name) : undefined;
 	        }
 	
@@ -1260,7 +1299,7 @@
 	            });
 	        } else {
 	            this.each(function(el){
-	                el.setAttribute(name, value);
+	                el.setAttribute(name, val);
 	            });
 	        }
 	
@@ -1278,13 +1317,13 @@
 	        return this;
 	    },
 	
-	    toggleAttr: function(name, value){
+	    toggleAttr: function(name, val){
 	        if (this.length === 0) {
 	            return ;
 	        }
 	        this.each(function(el){
-	            if (value && !el.hasAttribute(name) || !el.getAttribute(name)) {
-	                el.setAttribute(name, value);
+	            if (val && !el.hasAttribute(name) || !el.getAttribute(name)) {
+	                el.setAttribute(name, val);
 	            } else {
 	                el.removeAttribute(name);
 	            }
@@ -1496,21 +1535,21 @@
 	        easeInOutSin: function (t) {return (1 + Math.sin(Math.PI * t - Math.PI / 2)) / 2;}
 	    },
 	
-	    animate: function(el, draw, duration, timing, callback){
+	    animate: function(el, draw, dur, timing, cb){
 	        var $el = m4q(el), start = performance.now();
 	
-	        duration = duration || 100;
+	        dur = dur || 100;
 	        timing = timing || this.easingDef;
 	
 	        $el.origin("animation", requestAnimationFrame(function animate(time) {
-	            var t = (time - start) / duration;
+	            var t = (time - start) / dur;
 	            if (t > 1) t = 1;
-	            var progress = typeof timing === "string" ? m4q.easing[timing] ? m4q.easing[timing](t) : m4q.easing[m4q.easingDef](t) : timing(t);
+	            var p = typeof timing === "string" ? m4q.easing[timing] ? m4q.easing[timing](t) : m4q.easing[m4q.easingDef](t) : timing(t);
 	
-	            m4q.proxy(draw, $el[0])(progress);
+	            m4q.proxy(draw, $el[0])(p);
 	
-	            if (t === 1 && typeof callback === "function") {
-	                callback.call(el, arguments);
+	            if (t === 1 && typeof cb === "function") {
+	                cb.call(el, arguments);
 	            }
 	            if (t < 1) {
 	                $el.origin("animation", requestAnimationFrame(animate));
@@ -1525,9 +1564,9 @@
 	});
 	
 	m4q.fn.extend({
-	    animate: function (draw, duration, timing, callback) {
+	    animate: function (draw, dur, timing, cb) {
 	        return this.each(function(el){
-	            return m4q.animate(el, draw, duration, timing, callback);
+	            return m4q.animate(el, draw, dur, timing, cb);
 	        })
 	    },
 	
@@ -1541,42 +1580,42 @@
 	
 
 	m4q.extend({
-	    hide: function(el, callback){
+	    hide: function(el, cb){
 	        var $el = m4q(el);
 	        if (!!el.style.display) {
 	            $el.origin('display', (el.style.display ? el.style.display : getComputedStyle(el, null)['display']));
 	        }
 	        el.style.display = 'none';
-	        if (typeof callback === "function") callback.call(el, arguments);
+	        if (typeof cb === "function") cb.call(el, arguments);
 	        return this;
 	    },
 	
-	    show: function(el, callback){
+	    show: function(el, cb){
 	        var display = m4q(el).origin('display', undefined, "block");
 	        el.style.display = display ? display : '';
 	        if (parseInt(el.style.opacity) === 0) {
 	            el.style.opacity = "1";
 	        }
-	        if (typeof callback === "function") callback.call(el, arguments);
+	        if (typeof cb === "function") cb.call(el, arguments);
 	        return this;
 	    },
 	
-	    visible: function(el, mode, callback){
+	    visible: function(el, mode, cb){
 	        if (mode === undefined) {
 	            mode = true;
 	        }
 	        el.style.visibility = mode ? 'visible' : 'hidden';
-	        if (typeof callback === "function") callback.call(el, arguments);
+	        if (typeof cb === "function") cb.call(el, arguments);
 	    },
 	
-	    fadeIn: function(el, duration, easing, callback){
-	        if (not(duration) && not(easing) && not(callback)) {
-	            callback = null;
-	            duration = 1000;
+	    fadeIn: function(el, dur, easing, cb){
+	        if (not(dur) && not(easing) && not(cb)) {
+	            cb = null;
+	            dur = 1000;
 	        } else
-	        if (typeof duration === "function") {
-	            callback = duration;
-	            duration = 1000;
+	        if (typeof dur === "function") {
+	            cb = dur;
+	            dur = 1000;
 	        }
 	
 	        el.style.opacity = "0";
@@ -1584,19 +1623,19 @@
 	
 	        return this.animate(el, function(progress){
 	            el.style.opacity = progress;
-	        }, duration, easing, callback);
+	        }, dur, easing, cb);
 	    },
 	
-	    fadeOut: function(el, duration, easing, callback){
+	    fadeOut: function(el, dur, easing, cb){
 	        var $el = m4q(el);
 	
-	        if (not(duration) && not(easing) && not(callback)) {
-	            callback = null;
-	            duration = 1000;
+	        if (not(dur) && not(easing) && not(cb)) {
+	            cb = null;
+	            dur = 1000;
 	        } else
-	        if (typeof duration === "function") {
-	            callback = duration;
-	            duration = 1000;
+	        if (typeof dur === "function") {
+	            cb = dur;
+	            dur = 1000;
 	        }
 	
 	        el.style.opacity = "1";
@@ -1607,7 +1646,7 @@
 	                $el.origin("display", m4q(el).style('display'));
 	                el.style.display = 'none';
 	            }
-	        }, duration, easing, callback);
+	        }, dur, easing, cb);
 	    },
 	
 	    slideDown: function(el, dur, easing, cb) {
@@ -1644,7 +1683,7 @@
 	        }, dur, easing, cb);
 	    },
 	
-	    slideUp: function(el, duration, easing, callback) {
+	    slideUp: function(el, dur, easing, cb) {
 	        var $el = m4q(el);
 	        var currHeight;
 	
@@ -1652,13 +1691,13 @@
 	            return ;
 	        }
 	
-	        if (not(duration) && not(easing) && not(callback)) {
-	            callback = null;
-	            duration = 100;
+	        if (not(dur) && not(easing) && not(cb)) {
+	            cb = null;
+	            dur = 100;
 	        } else
-	        if (typeof duration === "function") {
-	            callback = duration;
-	            duration = 100;
+	        if (typeof dur === "function") {
+	            cb = dur;
+	            dur = 100;
 	        }
 	
 	        currHeight = $el.height();
@@ -1676,50 +1715,50 @@
 	                    height: ""
 	                });
 	            }
-	        }, duration, easing, callback);
+	        }, dur, easing, cb);
 	    }
 	});
 	
 	m4q.fn.extend({
-	    hide: function(callback){
+	    hide: function(cb){
 	        return this.each(function(el){
-	            m4q.hide(el, callback);
+	            m4q.hide(el, cb);
 	        });
 	    },
 	
-	    show: function(callback){
+	    show: function(cb){
 	        return this.each(function(el){
-	            m4q.show(el, callback);
+	            m4q.show(el, cb);
 	        });
 	    },
 	
-	    visible: function(mode, callback){
+	    visible: function(mode, cb){
 	        return this.each(function(el){
-	            m4q.visible(el, mode, callback);
+	            m4q.visible(el, mode, cb);
 	        });
 	    },
 	
-	    fadeIn: function(duration, easing, callback){
+	    fadeIn: function(dur, easing, cb){
 	        return this.each(function(el){
-	            m4q.fadeIn(el, duration, easing, callback);
+	            m4q.fadeIn(el, dur, easing, cb);
 	        })
 	    },
 	
-	    fadeOut: function(duration, easing, callback){
+	    fadeOut: function(dur, easing, cb){
 	        return this.each(function(el){
-	            m4q.fadeOut(el, duration, easing, callback);
+	            m4q.fadeOut(el, dur, easing, cb);
 	        })
 	    },
 	
-	    slideUp: function(duration, easing, callback){
+	    slideUp: function(dur, easing, cb){
 	        return this.each(function(el){
-	            m4q.slideUp(el, duration, easing, callback);
+	            m4q.slideUp(el, dur, easing, cb);
 	        })
 	    },
 	
-	    slideDown: function(duration, easing, callback){
+	    slideDown: function(dur, easing, cb){
 	        return this.each(function(el){
-	            m4q.slideDown(el, duration, easing, callback);
+	            m4q.slideDown(el, dur, easing, cb);
 	        })
 	    }
 	});

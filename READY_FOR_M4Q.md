@@ -50,7 +50,7 @@
 - [x] List
 - [x] ListView
 - [x] Master
-- [ ] NavView
+- [x] NavView
 - [ ] Notify
 - [ ] Panel
 - [ ] Popovers
