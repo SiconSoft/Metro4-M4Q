@@ -49,7 +49,7 @@
 - [x] Keypad
 - [x] List
 - [x] ListView
-- [ ] Master
+- [x] Master
 - [ ] NavView
 - [ ] Notify
 - [ ] Panel

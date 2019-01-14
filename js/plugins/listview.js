@@ -282,7 +282,7 @@ var ListView = {
 
     insertBefore: function(node, data){
         var element = this.element, o = this.options;
-
+        node = $(node);
         if (!node.length) {return ;}
 
         var new_node = this._createNode(data);
@@ -293,6 +293,7 @@ var ListView = {
 
     insertAfter: function(node, data){
         var element = this.element, o = this.options;
+        node = $(node);
 
         if (!node.length) {return ;}
 
@@ -304,6 +305,7 @@ var ListView = {
 
     del: function(node){
         var element = this.element, o = this.options;
+        node = $(node);
 
         if (!node.length) {return ;}
 
@@ -320,6 +322,7 @@ var ListView = {
 
     clean: function(node){
         var element = this.element, o = this.options;
+        node = $(node);
 
         if (!node.length) {return ;}
 

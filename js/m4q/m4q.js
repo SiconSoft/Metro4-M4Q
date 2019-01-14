@@ -735,11 +735,7 @@
 	});
 	
 	m4q.ready = function(fn){
-	    if (document.attachEvent ? document.readyState === "complete" : document.readyState !== "loading"){
-	        fn();
-	    } else {
-	        document.addEventListener('DOMContentLoaded', fn);
-	    }
+	    document.addEventListener('DOMContentLoaded', fn);
 	};
 	
 
@@ -1730,51 +1726,59 @@
 	
 	
 
-	m4q.init = function(selector, context){
+	m4q.init = function(sel, ctx){
 	    var parsed;
 	
-	    if (!selector) {
+	    if (!sel) {
 	        return this;
 	    }
 	
-	    if (selector === "document") {
-	        selector = document;
+	    if (typeof sel === "function") {
+	        return m4q.ready(sel);
 	    }
 	
-	    if (selector === "body") {
-	        selector = document.body;
+	    if (typeof sel === "object" && typeof jQuery !== "undefined" && sel instanceof jQuery) {
+	        return m4q.import(sel);
 	    }
 	
-	    if (selector.nodeType || selector === window) {
-	        this[0] = selector;
+	    if (sel === "document") {
+	        sel = document;
+	    }
+	
+	    if (sel === "body") {
+	        sel = document.body;
+	    }
+	
+	    if (sel.nodeType || sel === window) {
+	        this[0] = sel;
 	        this.length = 1;
 	        return this;
 	    }
 	
-	    if (selector instanceof m4q) {
-	        return selector;
+	    if (sel instanceof m4q) {
+	        return sel;
 	    }
 	
-	    if (typeof selector === "string") {
+	    if (typeof sel === "string") {
 	
-	        selector = selector.trim();
+	        sel = sel.trim();
 	
-	        if (selector === "#" || selector === ".") {
-	            throw new Error("Selector can't be # or .") ;
+	        if (sel === "#" || sel === ".") {
+	            throw new Error("sel can't be # or .") ;
 	        }
 	
-	        parsed = m4q.parseHTML(selector, context);
+	        parsed = m4q.parseHTML(sel, ctx);
 	
-	        if (parsed.length === 1 && parsed[0].nodeType === 3) { // Must be a text node -> css selector
-	            [].push.apply(this, document.querySelectorAll(selector));
+	        if (parsed.length === 1 && parsed[0].nodeType === 3) { // Must be a text node -> css sel
+	            [].push.apply(this, document.querySelectorAll(sel));
 	        } else {
 	            m4q.merge(this, parsed);
 	        }
 	    }
 	
-	    if (context !== undefined && (context instanceof m4q || context instanceof HTMLElement)) {
+	    if (ctx !== undefined && (ctx instanceof m4q || ctx instanceof HTMLElement)) {
 	        this.each(function(el){
-	            $(context).append($(el))
+	            $(ctx).append($(el))
 	        });
 	    }
 	
@@ -1788,6 +1792,14 @@ var _$ = window.$,
 	    _$M = window.$M;
 	
 	window.m4q = m4q;
+	
+	if (typeof window.$ === "undefined") {
+	    window.$ = m4q;
+	}
+	
+	if (typeof window.$M === "undefined") {
+	    window.$M = m4q;
+	}
 	
 	m4q.global = function(){
 	    window.$M = window.$ = m4q;
