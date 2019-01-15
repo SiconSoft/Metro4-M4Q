@@ -38,9 +38,9 @@ var Panel = {
     },
 
     _setOptionsFromDOM: function(){
-        var that = this, element = this.element, o = this.options;
+        var element = this.element, o = this.options;
 
-        $.each(element.data(), function(key, value){
+        $.each(element.data(), function(value, key){
             if (key in o) {
                 try {
                     o[key] = JSON.parse(value);
@@ -52,21 +52,12 @@ var Panel = {
     },
 
     _create: function(){
-        var that = this, element = this.element, o = this.options;
-        var prev = element.prev();
-        var parent = element.parent();
+        var element = this.element, o = this.options;
         var panel = $("<div>").addClass("panel").addClass(o.clsPanel);
         var id = Utils.uniqueId();
         var original_classes = element[0].className;
 
-
-        if (prev.length === 0) {
-            parent.prepend(panel);
-        } else {
-            panel.insertAfter(prev);
-        }
-
-        panel.attr("id", id).addClass(original_classes);
+        panel.insertBefore(element).attr("id", id).addClass(original_classes);
 
         element[0].className = '';
         element.addClass("panel-content").addClass(o.clsContent).appendTo(panel);

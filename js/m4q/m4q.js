@@ -1084,14 +1084,19 @@
 	            return ;
 	        }
 	
-	        this.each(function(el){
-	            if (el.nodeType === 1) res = [].slice.call(el.querySelectorAll(s));
+	        if (typeof s !== "string" && s instanceof m4q) return s;
+	
+	        this.each(function (el) {
+	            if (typeof el.querySelectorAll !== "undefined") res = [].slice.call(el.querySelectorAll(s));
 	        });
 	        return m4q.merge(out, res);
 	    },
 	
 	    children: function(s){
 	        var i, res = [], out = m4q();
+	
+	        if (typeof s !== "string" && s instanceof m4q) return s;
+	
 	        this.each(function(el){
 	            for(i = 0; i < el.children.length; i++) {
 	                if (el.children[i].nodeType === 1)
@@ -1109,6 +1114,9 @@
 	        if (this.length === 0) {
 	            return;
 	        }
+	
+	        if (typeof s !== "string" && s instanceof m4q) return s;
+	
 	        this.each(function(el){
 	            if (el.parentNode) {
 	                res.push(el.parentNode);
@@ -1126,6 +1134,8 @@
 	        if (this.length === 0) {
 	            return;
 	        }
+	
+	        if (typeof s !== "string" && s instanceof m4q) return s;
 	
 	        this.each(function(el){
 	            var par = el.parentNode;
@@ -1156,6 +1166,8 @@
 	            return ;
 	        }
 	
+	        if (typeof s !== "string" && s instanceof m4q) return s;
+	
 	        out = m4q();
 	
 	        this.each(function(el){
@@ -1177,6 +1189,8 @@
 	        if (this.length === 0) {
 	            return ;
 	        }
+	
+	        if (typeof s !== "string" && s instanceof m4q) return s;
 	
 	        this.each(function(el){
 	            while (el) {
@@ -1201,6 +1215,8 @@
 	        if (this.length === 0) {
 	            return ;
 	        }
+	
+	        if (typeof s !== "string" && s instanceof m4q) return s;
 	
 	        out = m4q();
 	
@@ -1242,6 +1258,8 @@
 	        if (this.length === 0) {
 	            return ;
 	        }
+	
+	        if (typeof s !== "string" && s instanceof m4q) return s;
 	
 	        if (!s) {
 	            return this.parent(s);
@@ -1551,7 +1569,7 @@
 	            if (typeof draw === "function") {
 	                m4q.proxy(draw, $el[0])(p);
 	            } else if (isPlainObject(draw)) {
-	                console.log("Object currently not supported. Please use function!");
+	                console.log("Plain object currently not supported. Please use function!");
 	                (function(complete){
 	                })(p);
 	            } else {

@@ -1113,14 +1113,19 @@
 	            return ;
 	        }
 	
-	        this.each(function(el){
-	            if (el.nodeType === 1) res = [].slice.call(el.querySelectorAll(s));
+	        if (typeof s !== "string" && s instanceof m4q) return s;
+	
+	        this.each(function (el) {
+	            if (typeof el.querySelectorAll !== "undefined") res = [].slice.call(el.querySelectorAll(s));
 	        });
 	        return m4q.merge(out, res);
 	    },
 	
 	    children: function(s){
 	        var i, res = [], out = m4q();
+	
+	        if (typeof s !== "string" && s instanceof m4q) return s;
+	
 	        this.each(function(el){
 	            for(i = 0; i < el.children.length; i++) {
 	                if (el.children[i].nodeType === 1)
@@ -1138,6 +1143,9 @@
 	        if (this.length === 0) {
 	            return;
 	        }
+	
+	        if (typeof s !== "string" && s instanceof m4q) return s;
+	
 	        this.each(function(el){
 	            if (el.parentNode) {
 	                res.push(el.parentNode);
@@ -1155,6 +1163,8 @@
 	        if (this.length === 0) {
 	            return;
 	        }
+	
+	        if (typeof s !== "string" && s instanceof m4q) return s;
 	
 	        this.each(function(el){
 	            var par = el.parentNode;
@@ -1185,6 +1195,8 @@
 	            return ;
 	        }
 	
+	        if (typeof s !== "string" && s instanceof m4q) return s;
+	
 	        out = m4q();
 	
 	        this.each(function(el){
@@ -1206,6 +1218,8 @@
 	        if (this.length === 0) {
 	            return ;
 	        }
+	
+	        if (typeof s !== "string" && s instanceof m4q) return s;
 	
 	        this.each(function(el){
 	            while (el) {
@@ -1230,6 +1244,8 @@
 	        if (this.length === 0) {
 	            return ;
 	        }
+	
+	        if (typeof s !== "string" && s instanceof m4q) return s;
 	
 	        out = m4q();
 	
@@ -1271,6 +1287,8 @@
 	        if (this.length === 0) {
 	            return ;
 	        }
+	
+	        if (typeof s !== "string" && s instanceof m4q) return s;
 	
 	        if (!s) {
 	            return this.parent(s);
@@ -1580,7 +1598,7 @@
 	            if (typeof draw === "function") {
 	                m4q.proxy(draw, $el[0])(p);
 	            } else if (isPlainObject(draw)) {
-	                console.log("Object currently not supported. Please use function!");
+	                console.log("Plain object currently not supported. Please use function!");
 	                (function(complete){
 	                })(p);
 	            } else {
@@ -15820,9 +15838,9 @@ var Panel = {
     },
 
     _setOptionsFromDOM: function(){
-        var that = this, element = this.element, o = this.options;
+        var element = this.element, o = this.options;
 
-        $.each(element.data(), function(key, value){
+        $.each(element.data(), function(value, key){
             if (key in o) {
                 try {
                     o[key] = JSON.parse(value);
@@ -15834,21 +15852,12 @@ var Panel = {
     },
 
     _create: function(){
-        var that = this, element = this.element, o = this.options;
-        var prev = element.prev();
-        var parent = element.parent();
+        var element = this.element, o = this.options;
         var panel = $("<div>").addClass("panel").addClass(o.clsPanel);
         var id = Utils.uniqueId();
         var original_classes = element[0].className;
 
-
-        if (prev.length === 0) {
-            parent.prepend(panel);
-        } else {
-            panel.insertAfter(prev);
-        }
-
-        panel.attr("id", id).addClass(original_classes);
+        panel.insertBefore(element).attr("id", id).addClass(original_classes);
 
         element[0].className = '';
         element.addClass("panel-content").addClass(o.clsContent).appendTo(panel);
