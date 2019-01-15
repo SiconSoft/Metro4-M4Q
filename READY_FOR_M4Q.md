@@ -52,7 +52,7 @@
 - [x] Master
 - [x] NavView
 - [x] Notify
-- [ ] Panel
+- [x] Panel
 - [ ] Popovers
 - [x] Progress
 - [x] Radio
