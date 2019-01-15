@@ -51,7 +51,7 @@
 - [x] ListView
 - [x] Master
 - [x] NavView
-- [ ] Notify
+- [x] Notify
 - [ ] Panel
 - [ ] Popovers
 - [x] Progress

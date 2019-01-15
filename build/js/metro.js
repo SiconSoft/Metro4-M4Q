@@ -1567,15 +1567,25 @@
 	    animate: function(el, draw, dur, timing, cb){
 	        var $el = m4q(el), start = performance.now();
 	
-	        dur = dur || 100;
+	        dur = dur || 300;
 	        timing = timing || this.easingDef;
 	
 	        $el.origin("animation", requestAnimationFrame(function animate(time) {
-	            var t = (time - start) / dur;
-	            if (t > 1) t = 1;
-	            var p = typeof timing === "string" ? m4q.easing[timing] ? m4q.easing[timing](t) : m4q.easing[m4q.easingDef](t) : timing(t);
+	            var p, t, curr = {}, key, sv;
 	
-	            m4q.proxy(draw, $el[0])(p);
+	            t = (time - start) / dur;
+	            if (t > 1) t = 1;
+	            p = typeof timing === "string" ? m4q.easing[timing] ? m4q.easing[timing](t) : m4q.easing[m4q.easingDef](t) : timing(t);
+	
+	            if (typeof draw === "function") {
+	                m4q.proxy(draw, $el[0])(p);
+	            } else if (isPlainObject(draw)) {
+	                console.log("Object currently not supported. Please use function!");
+	                (function(complete){
+	                })(p);
+	            } else {
+	                throw new Error("Unknown draw object. Must be a function or plain object");
+	            }
 	
 	            if (t === 1 && typeof cb === "function") {
 	                cb.call(el, arguments);
@@ -1642,12 +1652,18 @@
 	            cb = null;
 	            dur = 1000;
 	        } else
+	
 	        if (typeof dur === "function") {
 	            cb = dur;
 	            dur = 1000;
 	        }
 	
-	        el.style.opacity = "0";
+	        if (typeof easing === "function") {
+	            cb = easing;
+	            easing = "linear";
+	        }
+	
+	        el.style.opacity = 0;
 	        el.style.display = m4q(el).origin("display", undefined, 'block');
 	
 	        return this.animate(el, function(progress){
@@ -1666,8 +1682,12 @@
 	            cb = dur;
 	            dur = 1000;
 	        }
+	        if (typeof easing === "function") {
+	            cb = easing;
+	            easing = "linear";
+	        }
 	
-	        el.style.opacity = "1";
+	        el.style.opacity = 1;
 	
 	        return this.animate(el, function(progress){
 	            el.style.opacity = 1 - progress;
@@ -1689,6 +1709,10 @@
 	        if (typeof dur === "function") {
 	            cb = dur;
 	            dur = 100;
+	        }
+	        if (typeof easing === "function") {
+	            cb = easing;
+	            easing = "linear";
 	        }
 	
 	        $el.show().visible(false);
@@ -1727,6 +1751,10 @@
 	        if (typeof dur === "function") {
 	            cb = dur;
 	            dur = 100;
+	        }
+	        if (typeof easing === "function") {
+	            cb = easing;
+	            easing = "linear";
 	        }
 	
 	        currHeight = $el.height();
@@ -15617,8 +15645,8 @@ var Notify = {
         width: 220,
         timeout: METRO_TIMEOUT,
         duration: METRO_ANIMATION_DURATION,
-        distance: "100vh",
-        animation: "swing",
+        distance: $(window).height(),
+        animation: "linear",
         onClick: Metro.noop,
         onClose: Metro.noop,
         onShow: Metro.noop,
@@ -15646,8 +15674,8 @@ var Notify = {
             width: 220,
             timeout: METRO_TIMEOUT,
             duration: METRO_ANIMATION_DURATION,
-            distance: "100vh",
-            animation: "swing"
+            distance: $(window).height(),
+            animation: "linear"
         };
         this.options = $.extend({}, this.options, reset_options);
     },
@@ -15702,13 +15730,17 @@ var Notify = {
             Utils.exec(Utils.isValue(options.onAppend) ? options.onAppend : o.onAppend, null, notify[0]);
 
             notify.css({
-                marginTop: Utils.isValue(options.onAppend) ? options.distance : o.distance
+                "margin-top": Utils.isValue(options.distance) ? options.distance : o.distance
             }).fadeIn(100, function(){
                 var duration = Utils.isValue(options.duration) ? options.duration : o.duration;
                 var animation = Utils.isValue(options.animation) ? options.animation : o.animation;
+                var marginTop = parseInt(notify.css("margin-top"));
 
-                notify.animate({
-                    marginTop: ".25rem"
+                notify.animate(function(p){
+                    // to 4px
+                    $(this).css({
+                        "margin-top": marginTop - (marginTop * p) + 4
+                    })
                 }, duration, animation, function(){
 
                     Utils.exec(o.onNotifyCreate, null, this);
@@ -15729,7 +15761,7 @@ var Notify = {
 
     kill: function(notify, callback){
         notify.off(Metro.events.click);
-        notify.fadeOut('slow', function(){
+        notify.fadeOut(1000, function(){
             Utils.exec(Utils.isValue(callback) ? callback : this.options.onClose, null, notify[0]);
             notify.remove();
         });

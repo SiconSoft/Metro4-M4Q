@@ -1538,15 +1538,25 @@
 	    animate: function(el, draw, dur, timing, cb){
 	        var $el = m4q(el), start = performance.now();
 	
-	        dur = dur || 100;
+	        dur = dur || 300;
 	        timing = timing || this.easingDef;
 	
 	        $el.origin("animation", requestAnimationFrame(function animate(time) {
-	            var t = (time - start) / dur;
-	            if (t > 1) t = 1;
-	            var p = typeof timing === "string" ? m4q.easing[timing] ? m4q.easing[timing](t) : m4q.easing[m4q.easingDef](t) : timing(t);
+	            var p, t, curr = {}, key, sv;
 	
-	            m4q.proxy(draw, $el[0])(p);
+	            t = (time - start) / dur;
+	            if (t > 1) t = 1;
+	            p = typeof timing === "string" ? m4q.easing[timing] ? m4q.easing[timing](t) : m4q.easing[m4q.easingDef](t) : timing(t);
+	
+	            if (typeof draw === "function") {
+	                m4q.proxy(draw, $el[0])(p);
+	            } else if (isPlainObject(draw)) {
+	                console.log("Object currently not supported. Please use function!");
+	                (function(complete){
+	                })(p);
+	            } else {
+	                throw new Error("Unknown draw object. Must be a function or plain object");
+	            }
 	
 	            if (t === 1 && typeof cb === "function") {
 	                cb.call(el, arguments);
@@ -1613,12 +1623,18 @@
 	            cb = null;
 	            dur = 1000;
 	        } else
+	
 	        if (typeof dur === "function") {
 	            cb = dur;
 	            dur = 1000;
 	        }
 	
-	        el.style.opacity = "0";
+	        if (typeof easing === "function") {
+	            cb = easing;
+	            easing = "linear";
+	        }
+	
+	        el.style.opacity = 0;
 	        el.style.display = m4q(el).origin("display", undefined, 'block');
 	
 	        return this.animate(el, function(progress){
@@ -1637,8 +1653,12 @@
 	            cb = dur;
 	            dur = 1000;
 	        }
+	        if (typeof easing === "function") {
+	            cb = easing;
+	            easing = "linear";
+	        }
 	
-	        el.style.opacity = "1";
+	        el.style.opacity = 1;
 	
 	        return this.animate(el, function(progress){
 	            el.style.opacity = 1 - progress;
@@ -1660,6 +1680,10 @@
 	        if (typeof dur === "function") {
 	            cb = dur;
 	            dur = 100;
+	        }
+	        if (typeof easing === "function") {
+	            cb = easing;
+	            easing = "linear";
 	        }
 	
 	        $el.show().visible(false);
@@ -1698,6 +1722,10 @@
 	        if (typeof dur === "function") {
 	            cb = dur;
 	            dur = 100;
+	        }
+	        if (typeof easing === "function") {
+	            cb = easing;
+	            easing = "linear";
 	        }
 	
 	        currHeight = $el.height();

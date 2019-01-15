@@ -5,8 +5,8 @@ var Notify = {
         width: 220,
         timeout: METRO_TIMEOUT,
         duration: METRO_ANIMATION_DURATION,
-        distance: "100vh",
-        animation: "swing",
+        distance: $(window).height(),
+        animation: "linear",
         onClick: Metro.noop,
         onClose: Metro.noop,
         onShow: Metro.noop,
@@ -34,8 +34,8 @@ var Notify = {
             width: 220,
             timeout: METRO_TIMEOUT,
             duration: METRO_ANIMATION_DURATION,
-            distance: "100vh",
-            animation: "swing"
+            distance: $(window).height(),
+            animation: "linear"
         };
         this.options = $.extend({}, this.options, reset_options);
     },
@@ -90,13 +90,17 @@ var Notify = {
             Utils.exec(Utils.isValue(options.onAppend) ? options.onAppend : o.onAppend, null, notify[0]);
 
             notify.css({
-                marginTop: Utils.isValue(options.onAppend) ? options.distance : o.distance
+                "margin-top": Utils.isValue(options.distance) ? options.distance : o.distance
             }).fadeIn(100, function(){
                 var duration = Utils.isValue(options.duration) ? options.duration : o.duration;
                 var animation = Utils.isValue(options.animation) ? options.animation : o.animation;
+                var marginTop = parseInt(notify.css("margin-top"));
 
-                notify.animate({
-                    marginTop: ".25rem"
+                notify.animate(function(p){
+                    // to 4px
+                    $(this).css({
+                        "margin-top": marginTop - (marginTop * p) + 4
+                    })
                 }, duration, animation, function(){
 
                     Utils.exec(o.onNotifyCreate, null, this);
@@ -117,7 +121,7 @@ var Notify = {
 
     kill: function(notify, callback){
         notify.off(Metro.events.click);
-        notify.fadeOut('slow', function(){
+        notify.fadeOut(1000, function(){
             Utils.exec(Utils.isValue(callback) ? callback : this.options.onClose, null, notify[0]);
             notify.remove();
         });
