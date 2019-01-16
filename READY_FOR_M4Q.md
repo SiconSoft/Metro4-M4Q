@@ -53,7 +53,7 @@
 - [x] NavView
 - [x] Notify
 - [x] Panel
-- [ ] Popovers
+- [x] Popovers
 - [x] Progress
 - [x] Radio
 - [ ] Rating

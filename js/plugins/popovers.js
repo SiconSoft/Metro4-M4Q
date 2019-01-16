@@ -35,7 +35,7 @@ var Popover = {
     _setOptionsFromDOM: function(){
         var element = this.element, o = this.options;
 
-        $.each(element.data(), function(key, value){
+        $.each(element.data(), function(value, key){
             if (key in o) {
                 try {
                     o[key] = JSON.parse(value);
@@ -189,7 +189,7 @@ var Popover = {
         Utils.exec(this.options.onPopoverHide, [popover], this.elem);
 
         setTimeout(function(){
-            popover.hide(0, function(){
+            popover.hide(function(){
                 popover.remove();
                 that.popover = null;
                 that.popovered = false;
