@@ -18,6 +18,7 @@ var Radio = {
         style: 1,
         caption: "",
         captionPosition: "right",
+        transition: true,
         clsRadio: "",
         clsCheck: "",
         clsCaption: "",
@@ -53,6 +54,10 @@ var Radio = {
 
         if (o.captionPosition === 'left') {
             radio.addClass("caption-left");
+        }
+
+        if (o.transition === true) {
+            radio.addClass("transition-on");
         }
 
         this.origin.className = element[0].className;

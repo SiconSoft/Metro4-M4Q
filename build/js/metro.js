@@ -8982,6 +8982,7 @@ var Checkbox = {
         style: 1,
         caption: "",
         captionPosition: "right",
+        transition: true,
         indeterminate: false,
         clsCheckbox: "",
         clsCheck: "",
@@ -9025,6 +9026,11 @@ var Checkbox = {
         if (o.captionPosition === 'left') {
             checkbox.addClass("caption-left");
         }
+
+        if (o.transition === true) {
+            checkbox.addClass("transition-on");
+        }
+
 
         this.origin.className = element[0].className;
         element[0].className = '';
@@ -16370,6 +16376,7 @@ var Radio = {
         style: 1,
         caption: "",
         captionPosition: "right",
+        transition: true,
         clsRadio: "",
         clsCheck: "",
         clsCaption: "",
@@ -16405,6 +16412,10 @@ var Radio = {
 
         if (o.captionPosition === 'left') {
             radio.addClass("caption-left");
+        }
+
+        if (o.transition === true) {
+            radio.addClass("transition-on");
         }
 
         this.origin.className = element[0].className;
@@ -19797,6 +19808,7 @@ var Switch = {
         material: false,
         caption: "",
         captionPosition: "right",
+        transition: true,
         clsSwitch: "",
         clsCheck: "",
         clsCaption: "",
@@ -19804,9 +19816,9 @@ var Switch = {
     },
 
     _setOptionsFromDOM: function(){
-        var that = this, element = this.element, o = this.options;
+        var element = this.element, o = this.options;
 
-        $.each(element.data(), function(key, value){
+        $.each(element.data(), function(value, key){
             if (key in o) {
                 try {
                     o[key] = JSON.parse(value);
@@ -19818,27 +19830,24 @@ var Switch = {
     },
 
     _create: function(){
-        var that = this, element = this.element, o = this.options;
-        var prev = element.prev();
-        var parent = element.parent();
+        var element = this.element, o = this.options;
         var container = $("<label>").addClass((o.material === true ? " switch-material " : " switch ") + element[0].className);
         var check = $("<span>").addClass("check");
         var caption = $("<span>").addClass("caption").html(o.caption);
 
         element.attr("type", "checkbox");
 
-        if (prev.length === 0) {
-            parent.prepend(container);
-        } else {
-            container.insertAfter(prev);
-        }
-
+        container.insertBefore(element);
         element.appendTo(container);
         check.appendTo(container);
         caption.appendTo(container);
 
         if (o.captionPosition === 'left') {
             container.addClass("caption-left");
+        }
+
+        if (o.transition === true) {
+            container.addClass("transition-on");
         }
 
         element[0].className = '';

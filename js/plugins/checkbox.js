@@ -18,6 +18,7 @@ var Checkbox = {
         style: 1,
         caption: "",
         captionPosition: "right",
+        transition: true,
         indeterminate: false,
         clsCheckbox: "",
         clsCheck: "",
@@ -61,6 +62,11 @@ var Checkbox = {
         if (o.captionPosition === 'left') {
             checkbox.addClass("caption-left");
         }
+
+        if (o.transition === true) {
+            checkbox.addClass("transition-on");
+        }
+
 
         this.origin.className = element[0].className;
         element[0].className = '';

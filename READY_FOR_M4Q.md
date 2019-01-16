@@ -68,7 +68,7 @@
 - [ ] Splitter
 - [ ] Stepper
 - [ ] Streamer
-- [ ] Switch
+- [x] Switch
 - [ ] Table
 - [ ] Tabs
 - [ ] Tabs Material
