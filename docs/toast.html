@@ -144,14 +144,14 @@
 
                     &lt;script&gt;
                         function runToast(mode) {
-                            var toast = Metro.toast.create;
+                            var toast = Metro.toast;
                             switch (mode) {
-                                case 'callback': toast("This is a toast with callback", function(){
+                                case 'callback': toast.create("This is a toast with callback", function(){
                                     alert('Toast callback executed!');
                                 }); break;
-                                case 'timeout': toast("This is a toast with timeout 5s", null, 5000); break;
-                                case 'class': toast("This is a toast with custom class", null, 5000, "bg-green fg-white"); break;
-                                default: toast("This is default toast");
+                                case 'timeout': toast.create("This is a toast with timeout 5s", null, 5000); break;
+                                case 'class': toast.create("This is a toast with custom class", null, 5000, "bg-green fg-white"); break;
+                                default: toast.create("This is default toast");
                             }
                         }
                     &lt;/script&gt;
@@ -222,18 +222,18 @@
 
     <script>
         function runToast(mode) {
-            var toast = Metro.toast.create;
+            var toast = Metro.toast;
             switch (mode) {
-                case 'callback': toast("This is a toast with callback", function(){alert('Toast callback executed!');}); break;
-                case 'timeout': toast("This is a toast with timeout 5s", null, 5000); break;
-                case 'class': toast("This is a toast with custom class", null, 5000, "bg-green fg-white"); break;
-                default: toast("This is default toast");
+                case 'callback': toast.create("This is a toast with callback", function(){alert('Toast callback executed!');}); break;
+                case 'timeout': toast.create("This is a toast with timeout 5s", null, 5000); break;
+                case 'class': toast.create("This is a toast with custom class", null, 5000, "bg-green fg-white"); break;
+                default: toast.create("This is default toast");
             }
         }
 
         function toastClasses(cls){
-            var toast = Metro.toast.create;
-            toast("This is a toast with a predefined class ." + cls, null, 5000, cls);
+            var toast = Metro.toast;
+            toast.create("This is a toast with a predefined class ." + cls, null, 5000, cls);
         }
     </script>
     <!-- ads-script -->

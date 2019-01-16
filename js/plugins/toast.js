@@ -15,6 +15,7 @@ var Toast = {
     },
 
     create: function(message, callback, timeout, cls){
+        console.log(this);
         var o = this.options;
         var toast = $("<div>").addClass("toast").html(message).appendTo($("body")).hide();
         var width = toast.outerWidth();

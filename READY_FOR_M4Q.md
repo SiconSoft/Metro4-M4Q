@@ -76,7 +76,7 @@
 - [ ] Textarea
 - [ ] Tiles
 - [ ] Timepicker
-- [ ] Toast
+- [x] Toast
 - [ ] Touch
 - [ ] TreeView
 - [ ] Validator
