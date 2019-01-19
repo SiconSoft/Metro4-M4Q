@@ -56,7 +56,7 @@
 - [x] Popovers
 - [x] Progress
 - [x] Radio
-- [ ] Rating
+- [x] Rating
 - [ ] Resizable
 - [ ] Ribbon Menu
 - [ ] Ripple

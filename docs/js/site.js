@@ -54,5 +54,5 @@ var initDocSearchEngine = function(){
             inputSelector: '#search_input',
             debug: false // Set debug to true if you want to inspect the dropdown
         });
-    }, 500);
+    }, 1000);
 };
