@@ -61,7 +61,7 @@
 - [ ] Ribbon Menu
 - [ ] Ripple
 - [x] Select
-- [ ] Sidebar
+- [x] Sidebar
 - [x] Slider
 - [ ] Sorter
 - [ ] Spinner

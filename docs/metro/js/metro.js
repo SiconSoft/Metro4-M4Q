@@ -17627,9 +17627,9 @@ var Sidebar = {
     },
 
     _setOptionsFromDOM: function(){
-        var that = this, element = this.element, o = this.options;
+        var element = this.element, o = this.options;
 
-        $.each(element.data(), function(key, value){
+        $.each(element.data(), function(value, key){
             if (key in o) {
                 try {
                     o[key] = JSON.parse(value);
@@ -17641,7 +17641,7 @@ var Sidebar = {
     },
 
     _create: function(){
-        var that = this, element = this.element, o = this.options;
+        var element = this.element, o = this.options;
 
         this._createStructure();
         this._createEvents();
@@ -17652,7 +17652,7 @@ var Sidebar = {
     },
 
     _createStructure: function(){
-        var that = this, element = this.element, o = this.options;
+        var element = this.element, o = this.options;
         var header = element.find(".sidebar-header");
         var sheet = Metro.sheet;
 
@@ -17704,13 +17704,13 @@ var Sidebar = {
         var toggle = this.toggle_element;
 
         if (toggle !== null) {
-            toggle.on(Metro.events.click, function(e){
+            toggle.on(Metro.events.click, function(){
                 that.toggle();
             });
         }
 
         if (o.static !== null && ["fs", "sm", "md", "lg", "xl", "xxl"].indexOf(o.static) > -1) {
-            $(window).on(Metro.events.resize + "_" + element.attr("id"), function(){
+            $(window).on(Metro.events.resize + ".sidebar-" + element.attr("id"), function(){
                 that._checkStatic();
             });
         }
@@ -17749,7 +17749,8 @@ var Sidebar = {
     },
 
     open: function(){
-        var that = this, element = this.element, o = this.options;
+        var element = this.element, o = this.options;
+        var shiftDistance;
 
         if (element.hasClass("static")) {
             return ;
@@ -17758,14 +17759,20 @@ var Sidebar = {
         element.data("opened", true).addClass('open');
 
         if (o.shift !== null) {
-            $(o.shift).animate({left: element.outerWidth()}, o.duration);
+            shiftDistance = element.outerWidth();
+            $(o.shift).animate(function(p){
+                $(this).css({
+                    left: shiftDistance * p
+                })
+            }, o.duration);
         }
 
         Utils.exec(o.onOpen, [element], element[0]);
     },
 
     close: function(){
-        var that = this, element = this.element, o = this.options;
+        var element = this.element, o = this.options;
+        var shiftDistance;
 
         if (element.hasClass("static")) {
             return ;
@@ -17774,7 +17781,12 @@ var Sidebar = {
         element.data("opened", false).removeClass('open');
 
         if (o.shift !== null) {
-            $(o.shift).animate({left: 0}, o.duration);
+            shiftDistance = $(o.shift).position().left;
+            $(o.shift).animate(function(p){
+                $(this).css({
+                    left: shiftDistance - shiftDistance * p
+                })
+            }, o.duration);
         }
 
         Utils.exec(o.onClose, [element], element[0]);
