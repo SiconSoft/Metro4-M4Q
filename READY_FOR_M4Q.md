@@ -75,7 +75,7 @@
 - [ ] Tag input
 - [x] Textarea
 - [ ] Tiles
-- [ ] Timepicker
+- [ ] Time Picker
 - [x] Toast
 - [ ] Touch
 - [ ] TreeView
