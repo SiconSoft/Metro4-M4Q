@@ -16779,7 +16779,7 @@ var Resizable = {
     _setOptionsFromDOM: function(){
         var element = this.element, o = this.options;
 
-        $.each(element.data(), function(key, value){
+        $.each(element.data(), function(value, key){
             if (key in o) {
                 try {
                     o[key] = JSON.parse(value);
@@ -16808,7 +16808,7 @@ var Resizable = {
     _createEvents: function(){
         var element = this.element, o = this.options;
 
-        this.resizer.on(Metro.events.start + "-resize-element", function(e){
+        this.resizer.on(Metro.events.start, function(e){
 
             if (o.canResize === false) {
                 return ;
@@ -16821,7 +16821,7 @@ var Resizable = {
 
             Utils.exec(o.onResizeStart, [element, size]);
 
-            $(document).on(Metro.events.move + "-resize-element", function(e){
+            $(document).on(Metro.events.move + ".resize-element", function(e){
                 var moveXY = Utils.pageXY(e);
                 var size = {
                     width: startWidth + moveXY.x - startXY.x,
@@ -16839,9 +16839,9 @@ var Resizable = {
                 Utils.exec(o.onResize, [element, size]);
             });
 
-            $(document).on(Metro.events.stop + "-resize-element", function(){
-                $(document).off(Metro.events.move + "-resize-element");
-                $(document).off(Metro.events.stop + "-resize-element");
+            $(document).on(Metro.events.stop + ".resize-element", function(){
+                $(document).off(Metro.events.move + ".resize-element");
+                $(document).off(Metro.events.stop + ".resize-element");
 
                 var size = {
                     width: parseInt(element.outerWidth()),
@@ -16866,7 +16866,7 @@ var Resizable = {
     },
 
     changeAttribute: function(attributeName){
-        var that = this, element = this.element, o = this.options;
+        var element = this.element, o = this.options;
 
         var canResize = function(){
             o.canResize = JSON.parse(element.attr('data-can-resize')) === true;

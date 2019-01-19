@@ -57,7 +57,7 @@
 - [x] Progress
 - [x] Radio
 - [x] Rating
-- [ ] Resizable
+- [x] Resizable
 - [ ] Ribbon Menu
 - [ ] Ripple
 - [x] Select
