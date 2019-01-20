@@ -80,7 +80,7 @@
 - [ ] Touch
 - [ ] TreeView
 - [ ] Validator
-- [ ] Video
+- [x] Video
 - [ ] Window
 - [ ] Wizard
 
