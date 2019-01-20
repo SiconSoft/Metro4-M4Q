@@ -50,7 +50,7 @@
 	    })
 	}
 
-	var m4qVersion = "0.1.0 alpha 20/01/2019 09:1244";
+	var m4qVersion = "0.1.0 alpha 20/01/2019 11:0735";
 	var regexpSingleTag = /^<([a-z][^\/\0>:\x20\t\r\n\f]*)[\x20\t\r\n\f]*\/?>(?:<\/\1>|)$/i;
 	
 	var matches = Element.prototype.matches
@@ -1651,11 +1651,16 @@
 	            easing = "linear";
 	        }
 	
-	        el.style.opacity = 0;
-	        el.style.display = m4q(el).origin("display", undefined, 'block');
+	        var originDisplay = m4q(el).origin("display", undefined, 'block');
 	
-	        return this.animate(el, function(progress){
-	            el.style.opacity = progress;
+	        el.style.opacity = 0;
+	        el.style.display = originDisplay;
+	
+	        return this.animate(el, function(p){
+	            el.style.opacity = p;
+	            if (p === 1) {
+	                el.style.display = originDisplay;
+	            }
 	        }, dur, easing, cb);
 	    },
 	
@@ -1688,7 +1693,7 @@
 	
 	    slideDown: function(el, dur, easing, cb) {
 	        var $el = m4q(el);
-	        var targetHeight;
+	        var targetHeight, originDisplay;
 	
 	        if (not(dur) && not(easing) && not(cb)) {
 	            cb = null;
@@ -1705,11 +1710,12 @@
 	
 	        $el.show().visible(false);
 	        targetHeight = $el.origin("height", undefined, $el.height());
+	        originDisplay = $el.origin("display", m4q(el).style('display'), "block");
 	        $el.height(0).visible(true);
 	
 	        $el.css({
 	            overflow: "hidden",
-	            display: "block" //TODO not only block element
+	            display: originDisplay === "none" ? "block" : originDisplay
 	        });
 	
 	        return this.animate(el, function(progress){
@@ -1747,6 +1753,7 @@
 	
 	        currHeight = $el.height();
 	        $el.origin("height", currHeight);
+	        $el.origin("display", m4q(el).style('display'));
 	
 	        $el.css({
 	            overflow: "hidden"

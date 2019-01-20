@@ -236,11 +236,11 @@ var Video = {
         if (o.showMute === true) mute = $("<button>").attr("type", "button").addClass("button square mute").html(o.muteIcon);
         if (o.showFull === true) full = $("<button>").attr("type", "button").addClass("button square full").html(o.screenMoreIcon);
 
-        loop.appendTo(controls);
-        play.appendTo(controls);
-        stop.appendTo(controls);
-        mute.appendTo(controls);
-        full.appendTo(controls);
+        if (loop) loop.appendTo(controls);
+        if (play) play.appendTo(controls);
+        if (stop) stop.appendTo(controls);
+        if (mute) mute.appendTo(controls);
+        if (full) full.appendTo(controls);
 
         if (o.loop === true) {
             loop.addClass("active");
