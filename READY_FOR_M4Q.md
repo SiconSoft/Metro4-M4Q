@@ -64,7 +64,7 @@
 - [x] Sidebar 
 - [x] Slider
 - [ ] Sorter
-- [ ] Spinner
+- [x] Spinner
 - [ ] Splitter
 - [ ] Stepper
 - [ ] Streamer
