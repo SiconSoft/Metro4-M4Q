@@ -50,7 +50,7 @@
 	    })
 	}
 
-	var m4qVersion = "0.1.0 alpha 20/01/2019 11:0735";
+	var m4qVersion = "0.1.0 alpha 20/01/2019 12:07:26";
 	var regexpSingleTag = /^<([a-z][^\/\0>:\x20\t\r\n\f]*)[\x20\t\r\n\f]*\/?>(?:<\/\1>|)$/i;
 	
 	var matches = Element.prototype.matches

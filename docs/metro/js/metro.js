@@ -76,7 +76,7 @@ function not(value){
 	    })
 	}
 
-	var m4qVersion = "0.1.0 alpha 20/01/2019 11:0735";
+	var m4qVersion = "0.1.0 alpha 20/01/2019 12:07:26";
 	var regexpSingleTag = /^<([a-z][^\/\0>:\x20\t\r\n\f]*)[\x20\t\r\n\f]*\/?>(?:<\/\1>|)$/i;
 	
 	var matches = Element.prototype.matches
@@ -2050,7 +2050,7 @@ var isTouch = (('ontouchstart' in window) || (navigator.MaxTouchPoints > 0) || (
 var Metro = {
 
     version: "4.3.0",
-    versionFull: "4.3.0 alpha 20/01/2019 11:29",
+    versionFull: "4.3.0 alpha 20/01/2019 12:08:25",
     build: "1",
     isTouchable: isTouch,
     fullScreenEnabled: document.fullscreenEnabled,
@@ -16974,9 +16974,9 @@ var Ripple = {
     },
 
     _setOptionsFromDOM: function(){
-        var that = this, element = this.element, o = this.options;
+        var element = this.element, o = this.options;
 
-        $.each(element.data(), function(key, value){
+        $.each(element.data(), function(value, key){
             if (key in o) {
                 try {
                     o[key] = JSON.parse(value);
@@ -16988,7 +16988,7 @@ var Ripple = {
     },
 
     _create: function(){
-        var that = this, element = this.element, o = this.options;
+        var element = this.element, o = this.options;
 
         var target = o.rippleTarget === 'default' ? null : o.rippleTarget;
 
@@ -17017,8 +17017,8 @@ var Ripple = {
             el.prepend(ripple);
 
             // Get the center of the element
-            var x = e.pageX - el.offset().left - ripple.width()/2;
-            var y = e.pageY - el.offset().top - ripple.height()/2;
+            var x = Utils.pageXY(e).x - el.offset().left - ripple.width()/2;
+            var y = Utils.pageXY(e).y - el.offset().top - ripple.height()/2;
 
             // Add the ripples CSS and start the animation
             ripple.css({

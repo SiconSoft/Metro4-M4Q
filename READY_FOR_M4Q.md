@@ -59,7 +59,7 @@
 - [x] Rating
 - [x] Resizable
 - [ ] Ribbon Menu
-- [ ] Ripple
+- [x] Ripple
 - [x] Select
 - [x] Sidebar
 - [x] Slider
