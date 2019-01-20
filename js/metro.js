@@ -1,9 +1,11 @@
 
 var $ = m4q;
 
-var not = function(val){
-    return val === undefined && val === null;
-};
+if (typeof not === "undefined") {
+    var not = function (val) {
+        return val === undefined && val === null;
+    };
+}
 
 if (typeof m4q === 'undefined') {
     throw new Error('Metro 4 requires m4q!');
@@ -106,7 +108,8 @@ var isTouch = (('ontouchstart' in window) || (navigator.MaxTouchPoints > 0) || (
 var Metro = {
 
     version: "@@version",
-    versionFull: "@@version [build @@build] @@status",
+    versionFull: "@@version @@status @@time",
+    build: "@@build",
     isTouchable: isTouch,
     fullScreenEnabled: document.fullscreenEnabled,
     sheet: null,

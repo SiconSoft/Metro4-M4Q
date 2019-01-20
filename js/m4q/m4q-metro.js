@@ -5,26 +5,6 @@
  * Licensed under MIT
  */
 
-( function( global, factory ) {
-
-	"use strict";
-
-	if ( typeof module === "object" && typeof module.exports === "object" ) {
-
-		module.exports = global.document ?
-			factory( global, true ) :
-			function( w ) {
-				if ( !w.document ) {
-					throw new Error( "m4q requires a window with a document" );
-				}
-				return factory( w );
-			};
-	} else {
-		factory( global );
-	}
-
-// Pass this if window is not defined yet
-} )( typeof window !== "undefined" ? window : this, function( window ) {
 
 	'use strict';
 
@@ -70,7 +50,7 @@
 	    })
 	}
 
-	var m4qVersion = "0.1.0 alpha";
+	var m4qVersion = "0.1.0 alpha 20/01/2019 09:1244";
 	var regexpSingleTag = /^<([a-z][^\/\0>:\x20\t\r\n\f]*)[\x20\t\r\n\f]*\/?>(?:<\/\1>|)$/i;
 	
 	var matches = Element.prototype.matches
@@ -289,7 +269,6 @@
 	    var index = 0;
 	    if (isArrayLike(ctx)) {
 	        [].forEach.call(ctx, function(el) {
-	            'use strict';
 	            cb.apply(el, arguments);
 	        });
 	    } else {
@@ -697,8 +676,12 @@
 	
 	                originEvent = "event-"+name+(sel ? ":"+sel:"")+(ns ? ":"+ns:"");
 	                index = m4q(el).origin(originEvent);
-	                el.removeEventListener(name, m4q.events[index].handler);
-	                m4q.events[index].handler = null;
+	
+	                if (index && m4q.events[index].handler) {
+	                    el.removeEventListener(name, m4q.events[index].handler);
+	                    m4q.events[index].handler = null;
+	                }
+	
 	                m4q(el).origin(originEvent, null);
 	            });
 	        });
@@ -1518,6 +1501,8 @@
 	    }
 	});
 
+	var cancelAnimationFrame = window.cancelAnimationFrame || window.webkitCancelAnimationFrame || window.mozCancelAnimationFrame;
+	
 	m4q.extend({
 	    easingDef: "linear",
 	    easing: {
@@ -1559,35 +1544,49 @@
 	        dur = dur || 300;
 	        timing = timing || this.easingDef;
 	
+	        m4q(el).origin("animation-stop", 0);
+	
 	        $el.origin("animation", requestAnimationFrame(function animate(time) {
 	            var p, t, curr = {}, key, sv;
+	            var stop = m4q(el).origin("animation-stop");
+	
+	            if ( stop > 0) {
+	                if (stop === 2) m4q.proxy(draw, $el[0])(1);
+	                cancelAnimationFrame(m4q(el).origin("animation"));
+	                return;
+	            }
 	
 	            t = (time - start) / dur;
 	            if (t > 1) t = 1;
+	
 	            p = typeof timing === "string" ? m4q.easing[timing] ? m4q.easing[timing](t) : m4q.easing[m4q.easingDef](t) : timing(t);
 	
 	            if (typeof draw === "function") {
+	
 	                m4q.proxy(draw, $el[0])(p);
+	
 	            } else if (isPlainObject(draw)) {
+	
 	                console.log("Plain object currently not supported. Please use function!");
-	                (function(complete){
+	                (function(p){
 	                })(p);
+	
 	            } else {
 	                throw new Error("Unknown draw object. Must be a function or plain object");
 	            }
 	
-	            if (t === 1 && typeof cb === "function") {
+	            if (p === 1 && typeof cb === "function") {
 	                cb.call(el, arguments);
 	            }
-	            if (t < 1) {
+	            if (p < 1) {
 	                $el.origin("animation", requestAnimationFrame(animate));
 	            }
 	        }));
 	        return this;
 	    },
 	
-	    stop: function(el){
-	        cancelAnimationFrame(m4q(el).origin("animation"))
+	    stop: function(el, done){
+	        m4q(el).origin("animation-stop", done === true ? 2 : 1);
 	    }
 	});
 	
@@ -1598,9 +1597,9 @@
 	        })
 	    },
 	
-	    stop: function(){
+	    stop: function(done){
 	        return this.each(function(el){
-	            return m4q.stop(el);
+	            return m4q.stop(el, done);
 	        })
 	    }
 	});
@@ -1676,12 +1675,12 @@
 	            easing = "linear";
 	        }
 	
+	        $el.origin("display", m4q(el).style('display'));
 	        el.style.opacity = 1;
 	
 	        return this.animate(el, function(progress){
 	            el.style.opacity = 1 - progress;
 	            if (progress === 1) {
-	                $el.origin("display", m4q(el).style('display'));
 	                el.style.display = 'none';
 	            }
 	        }, dur, easing, cb);
@@ -1905,5 +1904,3 @@ var _$ = window.$,
 	    return m4q;
 	};
 	
-	return m4q; 
-});

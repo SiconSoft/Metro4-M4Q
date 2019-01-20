@@ -13,38 +13,7 @@
 			factory( global, true ) :
 			function( w ) {
 				if ( !w.document ) {
-					throw new Error( "m4q requires a window with a document" );
-				}
-				return factory( w );
-			};
-	} else {
-		factory( global );
-	}
-
-// Pass this if window is not defined yet
-} )( typeof window !== "undefined" ? window : this, function( window, noGlobal ) {
-'use strict';
-
-// Source: js/m4q/m4q.js
-
-/*
- * m4q v0.1.0 (https://github.com/olton/m4q.git)
- * Copyright 2018 - 2019 by Sergey Pimenov
- * Helper for DOM manipulation for Metro 4 library
- * Licensed under MIT
- */
-
-( function( global, factory ) {
-
-	"use strict";
-
-	if ( typeof module === "object" && typeof module.exports === "object" ) {
-
-		module.exports = global.document ?
-			factory( global, true ) :
-			function( w ) {
-				if ( !w.document ) {
-					throw new Error( "m4q requires a window with a document" );
+					throw new Error( "Metro 4 requires a window with a document" );
 				}
 				return factory( w );
 			};
@@ -54,10 +23,18 @@
 
 // Pass this if window is not defined yet
 } )( typeof window !== "undefined" ? window : this, function( window ) {
+'use strict';
 
-	'use strict';
+// Source: js/m4q/m4q-metro.js
+/*
+ * m4q v0.1.0 (https://github.com/olton/m4q.git)
+ * Copyright 2018 - 2019 by Sergey Pimenov
+ * Helper for DOM manipulation for Metro 4 library
+ * Licensed under MIT
+ */
 
-	function not(value){
+
+function not(value){
 	    return value === undefined || value === null;
 	}
 	
@@ -99,7 +76,7 @@
 	    })
 	}
 
-	var m4qVersion = "0.1.0 alpha";
+	var m4qVersion = "0.1.0 alpha 20/01/2019 09:1244";
 	var regexpSingleTag = /^<([a-z][^\/\0>:\x20\t\r\n\f]*)[\x20\t\r\n\f]*\/?>(?:<\/\1>|)$/i;
 	
 	var matches = Element.prototype.matches
@@ -318,7 +295,6 @@
 	    var index = 0;
 	    if (isArrayLike(ctx)) {
 	        [].forEach.call(ctx, function(el) {
-	            'use strict';
 	            cb.apply(el, arguments);
 	        });
 	    } else {
@@ -726,8 +702,12 @@
 	
 	                originEvent = "event-"+name+(sel ? ":"+sel:"")+(ns ? ":"+ns:"");
 	                index = m4q(el).origin(originEvent);
-	                el.removeEventListener(name, m4q.events[index].handler);
-	                m4q.events[index].handler = null;
+	
+	                if (index && m4q.events[index].handler) {
+	                    el.removeEventListener(name, m4q.events[index].handler);
+	                    m4q.events[index].handler = null;
+	                }
+	
 	                m4q(el).origin(originEvent, null);
 	            });
 	        });
@@ -1547,6 +1527,8 @@
 	    }
 	});
 
+	var cancelAnimationFrame = window.cancelAnimationFrame || window.webkitCancelAnimationFrame || window.mozCancelAnimationFrame;
+	
 	m4q.extend({
 	    easingDef: "linear",
 	    easing: {
@@ -1588,35 +1570,49 @@
 	        dur = dur || 300;
 	        timing = timing || this.easingDef;
 	
+	        m4q(el).origin("animation-stop", 0);
+	
 	        $el.origin("animation", requestAnimationFrame(function animate(time) {
 	            var p, t, curr = {}, key, sv;
+	            var stop = m4q(el).origin("animation-stop");
+	
+	            if ( stop > 0) {
+	                if (stop === 2) m4q.proxy(draw, $el[0])(1);
+	                cancelAnimationFrame(m4q(el).origin("animation"));
+	                return;
+	            }
 	
 	            t = (time - start) / dur;
 	            if (t > 1) t = 1;
+	
 	            p = typeof timing === "string" ? m4q.easing[timing] ? m4q.easing[timing](t) : m4q.easing[m4q.easingDef](t) : timing(t);
 	
 	            if (typeof draw === "function") {
+	
 	                m4q.proxy(draw, $el[0])(p);
+	
 	            } else if (isPlainObject(draw)) {
+	
 	                console.log("Plain object currently not supported. Please use function!");
-	                (function(complete){
+	                (function(p){
 	                })(p);
+	
 	            } else {
 	                throw new Error("Unknown draw object. Must be a function or plain object");
 	            }
 	
-	            if (t === 1 && typeof cb === "function") {
+	            if (p === 1 && typeof cb === "function") {
 	                cb.call(el, arguments);
 	            }
-	            if (t < 1) {
+	            if (p < 1) {
 	                $el.origin("animation", requestAnimationFrame(animate));
 	            }
 	        }));
 	        return this;
 	    },
 	
-	    stop: function(el){
-	        cancelAnimationFrame(m4q(el).origin("animation"))
+	    stop: function(el, done){
+	        m4q(el).origin("animation-stop", done === true ? 2 : 1);
 	    }
 	});
 	
@@ -1627,9 +1623,9 @@
 	        })
 	    },
 	
-	    stop: function(){
+	    stop: function(done){
 	        return this.each(function(el){
-	            return m4q.stop(el);
+	            return m4q.stop(el, done);
 	        })
 	    }
 	});
@@ -1705,12 +1701,12 @@
 	            easing = "linear";
 	        }
 	
+	        $el.origin("display", m4q(el).style('display'));
 	        el.style.opacity = 1;
 	
 	        return this.animate(el, function(progress){
 	            el.style.opacity = 1 - progress;
 	            if (progress === 1) {
-	                $el.origin("display", m4q(el).style('display'));
 	                el.style.display = 'none';
 	            }
 	        }, dur, easing, cb);
@@ -1934,18 +1930,17 @@ var _$ = window.$,
 	    return m4q;
 	};
 	
-	return m4q; 
-});
 
 
 // Source: js/metro.js
 
-
 var $ = m4q;
 
-var not = function(val){
-    return val === undefined && val === null;
-};
+if (typeof not === "undefined") {
+    var not = function (val) {
+        return val === undefined && val === null;
+    };
+}
 
 if (typeof m4q === 'undefined') {
     throw new Error('Metro 4 requires m4q!');
@@ -2048,7 +2043,8 @@ var isTouch = (('ontouchstart' in window) || (navigator.MaxTouchPoints > 0) || (
 var Metro = {
 
     version: "4.3.0",
-    versionFull: "4.3.0 [build 1] alpha",
+    versionFull: "4.3.0 alpha 20/01/2019 09:58",
+    build: "1",
     isTouchable: isTouch,
     fullScreenEnabled: document.fullscreenEnabled,
     sheet: null,
@@ -2236,8 +2232,7 @@ var Metro = {
     },
 
     observe: function(){
-        'use strict';
-        var observer, observerCallback;
+var observer, observerCallback;
         var observerConfig = {
             childList: true,
             attributes: true,
@@ -2516,7 +2511,6 @@ $(window).on(Metro.events.resize, function(){
 
 
 // Source: js/utils/animation.js
-
 var Animation = {
 
     duration: METRO_ANIMATION_DURATION,
@@ -2655,7 +2649,6 @@ var Animation = {
 Metro['animation'] = Animation;
 
 // Source: js/utils/array-ext.js
-
 Array.prototype.shuffle = function () {
     var currentIndex = this.length, temporaryValue, randomIndex;
 
@@ -2715,7 +2708,6 @@ if (typeof Array.contains !== "function") {
 
 
 // Source: js/utils/colors.js
-
 function RGB(r, g, b){
     this.r = r || 0;
     this.g = g || 0;
@@ -3597,7 +3589,6 @@ Metro['colors'] = Colors.init();
 // Source: js/utils/date-ext.js
 
 
-
 Date.prototype.getWeek = function (dowOffset) {
     var nYear, nday, newYear, day, daynum, weeknum;
 
@@ -3729,7 +3720,6 @@ Date.prototype.addYears = function(n) {
 
 
 // Source: js/utils/export.js
-
 var Export = {
 
     init: function(){
@@ -3844,7 +3834,6 @@ Metro['export'] = Export.init();
 
 
 // Source: js/utils/i18n.js
-
 var Locales = {
     'en-US': {
         "calendar": {
@@ -4173,7 +4162,6 @@ Metro['locales'] = Locales;
 
 
 // Source: js/utils/md5.js
-
 var hexcase = 0;
 /* hex output format. 0 - lowercase; 1 - uppercase        */
 var b64pad = "";
@@ -4496,7 +4484,6 @@ function bit_rol(num, cnt) {
 
 // Source: js/utils/number-ext.js
 
-
 /**
  * Number.prototype.format(n, x, s, c)
  *
@@ -4514,7 +4501,6 @@ Number.prototype.format = function(n, x, s, c) {
 
 
 // Source: js/utils/storage.js
-
 
 var Storage = function(type){
     return new Storage.init(type);
@@ -4595,7 +4581,6 @@ Metro['session'] = Storage(window.sessionStorage);
 
 
 // Source: js/utils/string-ext.js
-
 String.prototype.capitalize = function() {
     return this.charAt(0).toUpperCase() + this.slice(1);
 };
@@ -4722,7 +4707,6 @@ String.prototype.toArray = function(delimiter, type, format){
 
 
 // Source: js/utils/tpl.js
-
 var TemplateEngine = function(html, options) {
     var re = /<%(.+?)%>/g,
         reExp = /(^( )?(var|if|for|else|switch|case|break|{|}|;))(.*)?/g,
@@ -4750,7 +4734,6 @@ Metro['template'] = TemplateEngine;
 
 
 // Source: js/utils/utilities.js
-
 var Utils = {
     isUrl: function (val) {
         return /^(ftp|http|https):\/\/(\w+:{0,1}\w*@)?(\S+)(:[0-9]+)?(\/|\/([\w#!:.?+=&%@\-\/]))?/.test(val);
@@ -4948,8 +4931,7 @@ var Utils = {
     },
 
     uniqueId: function () {
-        "use strict";
-        var d = new Date().getTime();
+var d = new Date().getTime();
         return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
             var r = (d + Math.random() * 16) % 16 | 0;
             d = Math.floor(d / 16);
@@ -5704,7 +5686,6 @@ var Utils = {
 Metro['utils'] = Utils;
 
 // Source: js/plugins/accordion.js
-
 var Accordion = {
     init: function( options, elem ) {
         this.options = $.extend( {}, this.options, options );
@@ -5881,7 +5862,6 @@ var Accordion = {
 Metro.plugin('accordion', Accordion);
 
 // Source: js/plugins/activity.js
-
 var Activity = {
     init: function( options, elem ) {
         this.options = $.extend( {}, this.options, options );
@@ -6003,7 +5983,6 @@ Metro['activity'] = {
 };
 
 // Source: js/plugins/app-bar.js
-
 var AppBar = {
     init: function( options, elem ) {
         this.options = $.extend( {}, this.options, options );
@@ -6171,7 +6150,6 @@ var AppBar = {
 Metro.plugin('appbar', AppBar);
 
 // Source: js/plugins/audio.js
-
 var Audio = {
     init: function( options, elem ) {
         this.options = $.extend( {}, this.options, options );
@@ -6627,7 +6605,6 @@ var Audio = {
 Metro.plugin('audio', Audio);
 
 // Source: js/plugins/bottom-sheet.js
-
 var BottomSheet = {
     init: function( options, elem ) {
         this.options = $.extend( {}, this.options, options );
@@ -6779,7 +6756,6 @@ Metro['bottomsheet'] = {
 };
 
 // Source: js/plugins/button-group.js
-
 var ButtonGroup = {
     init: function( options, elem ) {
         this.options = $.extend( {}, this.options, options );
@@ -6887,7 +6863,6 @@ var ButtonGroup = {
 Metro.plugin('buttongroup', ButtonGroup);
 
 // Source: js/plugins/calendar.js
-
 var Calendar = {
     init: function( options, elem ) {
         this.options = $.extend( {}, this.options, options );
@@ -7801,7 +7776,6 @@ $(document).on(Metro.events.click, function(){
 Metro.plugin('calendar', Calendar);
 
 // Source: js/plugins/calendarpicker.js
-
 var CalendarPicker = {
     init: function( options, elem ) {
         this.options = $.extend( {}, this.options, options );
@@ -8240,7 +8214,6 @@ $(document).on(Metro.events.click, function(){
 
 
 // Source: js/plugins/carousel.js
-
 var Carousel = {
     init: function( options, elem ) {
         this.options = $.extend( {}, this.options, options );
@@ -8765,7 +8738,6 @@ var Carousel = {
 Metro.plugin('carousel', Carousel);
 
 // Source: js/plugins/charms.js
-
 var Charms = {
     init: function( options, elem ) {
         this.options = $.extend( {}, this.options, options );
@@ -8961,7 +8933,6 @@ Metro['charms'] = {
 };
 
 // Source: js/plugins/checkbox.js
-
 var Checkbox = {
     init: function( options, elem ) {
         this.options = $.extend( {}, this.options, options );
@@ -9110,7 +9081,6 @@ var Checkbox = {
 Metro.plugin('checkbox', Checkbox);
 
 // Source: js/plugins/clock.js
-
 var Clock = {
     init: function( options, elem ) {
         this.options = $.extend( {}, this.options, options );
@@ -9230,7 +9200,6 @@ var Clock = {
 Metro.plugin('clock', Clock);
 
 // Source: js/plugins/collapse.js
-
 var Collapse = {
     init: function( options, elem ) {
         this.options = $.extend( {}, this.options, options );
@@ -9364,7 +9333,6 @@ var Collapse = {
 Metro.plugin('collapse', Collapse);
 
 // Source: js/plugins/countdown.js
-
 var Countdown = {
     init: function( options, elem ) {
         this.options = $.extend( {}, this.options, options );
@@ -9859,7 +9827,6 @@ var Countdown = {
 Metro.plugin('countdown', Countdown);
 
 // Source: js/plugins/counter.js
-
 var Counter = {
     init: function( options, elem ) {
         this.options = $.extend( {}, this.options, options );
@@ -9972,7 +9939,6 @@ var Counter = {
 Metro.plugin('counter', Counter);
 
 // Source: js/plugins/cube.js
-
 var Cube = {
     init: function( options, elem ) {
         this.options = $.extend( {}, this.options, options );
@@ -10436,7 +10402,6 @@ var Cube = {
 Metro.plugin('cube', Cube);
 
 // Source: js/plugins/datepicker.js
-
 var DatePicker = {
     init: function( options, elem ) {
         this.options = $.extend( {}, this.options, options );
@@ -10839,7 +10804,6 @@ $(document).on(Metro.events.click, function(){
 });
 
 // Source: js/plugins/dialog.js
-
 var Dialog = {
     _counter: 0,
 
@@ -11219,7 +11183,6 @@ Metro['dialog'] = {
 };
 
 // Source: js/plugins/donut.js
-
 var Donut = {
     init: function( options, elem ) {
         this.options = $.extend( {}, this.options, options );
@@ -11366,7 +11329,6 @@ var Donut = {
 Metro.plugin('donut', Donut);
 
 // Source: js/plugins/draggable.js
-
 var Draggable = {
     init: function( options, elem ) {
         this.options = $.extend( {}, this.options, options );
@@ -11517,7 +11479,6 @@ var Draggable = {
 Metro.plugin('draggable', Draggable);
 
 // Source: js/plugins/dropdown.js
-
 var Dropdown = {
     init: function( options, elem ) {
         this.options = $.extend( {}, this.options, options );
@@ -11695,7 +11656,6 @@ $(document).on(Metro.events.click, function(){
 Metro.plugin('dropdown', Dropdown);
 
 // Source: js/plugins/file.js
-
 var File = {
     init: function( options, elem ) {
         this.options = $.extend( {}, this.options, options );
@@ -11898,7 +11858,6 @@ var File = {
 Metro.plugin('file', File);
 
 // Source: js/plugins/gravatar.js
-
 var Gravatar = {
     init: function( options, elem ) {
         this.options = $.extend( {}, this.options, options );
@@ -11992,7 +11951,6 @@ var Gravatar = {
 Metro.plugin('gravatar', Gravatar);
 
 // Source: js/plugins/hint.js
-
 var Hint = {
     init: function( options, elem ) {
         this.options = $.extend( {}, this.options, options );
@@ -12153,7 +12111,6 @@ var Hint = {
 Metro.plugin('hint', Hint);
 
 // Source: js/plugins/html-container.js
-
 // TODO source as array, mode as array
 
 var HtmlContainer = {
@@ -12256,7 +12213,6 @@ var HtmlContainer = {
 Metro.plugin('htmlcontainer', HtmlContainer);
 
 // Source: js/plugins/image-comparer.js
-
 var ImageCompare = {
     init: function( options, elem ) {
         this.options = $.extend( {}, this.options, options );
@@ -12432,7 +12388,6 @@ var ImageCompare = {
 Metro.plugin('imagecompare', ImageCompare);
 
 // Source: js/plugins/image-magnifier.js
-
 var ImageMagnifier = {
     init: function( options, elem ) {
         this.options = $.extend( {}, this.options, options );
@@ -12678,7 +12633,6 @@ var ImageMagnifier = {
 Metro.plugin('imagemagnifier', ImageMagnifier);
 
 // Source: js/plugins/info-box.js
-
 var InfoBox = {
     init: function( options, elem ) {
         this.options = $.extend( {}, this.options, options );
@@ -12979,7 +12933,6 @@ Metro['infobox'] = {
 };
 
 // Source: js/plugins/input-material.js
-
 var MaterialInput = {
     init: function( options, elem ) {
         this.options = $.extend( {}, this.options, options );
@@ -13117,7 +13070,6 @@ var MaterialInput = {
 Metro.plugin('materialinput', MaterialInput);
 
 // Source: js/plugins/input.js
-
 var Input = {
     init: function( options, elem ) {
         this.options = $.extend( {}, this.options, options );
@@ -13532,7 +13484,6 @@ $(document).on(Metro.events.click, function(e){
 
 
 // Source: js/plugins/keypad.js
-
 var Keypad = {
     init: function( options, elem ) {
         this.options = $.extend( {}, this.options, options );
@@ -13901,7 +13852,6 @@ $(document).on(Metro.events.click, function(){
 
 
 // Source: js/plugins/list.js
-
 var List = {
     init: function( options, elem ) {
         this.options = $.extend( {}, this.options, options );
@@ -14769,7 +14719,6 @@ var List = {
 Metro.plugin('list', List);
 
 // Source: js/plugins/listview.js
-
 var ListView = {
     init: function( options, elem ) {
         this.options = $.extend( {}, this.options, options );
@@ -15147,7 +15096,6 @@ var ListView = {
 Metro.plugin('listview', ListView);
 
 // Source: js/plugins/master.js
-
 var Master = {
     init: function( options, elem ) {
         this.options = $.extend( {}, this.options, options );
@@ -15515,7 +15463,6 @@ var Master = {
 Metro.plugin('master', Master);
 
 // Source: js/plugins/navview.js
-
 var NavigationView = {
     init: function( options, elem ) {
         this.options = $.extend( {}, this.options, options );
@@ -15661,7 +15608,6 @@ var NavigationView = {
 Metro.plugin('navview', NavigationView);
 
 // Source: js/plugins/notify.js
-
 var Notify = {
 
     options: {
@@ -15803,7 +15749,6 @@ var Notify = {
 Metro['notify'] = Notify.setup();
 
 // Source: js/plugins/panel.js
-
 var Panel = {
     init: function( options, elem ) {
         this.options = $.extend( {}, this.options, options );
@@ -15944,7 +15889,6 @@ var Panel = {
 Metro.plugin('panel', Panel);
 
 // Source: js/plugins/popovers.js
-
 var Popover = {
     init: function( options, elem ) {
         this.options = $.extend( {}, this.options, options );
@@ -16192,7 +16136,6 @@ var Popover = {
 Metro.plugin('popover', Popover);
 
 // Source: js/plugins/progress.js
-
 var Progress = {
     init: function( options, elem ) {
         this.options = $.extend( {}, this.options, options );
@@ -16355,7 +16298,6 @@ var Progress = {
 Metro.plugin('progress', Progress);
 
 // Source: js/plugins/radio.js
-
 var Radio = {
     init: function( options, elem ) {
         this.options = $.extend( {}, this.options, options );
@@ -16481,7 +16423,6 @@ var Radio = {
 Metro.plugin('radio', Radio);
 
 // Source: js/plugins/rating.js
-
 var Rating = {
     init: function( options, elem ) {
         this.options = $.extend( {}, this.options, options );
@@ -16747,7 +16688,6 @@ var Rating = {
 Metro.plugin('rating', Rating);
 
 // Source: js/plugins/resizable.js
-
 var Resizable = {
     init: function( options, elem ) {
         this.options = $.extend( {}, this.options, options );
@@ -16881,7 +16821,6 @@ var Resizable = {
 Metro.plugin('resizable', Resizable);
 
 // Source: js/plugins/ribbon-menu.js
-
 var RibbonMenu = {
     init: function( options, elem ) {
         this.options = $.extend( {}, this.options, options );
@@ -17006,7 +16945,6 @@ var RibbonMenu = {
 Metro.plugin('ribbonmenu', RibbonMenu);
 
 // Source: js/plugins/ripple.js
-
 var Ripple = {
     init: function( options, elem ) {
         this.options = $.extend( {}, this.options, options );
@@ -17098,7 +17036,6 @@ var Ripple = {
 Metro.plugin('ripple', Ripple);
 
 // Source: js/plugins/select.js
-
 var Select = {
     init: function( options, elem ) {
         this.options = $.extend( {}, this.options, options );
@@ -17594,7 +17531,6 @@ Metro.plugin('select', Select);
 
 
 // Source: js/plugins/sidebar.js
-
 var Sidebar = {
     init: function( options, elem ) {
         this.options = $.extend( {}, this.options, options );
@@ -17845,7 +17781,6 @@ Metro['sidebar'] = {
 };
 
 // Source: js/plugins/slider.js
-
 var Slider = {
     init: function( options, elem ) {
         this.options = $.extend( {}, this.options, options );
@@ -18349,7 +18284,6 @@ var Slider = {
 Metro.plugin('slider', Slider);
 
 // Source: js/plugins/sorter.js
-
 var Sorter = {
     init: function( options, elem ) {
         this.options = $.extend( {}, this.options, options );
@@ -18592,7 +18526,6 @@ Metro['sorter'] = {
 };
 
 // Source: js/plugins/spinner.js
-
 var Spinner = {
     init: function( options, elem ) {
         this.options = $.extend( {}, this.options, options );
@@ -18839,7 +18772,6 @@ $(document).on(Metro.events.click, function(){
 
 
 // Source: js/plugins/splitter.js
-
 var Splitter = {
     init: function( options, elem ) {
         this.options = $.extend( {}, this.options, options );
@@ -19039,7 +18971,6 @@ var Splitter = {
 Metro.plugin('splitter', Splitter);
 
 // Source: js/plugins/stepper.js
-
 var Stepper = {
     init: function( options, elem ) {
         this.options = $.extend( {}, this.options, options );
@@ -19184,7 +19115,6 @@ var Stepper = {
 Metro.plugin('stepper', Stepper);
 
 // Source: js/plugins/streamer.js
-
 var Streamer = {
     init: function( options, elem ) {
         this.options = $.extend( {}, this.options, options );
@@ -19795,7 +19725,6 @@ var Streamer = {
 Metro.plugin('streamer', Streamer);
 
 // Source: js/plugins/switch.js
-
 var Switch = {
     init: function( options, elem ) {
         this.options = $.extend( {}, this.options, options );
@@ -19896,7 +19825,6 @@ var Switch = {
 Metro.plugin('switch', Switch);
 
 // Source: js/plugins/table.js
-
 var Table = {
     init: function( options, elem ) {
         this.options = $.extend( {}, this.options, options );
@@ -21787,7 +21715,6 @@ var Table = {
 Metro.plugin('table', Table);
 
 // Source: js/plugins/tabs-material.js
-
 var MaterialTabs = {
     init: function( options, elem ) {
         this.options = $.extend( {}, this.options, options );
@@ -21967,7 +21894,6 @@ var MaterialTabs = {
 Metro.plugin('materialtabs', MaterialTabs);
 
 // Source: js/plugins/tabs.js
-
 var Tabs = {
     init: function( options, elem ) {
         this.options = $.extend( {}, this.options, options );
@@ -22239,7 +22165,6 @@ var Tabs = {
 Metro.plugin('tabs', Tabs);
 
 // Source: js/plugins/tag-input.js
-
 var TagInput = {
     init: function( options, elem ) {
         this.options = $.extend( {}, this.options, options );
@@ -22513,7 +22438,6 @@ var TagInput = {
 Metro.plugin('taginput', TagInput);
 
 // Source: js/plugins/textarea.js
-
 var Textarea = {
     init: function( options, elem ) {
         this.options = $.extend( {}, this.options, options );
@@ -22708,7 +22632,6 @@ var Textarea = {
 Metro.plugin('textarea', Textarea);
 
 // Source: js/plugins/tiles.js
-
 var Tile = {
     init: function( options, elem ) {
         this.options = $.extend( {}, this.options, options );
@@ -22939,7 +22862,6 @@ var Tile = {
 Metro.plugin('tile', Tile);
 
 // Source: js/plugins/timepicker.js
-
 var TimePicker = {
     init: function( options, elem ) {
         this.options = $.extend( {}, this.options, options );
@@ -23404,7 +23326,6 @@ $(document).on(Metro.events.click, function(e){
 
 
 // Source: js/plugins/toast.js
-
 var Toast = {
 
     options: {
@@ -23460,7 +23381,6 @@ var Toast = {
 Metro['toast'] = Toast.init();
 
 // Source: js/plugins/touch.js
-
 var TouchConst = {
     LEFT : "left",
     RIGHT : "right",
@@ -24529,7 +24449,6 @@ Metro['touch'] = TouchConst;
 Metro.plugin('touch', Touch);
 
 // Source: js/plugins/treeview.js
-
 var Treeview = {
     init: function( options, elem ) {
         this.options = $.extend( {}, this.options, options );
@@ -24861,7 +24780,6 @@ var Treeview = {
 Metro.plugin('treeview', Treeview);
 
 // Source: js/plugins/validator.js
-
 var ValidatorFuncs = {
     required: function(val){
         return Utils.isValue(val) ? val.trim() : false;
@@ -25289,7 +25207,6 @@ var Validator = {
 Metro.plugin('validator', Validator);
 
 // Source: js/plugins/video.js
-
 var Video = {
     init: function( options, elem ) {
         this.options = $.extend( {}, this.options, options );
@@ -25359,9 +25276,9 @@ var Video = {
     },
 
     _setOptionsFromDOM: function(){
-        var that = this, element = this.element, o = this.options;
+        var element = this.element, o = this.options;
 
-        $.each(element.data(), function(key, value){
+        $.each(element.data(), function(value, key){
             if (key in o) {
                 try {
                     o[key] = JSON.parse(value);
@@ -25373,7 +25290,7 @@ var Video = {
     },
 
     _create: function(){
-        var that = this, element = this.element, o = this.options, video = this.video;
+        var element = this.element, o = this.options;
 
         if (Metro.fullScreenEnabled === false) {
             o.fullScreenMode = Metro.fullScreenMode.WINDOW;
@@ -25392,7 +25309,7 @@ var Video = {
     },
 
     _createPlayer: function(){
-        var that = this, element = this.element, o = this.options, video = this.video;
+        var element = this.element, o = this.options, video = this.video;
 
         var prev = element.prev();
         var parent = element.parent();
@@ -25430,7 +25347,7 @@ var Video = {
         this.preloader = preloader;
 
         if (o.logo !== "") {
-            $("<img>")
+            $("<img src='' alt=''>")
                 .css({
                     height: o.logoHeight,
                     width: o.logoWidth
@@ -25464,7 +25381,7 @@ var Video = {
     },
 
     _createControls: function(){
-        var that = this, element = this.element, o = this.options, video = this.elem, player = this.player;
+        var that = this, element = this.element, o = this.options, video = this.elem;
 
         var controls = $("<div>").addClass("controls").addClass(o.clsControls).insertAfter(element);
 
@@ -25522,11 +25439,17 @@ var Video = {
 
         var loop, play, stop, mute, full;
 
-        if (o.showLoop === true) loop = $("<button>").attr("type", "button").addClass("button square loop").html(o.loopIcon).appendTo(controls);
-        if (o.showPlay === true) play = $("<button>").attr("type", "button").addClass("button square play").html(o.playIcon).appendTo(controls);
-        if (o.showStop === true) stop = $("<button>").attr("type", "button").addClass("button square stop").html(o.stopIcon).appendTo(controls);
-        if (o.showMute === true) mute = $("<button>").attr("type", "button").addClass("button square mute").html(o.muteIcon).appendTo(controls);
-        if (o.showFull === true) full = $("<button>").attr("type", "button").addClass("button square full").html(o.screenMoreIcon).appendTo(controls);
+        if (o.showLoop === true) loop = $("<button>").attr("type", "button").addClass("button square loop").html(o.loopIcon);
+        if (o.showPlay === true) play = $("<button>").attr("type", "button").addClass("button square play").html(o.playIcon);
+        if (o.showStop === true) stop = $("<button>").attr("type", "button").addClass("button square stop").html(o.stopIcon);
+        if (o.showMute === true) mute = $("<button>").attr("type", "button").addClass("button square mute").html(o.muteIcon);
+        if (o.showFull === true) full = $("<button>").attr("type", "button").addClass("button square full").html(o.screenMoreIcon);
+
+        loop.appendTo(controls);
+        play.appendTo(controls);
+        stop.appendTo(controls);
+        mute.appendTo(controls);
+        full.appendTo(controls);
 
         if (o.loop === true) {
             loop.addClass("active");
@@ -25548,7 +25471,7 @@ var Video = {
         var that = this, element = this.element, o = this.options, video = this.elem, player = this.player;
 
         element.on("loadstart", function(){
-            that.preloader.fadeIn();
+            that.preloader.fadeIn(300);
         });
 
         element.on("loadedmetadata", function(){
@@ -25559,7 +25482,7 @@ var Video = {
 
         element.on("canplay", function(){
             that._setBuffer();
-            that.preloader.fadeOut();
+            that.preloader.fadeOut(300);
         });
 
         element.on("progress", function(){
@@ -25574,7 +25497,7 @@ var Video = {
         });
 
         element.on("waiting", function(){
-            that.preloader.fadeIn();
+            that.preloader.fadeIn(300);
         });
 
         element.on("loadeddata", function(){
@@ -25584,32 +25507,28 @@ var Video = {
         element.on("play", function(){
             player.find(".play").html(o.pauseIcon);
             Utils.exec(o.onPlay, [video, player], element[0]);
-            that._onMouse();
         });
 
         element.on("pause", function(){
             player.find(".play").html(o.playIcon);
             Utils.exec(o.onPause, [video, player], element[0]);
-            that._offMouse();
         });
 
         element.on("stop", function(){
             that.stream.data('slider').val(0);
             Utils.exec(o.onStop, [video, player], element[0]);
-            that._offMouse();
         });
 
         element.on("ended", function(){
             that.stream.data('slider').val(0);
             Utils.exec(o.onEnd, [video, player], element[0]);
-            that._offMouse();
         });
 
         element.on("volumechange", function(){
             that._setVolume();
         });
 
-        player.on(Metro.events.click, ".play", function(e){
+        player.on(Metro.events.click, ".play", function(){
             if (video.paused) {
                 that.play();
             } else {
@@ -25617,11 +25536,11 @@ var Video = {
             }
         });
 
-        player.on(Metro.events.click, ".stop", function(e){
+        player.on(Metro.events.click, ".stop", function(){
             that.stop();
         });
 
-        player.on(Metro.events.click, ".mute", function(e){
+        player.on(Metro.events.click, ".mute", function(){
             that._toggleMute();
         });
 
@@ -25629,7 +25548,7 @@ var Video = {
             that._toggleLoop();
         });
 
-        player.on(Metro.events.click, ".full", function(e){
+        player.on(Metro.events.click, ".full", function(){
             that.fullscreen = !that.fullscreen;
             player.find(".full").html(that.fullscreen === true ? o.screenLessIcon : o.screenMoreIcon);
             if (o.fullScreenMode === Metro.fullScreenMode.WINDOW) {
@@ -25658,41 +25577,37 @@ var Video = {
             }
 
             if (that.fullscreen === true) {
-                $(document).on(Metro.events.keyup + "_video", function(e){
+                $(document).on(Metro.events.keyup + ".video-player", function(e){
                     if (e.keyCode === 27) {
                         player.find(".full").click();
                     }
                 });
             } else {
-                $(document).off(Metro.events.keyup + "_video");
+                $(document).off(Metro.events.keyup + ".video-player");
             }
         });
 
         $(window).resize(function(){
             that._setAspectRatio();
         });
-    },
 
-    _onMouse: function(){
-        var player = this.player, o = this.options;
+        player.on(Metro.events.enter, function(){
+            var controls = player.find(".controls");
+            if (o.controlsHide > 0 && parseInt(controls.style('opacity')) === 0) {
+                controls.stop(true).fadeIn(500, function(){
+                    controls.css("display", "flex");
+                });
+            }
+        });
 
-        if (o.controlsHide > 0) {
-            player.on(Metro.events.enter, function(){
-                player.find(".controls").fadeIn();
-            });
-
-            player.on(Metro.events.leave, function(){
-                setTimeout(function(){
-                    player.find(".controls").fadeOut();
+        player.on(Metro.events.leave, function(){
+            var controls = player.find(".controls");
+            if (o.controlsHide > 0 && parseInt(controls.style('opacity')) === 1) {
+                setTimeout(function () {
+                    controls.stop(true).fadeOut(500);
                 }, o.controlsHide);
-            });
-        }
-    },
-
-    _offMouse: function(){
-        this.player.off(Metro.events.enter);
-        this.player.off(Metro.events.leave);
-        this.player.find(".controls").fadeIn();
+            }
+        });
     },
 
     _toggleLoop: function(){
@@ -25839,7 +25754,6 @@ var Video = {
 Metro.plugin('video', Video);
 
 // Source: js/plugins/window.js
-
 var Window = {
     init: function( options, elem ) {
         this.options = $.extend( {}, this.options, options );
@@ -26446,7 +26360,6 @@ Metro['window'] = {
 };
 
 // Source: js/plugins/wizard.js
-
 var Wizard = {
     init: function( options, elem ) {
         this.options = $.extend( {}, this.options, options );

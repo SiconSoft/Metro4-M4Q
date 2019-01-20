@@ -67,9 +67,9 @@ var Video = {
     },
 
     _setOptionsFromDOM: function(){
-        var that = this, element = this.element, o = this.options;
+        var element = this.element, o = this.options;
 
-        $.each(element.data(), function(key, value){
+        $.each(element.data(), function(value, key){
             if (key in o) {
                 try {
                     o[key] = JSON.parse(value);
@@ -81,7 +81,7 @@ var Video = {
     },
 
     _create: function(){
-        var that = this, element = this.element, o = this.options, video = this.video;
+        var element = this.element, o = this.options;
 
         if (Metro.fullScreenEnabled === false) {
             o.fullScreenMode = Metro.fullScreenMode.WINDOW;
@@ -100,7 +100,7 @@ var Video = {
     },
 
     _createPlayer: function(){
-        var that = this, element = this.element, o = this.options, video = this.video;
+        var element = this.element, o = this.options, video = this.video;
 
         var prev = element.prev();
         var parent = element.parent();
@@ -138,7 +138,7 @@ var Video = {
         this.preloader = preloader;
 
         if (o.logo !== "") {
-            $("<img>")
+            $("<img src='' alt=''>")
                 .css({
                     height: o.logoHeight,
                     width: o.logoWidth
@@ -172,7 +172,7 @@ var Video = {
     },
 
     _createControls: function(){
-        var that = this, element = this.element, o = this.options, video = this.elem, player = this.player;
+        var that = this, element = this.element, o = this.options, video = this.elem;
 
         var controls = $("<div>").addClass("controls").addClass(o.clsControls).insertAfter(element);
 
@@ -230,11 +230,17 @@ var Video = {
 
         var loop, play, stop, mute, full;
 
-        if (o.showLoop === true) loop = $("<button>").attr("type", "button").addClass("button square loop").html(o.loopIcon).appendTo(controls);
-        if (o.showPlay === true) play = $("<button>").attr("type", "button").addClass("button square play").html(o.playIcon).appendTo(controls);
-        if (o.showStop === true) stop = $("<button>").attr("type", "button").addClass("button square stop").html(o.stopIcon).appendTo(controls);
-        if (o.showMute === true) mute = $("<button>").attr("type", "button").addClass("button square mute").html(o.muteIcon).appendTo(controls);
-        if (o.showFull === true) full = $("<button>").attr("type", "button").addClass("button square full").html(o.screenMoreIcon).appendTo(controls);
+        if (o.showLoop === true) loop = $("<button>").attr("type", "button").addClass("button square loop").html(o.loopIcon);
+        if (o.showPlay === true) play = $("<button>").attr("type", "button").addClass("button square play").html(o.playIcon);
+        if (o.showStop === true) stop = $("<button>").attr("type", "button").addClass("button square stop").html(o.stopIcon);
+        if (o.showMute === true) mute = $("<button>").attr("type", "button").addClass("button square mute").html(o.muteIcon);
+        if (o.showFull === true) full = $("<button>").attr("type", "button").addClass("button square full").html(o.screenMoreIcon);
+
+        loop.appendTo(controls);
+        play.appendTo(controls);
+        stop.appendTo(controls);
+        mute.appendTo(controls);
+        full.appendTo(controls);
 
         if (o.loop === true) {
             loop.addClass("active");
@@ -256,7 +262,7 @@ var Video = {
         var that = this, element = this.element, o = this.options, video = this.elem, player = this.player;
 
         element.on("loadstart", function(){
-            that.preloader.fadeIn();
+            that.preloader.fadeIn(300);
         });
 
         element.on("loadedmetadata", function(){
@@ -267,7 +273,7 @@ var Video = {
 
         element.on("canplay", function(){
             that._setBuffer();
-            that.preloader.fadeOut();
+            that.preloader.fadeOut(300);
         });
 
         element.on("progress", function(){
@@ -282,7 +288,7 @@ var Video = {
         });
 
         element.on("waiting", function(){
-            that.preloader.fadeIn();
+            that.preloader.fadeIn(300);
         });
 
         element.on("loadeddata", function(){
@@ -292,32 +298,28 @@ var Video = {
         element.on("play", function(){
             player.find(".play").html(o.pauseIcon);
             Utils.exec(o.onPlay, [video, player], element[0]);
-            that._onMouse();
         });
 
         element.on("pause", function(){
             player.find(".play").html(o.playIcon);
             Utils.exec(o.onPause, [video, player], element[0]);
-            that._offMouse();
         });
 
         element.on("stop", function(){
             that.stream.data('slider').val(0);
             Utils.exec(o.onStop, [video, player], element[0]);
-            that._offMouse();
         });
 
         element.on("ended", function(){
             that.stream.data('slider').val(0);
             Utils.exec(o.onEnd, [video, player], element[0]);
-            that._offMouse();
         });
 
         element.on("volumechange", function(){
             that._setVolume();
         });
 
-        player.on(Metro.events.click, ".play", function(e){
+        player.on(Metro.events.click, ".play", function(){
             if (video.paused) {
                 that.play();
             } else {
@@ -325,11 +327,11 @@ var Video = {
             }
         });
 
-        player.on(Metro.events.click, ".stop", function(e){
+        player.on(Metro.events.click, ".stop", function(){
             that.stop();
         });
 
-        player.on(Metro.events.click, ".mute", function(e){
+        player.on(Metro.events.click, ".mute", function(){
             that._toggleMute();
         });
 
@@ -337,7 +339,7 @@ var Video = {
             that._toggleLoop();
         });
 
-        player.on(Metro.events.click, ".full", function(e){
+        player.on(Metro.events.click, ".full", function(){
             that.fullscreen = !that.fullscreen;
             player.find(".full").html(that.fullscreen === true ? o.screenLessIcon : o.screenMoreIcon);
             if (o.fullScreenMode === Metro.fullScreenMode.WINDOW) {
@@ -366,41 +368,37 @@ var Video = {
             }
 
             if (that.fullscreen === true) {
-                $(document).on(Metro.events.keyup + "_video", function(e){
+                $(document).on(Metro.events.keyup + ".video-player", function(e){
                     if (e.keyCode === 27) {
                         player.find(".full").click();
                     }
                 });
             } else {
-                $(document).off(Metro.events.keyup + "_video");
+                $(document).off(Metro.events.keyup + ".video-player");
             }
         });
 
         $(window).resize(function(){
             that._setAspectRatio();
         });
-    },
 
-    _onMouse: function(){
-        var player = this.player, o = this.options;
+        player.on(Metro.events.enter, function(){
+            var controls = player.find(".controls");
+            if (o.controlsHide > 0 && parseInt(controls.style('opacity')) === 0) {
+                controls.stop(true).fadeIn(500, function(){
+                    controls.css("display", "flex");
+                });
+            }
+        });
 
-        if (o.controlsHide > 0) {
-            player.on(Metro.events.enter, function(){
-                player.find(".controls").fadeIn();
-            });
-
-            player.on(Metro.events.leave, function(){
-                setTimeout(function(){
-                    player.find(".controls").fadeOut();
+        player.on(Metro.events.leave, function(){
+            var controls = player.find(".controls");
+            if (o.controlsHide > 0 && parseInt(controls.style('opacity')) === 1) {
+                setTimeout(function () {
+                    controls.stop(true).fadeOut(500);
                 }, o.controlsHide);
-            });
-        }
-    },
-
-    _offMouse: function(){
-        this.player.off(Metro.events.enter);
-        this.player.off(Metro.events.leave);
-        this.player.find(".controls").fadeIn();
+            }
+        });
     },
 
     _toggleLoop: function(){

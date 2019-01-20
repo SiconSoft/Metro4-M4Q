@@ -3,7 +3,8 @@ module.exports = function(grunt) {
     "use strict";
 
     var watching = grunt.option('watching');
-    var tasks = [];
+    var tasks, time = new Date(), day = time.getDate(), month = time.getMonth()+1, year = time.getFullYear(), hour = time.getHours(), mins = time.getMinutes(), sec = time.getSeconds();
+    var timestamp = (day < 10 ? "0"+day:day) + "/" + (month < 10 ? "0"+month:month) + "/" + (year) + " " + (hour<10?"0"+hour:hour) + ":" + (mins<10?"0"+mins:mins);
 
     require('load-grunt-tasks')(grunt);
 
@@ -25,7 +26,7 @@ module.exports = function(grunt) {
             "\t\t\tfactory( global, true ) :\n" +
             "\t\t\tfunction( w ) {\n" +
             "\t\t\t\tif ( !w.document ) {\n" +
-            "\t\t\t\t\tthrow new Error( \"m4q requires a window with a document\" );\n" +
+            "\t\t\t\t\tthrow new Error( \"Metro 4 requires a window with a document\" );\n" +
             "\t\t\t\t}\n" +
             "\t\t\t\treturn factory( w );\n" +
             "\t\t\t};\n" +
@@ -34,7 +35,7 @@ module.exports = function(grunt) {
             "\t}\n" +
             "\n" +
             "// Pass this if window is not defined yet\n" +
-            "} )( typeof window !== \"undefined\" ? window : this, function( window, noGlobal ) {"+
+            "} )( typeof window !== \"undefined\" ? window : this, function( window ) {"+
             "\n"+
             "'use strict';\n",
 
@@ -49,8 +50,8 @@ module.exports = function(grunt) {
                     footer: "\n\nreturn METRO_INIT === true ? Metro.init() : Metro;\n\n});",
                     stripBanners: true,
                     process: function(src, filepath) {
-                        return '\n// Source: ' + filepath + '\n\n' + src;
-                        // return '\n// Source: ' + filepath + '\n' + src.replace(/(^|\n)[ \t]*('use strict'|"use strict");?\s*/g, '$1');
+                        // return '\n// Source: ' + filepath + '\n\n' + src;
+                        return '\n// Source: ' + filepath + '\n' + src.replace(/(^|\n)[ \t]*('use strict'|"use strict");?\s*/g, '$1');
                         // return '\n// Source: ' + filepath + '\n' + src.replace(/(^|\n)[ \t]*();?\s*/g, '$1');
                     }
                 },
@@ -58,7 +59,7 @@ module.exports = function(grunt) {
                     'js/m4q/*.js',
                     'js/*.js',
                     'js/utils/*.js',
-                    'js/plugins/*.js',
+                    'js/plugins/*.js'
                 ],
                 dest: 'build/js/metro.js'
             },
@@ -208,6 +209,10 @@ module.exports = function(grunt) {
                         {
                             match: 'status',
                             replacement: "<%= pkg.version_suffix %>"
+                        },
+                        {
+                            match: 'time',
+                            replacement: timestamp
                         }
                     ]
                 },
