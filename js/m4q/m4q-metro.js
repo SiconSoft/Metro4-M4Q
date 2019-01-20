@@ -50,7 +50,7 @@
 	    })
 	}
 
-	var m4qVersion = "0.1.0 alpha 20/01/2019 12:07:26";
+	var m4qVersion = "0.1.0 alpha 20/01/2019 13:02:37";
 	var regexpSingleTag = /^<([a-z][^\/\0>:\x20\t\r\n\f]*)[\x20\t\r\n\f]*\/?>(?:<\/\1>|)$/i;
 	
 	var matches = Element.prototype.matches
@@ -835,10 +835,10 @@
 	        this.each(function(el){
 	            if (typeof o === "object") {
 	                for (var key in o) {
-	                    el.style[key] = numProps.indexOf(key) > -1 || nonDigit.test(o[key]) ? o[key] : o[key] + 'px';
+	                    el.style[key] = o[key] === "" ? o[key] : numProps.indexOf(key) > -1 || nonDigit.test(o[key]) ? o[key] : o[key] + 'px';
 	                }
 	            } else if (typeof o === "string") {
-	                el.style[o] = numProps.indexOf(o) > -1 || nonDigit.test(v) ? v : v + 'px';
+	                el.style[o] = v === "" ? v : numProps.indexOf(o) > -1 || nonDigit.test(v) ? v : v + 'px';
 	            }
 	        });
 	

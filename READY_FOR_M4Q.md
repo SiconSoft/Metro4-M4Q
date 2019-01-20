@@ -58,7 +58,7 @@
 - [x] Radio
 - [x] Rating
 - [x] Resizable
-- [ ] Ribbon Menu
+- [x] Ribbon Menu
 - [x] Ripple
 - [x] Select
 - [x] Sidebar

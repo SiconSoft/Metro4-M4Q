@@ -76,7 +76,7 @@ function not(value){
 	    })
 	}
 
-	var m4qVersion = "0.1.0 alpha 20/01/2019 12:07:26";
+	var m4qVersion = "0.1.0 alpha 20/01/2019 13:02:37";
 	var regexpSingleTag = /^<([a-z][^\/\0>:\x20\t\r\n\f]*)[\x20\t\r\n\f]*\/?>(?:<\/\1>|)$/i;
 	
 	var matches = Element.prototype.matches
@@ -861,10 +861,10 @@ function not(value){
 	        this.each(function(el){
 	            if (typeof o === "object") {
 	                for (var key in o) {
-	                    el.style[key] = numProps.indexOf(key) > -1 || nonDigit.test(o[key]) ? o[key] : o[key] + 'px';
+	                    el.style[key] = o[key] === "" ? o[key] : numProps.indexOf(key) > -1 || nonDigit.test(o[key]) ? o[key] : o[key] + 'px';
 	                }
 	            } else if (typeof o === "string") {
-	                el.style[o] = numProps.indexOf(o) > -1 || nonDigit.test(v) ? v : v + 'px';
+	                el.style[o] = v === "" ? v : numProps.indexOf(o) > -1 || nonDigit.test(v) ? v : v + 'px';
 	            }
 	        });
 	
@@ -2050,7 +2050,7 @@ var isTouch = (('ontouchstart' in window) || (navigator.MaxTouchPoints > 0) || (
 var Metro = {
 
     version: "4.3.0",
-    versionFull: "4.3.0 alpha 20/01/2019 12:08:25",
+    versionFull: "4.3.0 alpha 20/01/2019 13:02:49",
     build: "1",
     isTouchable: isTouch,
     fullScreenEnabled: document.fullscreenEnabled,
@@ -16850,9 +16850,9 @@ var RibbonMenu = {
     },
 
     _setOptionsFromDOM: function(){
-        var that = this, element = this.element, o = this.options;
+        var element = this.element, o = this.options;
 
-        $.each(element.data(), function(key, value){
+        $.each(element.data(), function(value, key){
             if (key in o) {
                 try {
                     o[key] = JSON.parse(value);
@@ -16864,7 +16864,7 @@ var RibbonMenu = {
     },
 
     _create: function(){
-        var that = this, element = this.element, o = this.options;
+        var element = this.element, o = this.options;
 
         this._createStructure();
         this._createEvents();
@@ -16873,7 +16873,7 @@ var RibbonMenu = {
     },
 
     _createStructure: function(){
-        var that = this, element = this.element, o = this.options;
+        var element = this.element;
 
         element.addClass("ribbon-menu");
 
@@ -16896,13 +16896,13 @@ var RibbonMenu = {
 
             var gw = 0;
             var btns = g.find(".ribbon-icon-button");
-            $.each(btns, function(){
-                var b = $(this);
+            $.each(btns, function(el){
+                var b = $(el);
                 var w = b.outerWidth(true);
                 if (w > gw) gw = w;
             });
 
-            g.css("width", Math.ceil(gw * btns.length / 3) + 4);
+            g.css("width", gw * Math.ceil(btns.length / 3) + 4);
         });
     },
 
@@ -16929,7 +16929,7 @@ var RibbonMenu = {
     },
 
     open: function(tab){
-        var that = this, element = this.element, o = this.options;
+        var element = this.element, o = this.options;
         var tabs = element.find(".tabs-holder li");
         var sections = element.find(".content-holder .section");
         var target = tab.children("a").attr("href");
