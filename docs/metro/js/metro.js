@@ -2050,7 +2050,7 @@ var isTouch = (('ontouchstart' in window) || (navigator.MaxTouchPoints > 0) || (
 var Metro = {
 
     version: "4.3.0",
-    versionFull: "4.3.0 alpha 20/01/2019 13:10:51",
+    versionFull: "4.3.0 alpha 20/01/2019 13:16:27",
     build: "1",
     isTouchable: isTouch,
     fullScreenEnabled: document.fullscreenEnabled,
@@ -18807,9 +18807,9 @@ var Splitter = {
     },
 
     _setOptionsFromDOM: function(){
-        var that = this, element = this.element, o = this.options;
+        var element = this.element, o = this.options;
 
-        $.each(element.data(), function(key, value){
+        $.each(element.data(), function(value, key){
             if (key in o) {
                 try {
                     o[key] = JSON.parse(value);
@@ -18821,7 +18821,7 @@ var Splitter = {
     },
 
     _create: function(){
-        var that = this, element = this.element, o = this.options;
+        var element = this.element, o = this.options;
 
         this._createStructure();
         this._createEvents();
@@ -18830,7 +18830,7 @@ var Splitter = {
     },
 
     _createStructure: function(){
-        var that = this, element = this.element, o = this.options;
+        var element = this.element, o = this.options;
         var children = element.children(o.children).addClass("split-block");
         var i, children_sizes = [];
         var gutters, resizeProp = o.splitMode === "horizontal" ? "width" : "height";
@@ -18902,7 +18902,7 @@ var Splitter = {
 
             Utils.exec(o.onResizeStart, [start_pos, gutter, prev_block, next_block], element);
 
-            $(window).on(Metro.events.move + "-" + element.attr("id"), function(e){
+            $(document).on(Metro.events.move + ".splitter", function(e){
                 var pos = Utils.getCursorPosition(element, e);
                 var new_pos;
 
@@ -18919,7 +18919,7 @@ var Splitter = {
                 Utils.exec(o.onResizeSplit, [pos, gutter, prev_block, next_block], element);
             });
 
-            $(window).on(Metro.events.stop + "-" + element.attr("id"), function(e){
+            $(document).on(Metro.events.stop + ".splitter", function(e){
 
                 prev_block.removeClass("stop-select stop-pointer");
                 next_block.removeClass("stop-select stop-pointer");
@@ -18928,8 +18928,8 @@ var Splitter = {
 
                 gutter.removeClass("active");
 
-                $(window).off(Metro.events.move + "-" + element.attr("id"));
-                $(window).off(Metro.events.stop + "-" + element.attr("id"));
+                $(document).off(Metro.events.move + ".splitter");
+                $(document).off(Metro.events.stop + ".splitter");
 
                 Utils.exec(o.onResizeStop, [Utils.getCursorPosition(element, e), gutter, prev_block, next_block], element);
             })
@@ -18937,7 +18937,7 @@ var Splitter = {
     },
 
     _saveSize: function(){
-        var that = this, element = this.element, o = this.options;
+        var element = this.element, o = this.options;
         var storage = this.storage, itemsSize = [];
 
         if (o.saveState === true && storage !== null) {
@@ -18953,7 +18953,7 @@ var Splitter = {
     },
 
     _getSize: function(){
-        var that = this, element = this.element, o = this.options;
+        var element = this.element, o = this.options;
         var storage = this.storage, itemsSize = [];
 
         if (o.saveState === true && storage !== null) {

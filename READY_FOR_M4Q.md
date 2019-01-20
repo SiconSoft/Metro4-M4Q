@@ -65,7 +65,7 @@
 - [x] Slider
 - [ ] Sorter
 - [x] Spinner
-- [ ] Splitter
+- [x] Splitter
 - [ ] Stepper
 - [ ] Streamer
 - [x] Switch
