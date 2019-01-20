@@ -115,7 +115,6 @@ var RibbonMenu = {
     },
 
     changeAttribute: function(attributeName){
-
     }
 };
 

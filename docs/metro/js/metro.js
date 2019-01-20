@@ -2050,7 +2050,7 @@ var isTouch = (('ontouchstart' in window) || (navigator.MaxTouchPoints > 0) || (
 var Metro = {
 
     version: "4.3.0",
-    versionFull: "4.3.0 alpha 20/01/2019 13:02:49",
+    versionFull: "4.3.0 alpha 20/01/2019 13:04:46",
     build: "1",
     isTouchable: isTouch,
     fullScreenEnabled: document.fullscreenEnabled,
@@ -16945,7 +16945,6 @@ var RibbonMenu = {
     },
 
     changeAttribute: function(attributeName){
-
     }
 };
 
