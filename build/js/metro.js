@@ -2050,7 +2050,7 @@ var isTouch = (('ontouchstart' in window) || (navigator.MaxTouchPoints > 0) || (
 var Metro = {
 
     version: "4.3.0",
-    versionFull: "4.3.0 alpha 20/01/2019 13:16:27",
+    versionFull: "4.3.0 alpha 02/02/2019 15:53:46",
     build: "1",
     isTouchable: isTouch,
     fullScreenEnabled: document.fullscreenEnabled,
@@ -8118,6 +8118,7 @@ var CalendarPicker = {
         }
 
         if (Utils.isDate(v, o.inputFormat) === true) {
+            this.calendar.data("calendar").clearSelected();
             this.value = typeof v === 'string' ? v.toDate(o.inputFormat) : v;
             element.val(this.value.format(o.format));
             element.trigger("change");
@@ -13394,6 +13395,7 @@ var Input = {
             autocompleteList.css({
                 display: "none"
             });
+            element.trigger("change");
         });
     },
 
@@ -16124,8 +16126,10 @@ var Popover = {
 
         var changeText = function(){
             o.popoverText = element.attr("data-popover-text");
-            this.popover.find(".popover-content").html(o.popoverText);
-            that.setPosition();
+            if(that.popover) {
+                that.popover.find(".popover-content").html(o.popoverText);
+                that.setPosition();
+            }
         };
 
         var changePosition = function(){
