@@ -50,7 +50,7 @@
 	    })
 	}
 
-	var m4qVersion = "0.1.0 alpha 20/01/2019 13:02:37";
+	var m4qVersion = "0.1.0 alpha 03/02/2019 10:57:21";
 	var regexpSingleTag = /^<([a-z][^\/\0>:\x20\t\r\n\f]*)[\x20\t\r\n\f]*\/?>(?:<\/\1>|)$/i;
 	
 	var matches = Element.prototype.matches
@@ -1619,7 +1619,7 @@
 	
 	    show: function(el, cb){
 	        var display = m4q(el).origin('display', undefined, "block");
-	        el.style.display = display ? display : '';
+	        el.style.display = display ? display === 'none' ? 'block' : display : '';
 	        if (parseInt(el.style.opacity) === 0) {
 	            el.style.opacity = "1";
 	        }

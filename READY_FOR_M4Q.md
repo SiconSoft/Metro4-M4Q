@@ -70,7 +70,7 @@
 - [ ] Streamer
 - [x] Switch
 - [ ] Table
-- [ ] Tabs
+- [x] Tabs
 - [ ] Tabs Material
 - [ ] Tag input
 - [x] Textarea

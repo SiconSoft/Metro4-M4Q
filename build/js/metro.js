@@ -76,7 +76,7 @@ function not(value){
 	    })
 	}
 
-	var m4qVersion = "0.1.0 alpha 20/01/2019 13:02:37";
+	var m4qVersion = "0.1.0 alpha 03/02/2019 10:57:21";
 	var regexpSingleTag = /^<([a-z][^\/\0>:\x20\t\r\n\f]*)[\x20\t\r\n\f]*\/?>(?:<\/\1>|)$/i;
 	
 	var matches = Element.prototype.matches
@@ -1645,7 +1645,7 @@ function not(value){
 	
 	    show: function(el, cb){
 	        var display = m4q(el).origin('display', undefined, "block");
-	        el.style.display = display ? display : '';
+	        el.style.display = display ? display === 'none' ? 'block' : display : '';
 	        if (parseInt(el.style.opacity) === 0) {
 	            el.style.opacity = "1";
 	        }
@@ -2050,7 +2050,7 @@ var isTouch = (('ontouchstart' in window) || (navigator.MaxTouchPoints > 0) || (
 var Metro = {
 
     version: "4.3.0",
-    versionFull: "4.3.0 alpha 03/02/2019 10:31:28",
+    versionFull: "4.3.0 alpha 03/02/2019 11:32:05",
     build: "1",
     isTouchable: isTouch,
     fullScreenEnabled: document.fullscreenEnabled,
@@ -21939,9 +21939,9 @@ var Tabs = {
     },
 
     _setOptionsFromDOM: function(){
-        var that = this, element = this.element, o = this.options;
+        var element = this.element, o = this.options;
 
-        $.each(element.data(), function(key, value){
+        $.each(element.data(), function(value, key){
             if (key in o) {
                 try {
                     o[key] = JSON.parse(value);
@@ -21953,8 +21953,9 @@ var Tabs = {
     },
 
     _create: function(){
-        var that = this, element = this.element, o = this.options;
-        var tab = element.find(".active").length > 0 ? $(element.find(".active")[0]) : undefined;
+        var element = this.element;
+        var active_tab = element.find(".active");
+        var tab = active_tab.length > 0 ? active_tab[0] : undefined;
 
         this._createStructure();
         this._createEvents();
@@ -21962,8 +21963,7 @@ var Tabs = {
     },
 
     _createStructure: function(){
-        var that = this, element = this.element, o = this.options;
-        var prev = element.prev();
+        var element = this.element, o = this.options;
         var parent = element.parent();
         var right_parent = parent.hasClass("tabs");
         var container = right_parent ? parent : $("<div>").addClass("tabs tabs-wrapper");
@@ -22021,7 +22021,7 @@ var Tabs = {
         var that = this, element = this.element, o = this.options;
         var container = element.parent();
 
-        $(window).on(Metro.events.resize+"-"+element.attr("id"), function(){
+        $(window).on(Metro.events.resize+".tabs-"+element.attr("id"), function(){
 
             if (o.tabsPosition.contains("vertical")) {
                 return ;
@@ -22082,8 +22082,8 @@ var Tabs = {
 
         this._targets = [];
 
-        $.each(tabs, function(){
-            var target = $(this).find("a").attr("href").trim();
+        $.each(tabs, function(tab){
+            var target = $(tab).find("a").attr("href").trim();
             if (target.length > 1 && target[0] === "#") {
                 that._targets.push(target);
             }
@@ -22091,10 +22091,9 @@ var Tabs = {
     },
 
     _open: function(tab){
-        var that = this, element = this.element, o = this.options;
+        var element = this.element, o = this.options;
         var tabs = element.find("li");
         var expandTitle = element.siblings(".expand-title");
-
 
         if (tabs.length === 0) {
             return;
@@ -22105,6 +22104,8 @@ var Tabs = {
         if (tab === undefined) {
             tab = $(tabs[0]);
         }
+
+        tab = $(tab);
 
         var target = tab.find("a").attr("href");
 
@@ -22136,7 +22137,7 @@ var Tabs = {
     },
 
     next: function(){
-        var that = this, element = this.element, o = this.options;
+        var element = this.element;
         var next, active_tab = element.find("li.active");
 
         next = active_tab.next("li");
@@ -22146,7 +22147,7 @@ var Tabs = {
     },
 
     prev: function(){
-        var that = this, element = this.element, o = this.options;
+        var element = this.element;
         var next, active_tab = element.find("li.active");
 
         next = active_tab.prev("li");
@@ -22156,7 +22157,7 @@ var Tabs = {
     },
 
     open: function(tab){
-        var that = this, element = this.element, o = this.options;
+        var element = this.element;
         var tabs = element.find("li");
 
         if (!Utils.isValue(tab)) {
