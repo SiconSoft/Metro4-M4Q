@@ -2050,7 +2050,7 @@ var isTouch = (('ontouchstart' in window) || (navigator.MaxTouchPoints > 0) || (
 var Metro = {
 
     version: "4.3.0",
-    versionFull: "4.3.0 alpha 03/02/2019 11:32:05",
+    versionFull: "4.3.0 alpha 03/02/2019 11:47:21",
     build: "1",
     isTouchable: isTouch,
     fullScreenEnabled: document.fullscreenEnabled,
@@ -21756,9 +21756,9 @@ var MaterialTabs = {
     },
 
     _setOptionsFromDOM: function(){
-        var that = this, element = this.element, o = this.options;
+        var element = this.element, o = this.options;
 
-        $.each(element.data(), function(key, value){
+        $.each(element.data(), function(value, key){
             if (key in o) {
                 try {
                     o[key] = JSON.parse(value);
@@ -21770,7 +21770,7 @@ var MaterialTabs = {
     },
 
     _create: function(){
-        var that = this, element = this.element, o = this.options;
+        var element = this.element, o = this.options;
 
         this._createStructure();
         this._createEvents();
@@ -21794,7 +21794,7 @@ var MaterialTabs = {
     },
 
     _createStructure: function(){
-        var that = this, element = this.element, o = this.options;
+        var element = this.element, o = this.options;
         var tabs = element.find("li"), active_tab = element.find("li.active");
 
         element.addClass("tabs-material").addClass(o.clsComponent);
@@ -21836,22 +21836,10 @@ var MaterialTabs = {
                 e.preventDefault();
             }
         });
-
-        var addMouseWheel = function (){
-            $(element).mousewheel(function(event, delta, deltaX, deltaY){
-                var scroll_value = delta * METRO_SCROLL_MULTIPLE;
-                element.scrollLeft(element.scrollLeft() - scroll_value);
-                return false;
-            });
-        };
-
-        if (!$('html').hasClass("metro-touch-device")) {
-            addMouseWheel();
-        }
     },
 
     openTab: function(tab, tab_next){
-        var that = this, element = this.element, o = this.options;
+        var element = this.element, o = this.options;
         var tabs = element.find("li"), element_scroll = element.scrollLeft();
         var magic = 32, shift, width = element.width(), tab_width, target, tab_left;
 
