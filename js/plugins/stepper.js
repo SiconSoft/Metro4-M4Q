@@ -26,9 +26,9 @@ var Stepper = {
     },
 
     _setOptionsFromDOM: function(){
-        var that = this, element = this.element, o = this.options;
+        var element = this.element, o = this.options;
 
-        $.each(element.data(), function(key, value){
+        $.each(element.data(), function(value, key){
             if (key in o) {
                 try {
                     o[key] = JSON.parse(value);
@@ -40,7 +40,7 @@ var Stepper = {
     },
 
     _create: function(){
-        var that = this, element = this.element, o = this.options;
+        var element = this.element, o = this.options;
 
         if (o.step <= 0) {
             o.step = 1;
@@ -53,13 +53,18 @@ var Stepper = {
     },
 
     _createStepper: function(){
-        var that = this, element = this.element, o = this.options;
+        var element = this.element, o = this.options;
         var i;
 
         element.addClass("stepper").addClass(o.view).addClass(o.clsStepper);
 
         for(i = 1; i <= o.steps; i++) {
-            var step = $("<span>").addClass("step").addClass(o.clsStep).data("step", i).html("<span>"+i+"</span>").appendTo(element);
+            $("<span>")
+                .addClass("step")
+                .addClass(o.clsStep)
+                .data("step", i)
+                .html("<span>"+i+"</span>")
+                .appendTo(element);
         }
 
         this.current = 1;
@@ -79,7 +84,7 @@ var Stepper = {
     },
 
     next: function(){
-        var that = this, element = this.element, o = this.options;
+        var element = this.element;
         var steps = element.find(".step");
 
         if (this.current + 1 > steps.length) {
@@ -92,8 +97,6 @@ var Stepper = {
     },
 
     prev: function(){
-        var that = this, element = this.element, o = this.options;
-
         if (this.current - 1 === 0) {
             return ;
         }
@@ -104,7 +107,7 @@ var Stepper = {
     },
 
     last: function(){
-        var that = this, element = this.element, o = this.options;
+        var element = this.element;
 
         this.toStep(element.find(".step").length);
     },
@@ -114,7 +117,7 @@ var Stepper = {
     },
 
     toStep: function(step){
-        var that = this, element = this.element, o = this.options;
+        var element = this.element, o = this.options;
         var target = $(element.find(".step").get(step - 1));
 
         if (target.length === 0) {

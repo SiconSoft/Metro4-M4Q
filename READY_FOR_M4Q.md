@@ -66,7 +66,7 @@
 - [ ] Sorter
 - [x] Spinner
 - [x] Splitter
-- [ ] Stepper
+- [x] Stepper
 - [ ] Streamer
 - [x] Switch
 - [ ] Table
