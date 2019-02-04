@@ -4,6 +4,7 @@ var Tile = {
         this.elem  = elem;
         this.element = $(elem);
         this.effectInterval = false;
+        this.imageSetInterval = false;
         this.images = [];
         this.slides = [];
         this.currentSlide = -1;
@@ -50,15 +51,16 @@ var Tile = {
         Utils.exec(o.onTileCreate, [element]);
     },
 
+    _switchImage: function(el, img_src){
+        setTimeout(function(){
+            el.fadeOut(500, function(){
+                el.css("background-image", "url(" + img_src + ")");
+                el.fadeIn();
+            });
+        }, Utils.random(0,1000));
+    },
+
     _createTile: function(){
-        function switchImage(el, img_src){
-            setTimeout(function(){
-                el.fadeOut(500, function(){
-                    el.css("background-image", "url(" + img_src + ")");
-                    el.fadeIn();
-                });
-            }, Utils.random(0,1000));
-        }
 
         var that = this, element = this.element, o = this.options;
         var slides = element.find(".slide");
@@ -78,7 +80,7 @@ var Tile = {
         }
 
         if (o.effect.indexOf("animate-") > -1 && slides.length > 1) {
-            $.each(slides, function(i){
+            $.each(slides, function(s, i){
                 var slide = $(this);
 
                 that.slides.push(this);
@@ -90,7 +92,7 @@ var Tile = {
                 if (i > 0) {
                     if (["animate-slide-up", "animate-slide-down"].indexOf(o.effect) > -1) slide.css("top", "100%");
                     if (["animate-slide-left", "animate-slide-right"].indexOf(o.effect) > -1) slide.css("left", "100%");
-                    if (["animate-fade"].indexOf(o.effect) > -1) slide.css("opacity", 0);
+                    if (["animate-fade"].indexOf(o.effect) > -1) slide.css("opacity", "0");
                 }
             });
 
@@ -121,12 +123,12 @@ var Tile = {
                 img.remove();
             });
 
-            setInterval(function(){
+            this.imageSetInterval = setInterval(function(){
                 var temp = that.images.slice();
                 for(var i = 0; i < element.find(".img").length; i++) {
                     var rnd_index = Utils.random(0, temp.length - 1);
                     var div = $(element.find(".img").get(i));
-                    switchImage(div, temp[rnd_index].src);
+                    that._switchImage(div, temp[rnd_index].src);
                     temp.splice(rnd_index, 1);
                 }
             }, 3000);
@@ -134,32 +136,49 @@ var Tile = {
     },
 
     _runEffects: function(){
-        var that = this, o = this.options;
+        var that = this, element = this.element, o = this.options;
 
-        if (this.effectInterval === false) this.effectInterval = setInterval(function(){
-            var current, next;
+        if (o.effect === "image-set") {
+            element.find(".img").css("opacity", 1);
+            this.imageSetInterval = setInterval(function(){
+                var temp = that.images.slice();
+                for(var i = 0; i < element.find(".img").length; i++) {
+                    var rnd_index = Utils.random(0, temp.length - 1);
+                    var div = $(element.find(".img").get(i));
+                    that._switchImage(div, temp[rnd_index].src);
+                    temp.splice(rnd_index, 1);
+                }
+            }, 3000);
+        }
 
-            current = $(that.slides[that.currentSlide]);
+        if (o.effect.indexOf("animate-") > -1) {
+            this.effectInterval = setInterval(function () {
+                var current, next;
 
-            that.currentSlide++;
-            if (that.currentSlide === that.slides.length) {
-                that.currentSlide = 0;
-            }
+                current = $(that.slides[that.currentSlide]);
 
-            next = that.slides[that.currentSlide];
+                that.currentSlide++;
+                if (that.currentSlide === that.slides.length) {
+                    that.currentSlide = 0;
+                }
 
-            if (o.effect === "animate-slide-up") Animation.slideUp($(current), $(next), o.effectDuration);
-            if (o.effect === "animate-slide-down") Animation.slideDown($(current), $(next), o.effectDuration);
-            if (o.effect === "animate-slide-left") Animation.slideLeft($(current), $(next), o.effectDuration);
-            if (o.effect === "animate-slide-right") Animation.slideRight($(current), $(next), o.effectDuration);
-            if (o.effect === "animate-fade") Animation.fade($(current), $(next), o.effectDuration);
+                next = that.slides[that.currentSlide];
 
-        }, o.effectInterval);
+                if (o.effect === "animate-slide-up") Animation.slideUp($(current), $(next), o.effectDuration);
+                if (o.effect === "animate-slide-down") Animation.slideDown($(current), $(next), o.effectDuration);
+                if (o.effect === "animate-slide-left") Animation.slideLeft($(current), $(next), o.effectDuration);
+                if (o.effect === "animate-slide-right") Animation.slideRight($(current), $(next), o.effectDuration);
+                if (o.effect === "animate-fade") Animation.fade($(current), $(next), o.effectDuration);
+
+            }, o.effectInterval);
+        }
     },
 
     _stopEffects: function(){
         clearInterval(this.effectInterval);
+        clearInterval(this.imageSetInterval);
         this.effectInterval = false;
+        this.imageSetInterval = false;
     },
 
     _setCover: function(to, src){
