@@ -72,7 +72,7 @@
 - [ ] Table
 - [x] Tabs
 - [x] Tabs Material
-- [ ] Tag input
+- [x] Tag input
 - [x] Textarea
 - [ ] Tiles
 - [x] Time Picker
