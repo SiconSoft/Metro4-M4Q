@@ -71,7 +71,7 @@
 - [x] Switch
 - [ ] Table
 - [x] Tabs
-- [ ] Tabs Material
+- [x] Tabs Material
 - [ ] Tag input
 - [x] Textarea
 - [ ] Tiles

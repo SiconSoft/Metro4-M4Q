@@ -75,8 +75,16 @@ function not(value){
 	        return el !== "";
 	    })
 	}
+	
+	function parseUnit(str, out) {
+	    if (!out) out = [ 0, '' ];
+	    str = String(str);
+	    out[0] = parseFloat(str);
+	    out[1] = str.match(/[\d.\-+]*\s*(.*)/)[1] || '';
+	    return out;
+	}
 
-	var m4qVersion = "0.1.0 alpha 03/02/2019 10:57:21";
+	var m4qVersion = "0.1.0 alpha 04/02/2019 13:39:41";
 	var regexpSingleTag = /^<([a-z][^\/\0>:\x20\t\r\n\f]*)[\x20\t\r\n\f]*\/?>(?:<\/\1>|)$/i;
 	
 	var matches = Element.prototype.matches
@@ -831,8 +839,8 @@ function not(value){
 	
 
 	
-	var nonDigit = /[^0-9.\-]/;
-	var numProps = ['opacity'];
+	//var nonDigit = /[^0-9.\-]/;
+	//var numProps = ['opacity'];
 	
 	m4q.fn.extend({
 	    style: function(name){
@@ -843,7 +851,7 @@ function not(value){
 	        if (arguments.length === 0 || name === undefined) {
 	            return el.style ? el.style : getComputedStyle(el, null);
 	        } else {
-	            return el.style[name] ? el.style[name] : getComputedStyle(el, null)[name];
+	            return ["scrollLeft", "scrollTop"].indexOf(name) > -1 ? m4q(el)[name]() : el.style[name] ? el.style[name] : getComputedStyle(el, null)[name];
 	        }
 	    },
 	
@@ -861,10 +869,18 @@ function not(value){
 	        this.each(function(el){
 	            if (typeof o === "object") {
 	                for (var key in o) {
-	                    el.style[key] = o[key] === "" ? o[key] : numProps.indexOf(key) > -1 || nonDigit.test(o[key]) ? o[key] : o[key] + 'px';
+	                    if (["scrollLeft", "scrollTop"].indexOf(key) > -1) {
+	                        m4q(el)[name](parseInt(o[key]));
+	                    } else {
+	                        el.style[key] = o[key] === "" ? o[key] : isNaN(o[key]) ? o[key] : o[key] + 'px';
+	                    }
 	                }
 	            } else if (typeof o === "string") {
-	                el.style[o] = v === "" ? v : numProps.indexOf(o) > -1 || nonDigit.test(v) ? v : v + 'px';
+	                if (["scrollLeft", "scrollTop"].indexOf(o) > -1) {
+	                    m4q(el)[o](parseInt(v));
+	                } else {
+	                    el.style[o] = v === "" ? v : isNaN(v) ? v : v + 'px';
+	                }
 	            }
 	        });
 	
@@ -882,7 +898,7 @@ function not(value){
 	
 	    scrollLeft: function(val){
 	        if (not(val)) {
-	            return this.length === 0 ? undefined : this[0] === window ? pageXOffset : this[0].scrollTop;
+	            return this.length === 0 ? undefined : this[0] === window ? pageXOffset : this[0].scrollLeft;
 	        }
 	        return this.each(function(el){
 	            el.scrollLeft = val;
@@ -994,7 +1010,7 @@ function not(value){
 	
 	        return this.each(function(el){
 	            if (el === window || el === document) {return ;}
-	            el.style[prop] = nonDigit.test(val) ? val : val + 'px';
+	            el.style[prop] = isNaN(val) ? val : val + 'px';
 	        });
 	    },
 	
@@ -1566,14 +1582,31 @@ function not(value){
 	
 	    animate: function(el, draw, dur, timing, cb){
 	        var $el = m4q(el), start = performance.now();
+	        var key, from, to, delta, unit, mapProps = {};
 	
 	        dur = dur || 300;
 	        timing = timing || this.easingDef;
 	
 	        m4q(el).origin("animation-stop", 0);
 	
+	        if (isPlainObject(draw)) {
+	            // TODO add prop value as array [from, to]
+	            for (key in draw) {
+	                if (!Array.isArray(draw[key])) {
+	                    from = parseUnit($el.style(key));
+	                    to = parseUnit(draw[key]);
+	                } else {
+	                    from = parseUnit(draw[key][0]);
+	                    to = parseUnit(draw[key][1]);
+	                }
+	                unit = to[1] === '' ? 'px' : to[1];
+	                delta = to[0] - from[0];
+	                mapProps[key] = [from[0], to[0], delta, unit] ;
+	            }
+	        }
+	
 	        $el.origin("animation", requestAnimationFrame(function animate(time) {
-	            var p, t, curr = {}, key, sv;
+	            var p, t;
 	            var stop = m4q(el).origin("animation-stop");
 	
 	            if ( stop > 0) {
@@ -1593,8 +1626,12 @@ function not(value){
 	
 	            } else if (isPlainObject(draw)) {
 	
-	                console.log("Plain object currently not supported. Please use function!");
 	                (function(p){
+	
+	                    for (key in mapProps) {
+	                        $el.css(key, mapProps[key][0] + (mapProps[key][2] * p) + mapProps[key][3]);
+	                    }
+	
 	                })(p);
 	
 	            } else {
@@ -1678,12 +1715,13 @@ function not(value){
 	        }
 	
 	        var originDisplay = m4q(el).origin("display", undefined, 'block');
+	        var originOpacity = m4q(el).origin("opacity", undefined, 1);
 	
 	        el.style.opacity = 0;
 	        el.style.display = originDisplay;
 	
 	        return this.animate(el, function(p){
-	            el.style.opacity = p;
+	            el.style.opacity = originOpacity * p;
 	            if (p === 1) {
 	                el.style.display = originDisplay;
 	            }
@@ -1691,7 +1729,7 @@ function not(value){
 	    },
 	
 	    fadeOut: function(el, dur, easing, cb){
-	        var $el = m4q(el);
+	        var $el = m4q(el), opacity;
 	
 	        if (not(dur) && not(easing) && not(cb)) {
 	            cb = null;
@@ -1706,12 +1744,14 @@ function not(value){
 	            easing = "linear";
 	        }
 	
-	        $el.origin("display", m4q(el).style('display'));
-	        el.style.opacity = 1;
+	        opacity = m4q(el).style('opacity');
 	
-	        return this.animate(el, function(progress){
-	            el.style.opacity = 1 - progress;
-	            if (progress === 1) {
+	        $el.origin("display", m4q(el).style('display'));
+	        $el.origin("opacity", opacity);
+	
+	        return this.animate(el, function(p){
+	            el.style.opacity = (1 - p) * opacity;
+	            if (p === 1) {
 	                el.style.display = 'none';
 	            }
 	        }, dur, easing, cb);
@@ -1744,9 +1784,9 @@ function not(value){
 	            display: originDisplay === "none" ? "block" : originDisplay
 	        });
 	
-	        return this.animate(el, function(progress){
-	            el.style.height = (targetHeight * progress) + "px";
-	            if (progress === 1) {
+	        return this.animate(el, function(p){
+	            el.style.height = (targetHeight * p) + "px";
+	            if (p === 1) {
 	                $el.css({
 	                    overflow: "",
 	                    height: "",
@@ -1785,9 +1825,9 @@ function not(value){
 	            overflow: "hidden"
 	        });
 	
-	        return this.animate(el, function(progress){
-	            el.style.height = (1 - progress) * currHeight + 'px';
-	            if (progress === 1) {
+	        return this.animate(el, function(p){
+	            el.style.height = (1 - p) * currHeight + 'px';
+	            if (p === 1) {
 	                $el.hide().css({
 	                    overflow: "",
 	                    height: ""
@@ -2050,7 +2090,7 @@ var isTouch = (('ontouchstart' in window) || (navigator.MaxTouchPoints > 0) || (
 var Metro = {
 
     version: "4.3.0",
-    versionFull: "4.3.0 alpha 03/02/2019 11:47:21",
+    versionFull: "4.3.0 alpha 04/02/2019 13:39:52",
     build: "1",
     isTouchable: isTouch,
     fullScreenEnabled: document.fullscreenEnabled,
@@ -21839,9 +21879,10 @@ var MaterialTabs = {
     },
 
     openTab: function(tab, tab_next){
-        var element = this.element, o = this.options;
-        var tabs = element.find("li"), element_scroll = element.scrollLeft();
-        var magic = 32, shift, width = element.width(), tab_width, target, tab_left;
+        var that = this, element = this.element, o = this.options;
+        var tabs = element.find("li"), scroll;
+        var magic = 32, shift, width, tab_width, target, tab_left;
+        var scrollLeft;
 
         if (!Utils.isJQueryObject(tab)) {
             tab = $(tab);
@@ -21853,27 +21894,29 @@ var MaterialTabs = {
             if (target.trim() !== "#" && $(target).length > 0) $(target).hide();
         });
 
+        width  = element.width();
+        scroll = element.scrollLeft();
         tab_left = tab.position().left;
         tab_width = tab.width();
-        shift = tab.position().left + tab.width();
+        shift = tab_left + tab_width;
 
         tabs.removeClass("active").removeClass(o.clsTabActive);
         tab.addClass("active").addClass(o.clsTabActive);
 
-        if (shift + magic > width) {
-            element.animate({
-                scrollLeft: element_scroll + (shift - width) + (tab_width / 2)
-            });
+        if (shift + magic > width + scroll) {
+            scrollLeft = scroll + (magic * 2);
+        } else if (tab_left < scroll) {
+            scrollLeft = tab_left - magic * 2;
+        } else {
+            scrollLeft = scroll;
         }
 
-        if (tab_left - magic < 0) {
-            element.animate({
-                scrollLeft: tab_left + element_scroll - (tab_width / 2)
-            });
-        }
+        element.animate({
+            scrollLeft: scrollLeft
+        });
 
-        this.marker.animate({
-            left: tab_left + element_scroll,
+        that.marker.animate({
+            left: tab_left,
             width: tab.width()
         });
 
