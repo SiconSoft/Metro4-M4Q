@@ -152,7 +152,6 @@ var Countdown = {
     _createEvents: function(){
         var that = this;
         document.addEventListener("visibilitychange", function() {
-            console.log( document.hidden );
             if (document.hidden) {
                 that.pause();
             } else {

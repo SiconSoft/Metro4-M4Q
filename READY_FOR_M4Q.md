@@ -74,7 +74,7 @@
 - [x] Tabs Material
 - [x] Tag input
 - [x] Textarea
-- [ ] Tiles
+- [x] Tiles
 - [x] Time Picker
 - [x] Toast
 - [ ] Touch

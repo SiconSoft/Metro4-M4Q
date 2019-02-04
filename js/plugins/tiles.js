@@ -28,9 +28,9 @@ var Tile = {
     },
 
     _setOptionsFromDOM: function(){
-        var that = this, element = this.element, o = this.options;
+        var element = this.element, o = this.options;
 
-        $.each(element.data(), function(key, value){
+        $.each(element.data(), function(value, key){
             if (key in o) {
                 try {
                     o[key] = JSON.parse(value);
@@ -42,7 +42,7 @@ var Tile = {
     },
 
     _create: function(){
-        var that = this, element = this.element, o = this.options;
+        var element = this.element, o = this.options;
 
         this._createTile();
         this._createEvents();
@@ -204,7 +204,7 @@ var Tile = {
             }
         });
 
-        element.on([Metro.events.stop, Metro.events.leave].join(" "), function(e){
+        element.on([Metro.events.stop, Metro.events.leave].join(" "), function(){
             $(this)
                 .removeClass("transform-left")
                 .removeClass("transform-right")
@@ -212,11 +212,12 @@ var Tile = {
                 .removeClass("transform-bottom");
         });
 
-        $(window).on(Metro.events.blur, function(){
-            that._stopEffects();
-        });
-        $(window).on(Metro.events.focus, function(){
-            that._runEffects();
+        document.addEventListener("visibilitychange", function() {
+            if (document.hidden) {
+                that._stopEffects();
+            } else {
+                that._runEffects();
+            }
         });
     },
 

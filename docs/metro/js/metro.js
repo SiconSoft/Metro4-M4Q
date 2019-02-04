@@ -2090,7 +2090,7 @@ var isTouch = (('ontouchstart' in window) || (navigator.MaxTouchPoints > 0) || (
 var Metro = {
 
     version: "4.3.0",
-    versionFull: "4.3.0 alpha 04/02/2019 15:46:24",
+    versionFull: "4.3.0 alpha 04/02/2019 15:51:47",
     build: "1",
     isTouchable: isTouch,
     fullScreenEnabled: document.fullscreenEnabled,
@@ -9535,7 +9535,6 @@ var Countdown = {
     _createEvents: function(){
         var that = this;
         document.addEventListener("visibilitychange", function() {
-            console.log( document.hidden );
             if (document.hidden) {
                 that.pause();
             } else {
@@ -22707,9 +22706,9 @@ var Tile = {
     },
 
     _setOptionsFromDOM: function(){
-        var that = this, element = this.element, o = this.options;
+        var element = this.element, o = this.options;
 
-        $.each(element.data(), function(key, value){
+        $.each(element.data(), function(value, key){
             if (key in o) {
                 try {
                     o[key] = JSON.parse(value);
@@ -22721,7 +22720,7 @@ var Tile = {
     },
 
     _create: function(){
-        var that = this, element = this.element, o = this.options;
+        var element = this.element, o = this.options;
 
         this._createTile();
         this._createEvents();
@@ -22883,7 +22882,7 @@ var Tile = {
             }
         });
 
-        element.on([Metro.events.stop, Metro.events.leave].join(" "), function(e){
+        element.on([Metro.events.stop, Metro.events.leave].join(" "), function(){
             $(this)
                 .removeClass("transform-left")
                 .removeClass("transform-right")
@@ -22891,11 +22890,12 @@ var Tile = {
                 .removeClass("transform-bottom");
         });
 
-        $(window).on(Metro.events.blur, function(){
-            that._stopEffects();
-        });
-        $(window).on(Metro.events.focus, function(){
-            that._runEffects();
+        document.addEventListener("visibilitychange", function() {
+            if (document.hidden) {
+                that._stopEffects();
+            } else {
+                that._runEffects();
+            }
         });
     },
 
