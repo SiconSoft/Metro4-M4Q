@@ -23,7 +23,7 @@
 - [x] Bottom sheets
 - [x] Bottom group
 - [x] Calendar
-- [x] Calendarpicker
+- [x] Calendar Picker
 - [x] Carousel
 - [x] Charms
 - [x] Checkbox
@@ -86,5 +86,3 @@
 
 ### Unsupported
 - [ ] Hot keys
-- [ ] Mousewheel
-- [ ] Scroll events
