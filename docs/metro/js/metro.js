@@ -2090,7 +2090,7 @@ var isTouch = (('ontouchstart' in window) || (navigator.MaxTouchPoints > 0) || (
 var Metro = {
 
     version: "4.3.0",
-    versionFull: "4.3.0 alpha 04/02/2019 13:39:52",
+    versionFull: "4.3.0 alpha 04/02/2019 15:15:43",
     build: "1",
     isTouchable: isTouch,
     fullScreenEnabled: document.fullscreenEnabled,
@@ -10638,14 +10638,14 @@ var DatePicker = {
             var target = this;
             var pageY = Utils.pageXY(e).y;
 
-            $(document).on(Metro.events.move, function(e){
+            $(document).on(Metro.events.move + ".datepicker", function(e){
                 target.scrollTop -= o.scrollSpeed * (pageY  > Utils.pageXY(e).y ? -1 : 1);
                 pageY = Utils.pageXY(e).y;
             });
 
-            $(document).on(Metro.events.stop, function(){
-                $(document).off(Metro.events.move);
-                $(document).off(Metro.events.stop);
+            $(document).on(Metro.events.stop + ".datepicker", function(){
+                $(document).off(Metro.events.move + ".datepicker");
+                $(document).off(Metro.events.stop + ".datepicker");
             });
         });
 
@@ -22916,6 +22916,12 @@ var TimePicker = {
         this.isOpen = false;
         this.value = [];
         this.locale = Metro.locales[METRO_LOCALE]['calendar'];
+        this.listTimer = {
+            hours: null,
+            minutes: null,
+            seconds: null
+        };
+
 
         this._setOptionsFromDOM();
         this._create();
@@ -22951,9 +22957,9 @@ var TimePicker = {
     },
 
     _setOptionsFromDOM: function(){
-        var that = this, element = this.element, o = this.options;
+        var element = this.element, o = this.options;
 
-        $.each(element.data(), function(key, value){
+        $.each(element.data(), function(value, key){
             if (key in o) {
                 try {
                     o[key] = JSON.parse(value);
@@ -22965,7 +22971,7 @@ var TimePicker = {
     },
 
     _create: function(){
-        var that = this, element = this.element, o = this.options;
+        var element = this.element, o = this.options;
         var picker = this.picker;
         var i;
 
@@ -23026,8 +23032,8 @@ var TimePicker = {
     },
 
     _createStructure: function(){
-        var that = this, element = this.element, o = this.options;
-        var picker, hours, minutes, seconds, ampm, select, i;
+        var element = this.element, o = this.options;
+        var picker, hours, minutes, seconds, i;
         var timeWrapper, selectWrapper, selectBlock, actionBlock;
 
         var prev = element.prev();
@@ -23107,7 +23113,7 @@ var TimePicker = {
     },
 
     _createEvents: function(){
-        var that = this, element = this.element, o = this.options;
+        var that = this, o = this.options;
         var picker = this.picker;
 
         picker.on(Metro.events.start, ".select-block ul", function(e){
@@ -23119,26 +23125,25 @@ var TimePicker = {
             var target = this;
             var pageY = Utils.pageXY(e).y;
 
-            $(document).on(Metro.events.move + "-picker", function(e){
-
+            $(document).on(Metro.events.move + ".timepicker", function(e){
                 target.scrollTop -= o.scrollSpeed * (pageY  > Utils.pageXY(e).y ? -1 : 1);
-
                 pageY = Utils.pageXY(e).y;
             });
 
-            $(document).on(Metro.events.stop + "-picker", function(e){
-                $(document).off(Metro.events.move + "-picker");
-                $(document).off(Metro.events.stop + "-picker");
+            $(document).on(Metro.events.stop + ".timepicker", function(){
+                $(document).off(Metro.events.move + ".timepicker");
+                $(document).off(Metro.events.stop + ".timepicker");
             });
         });
 
         picker.on(Metro.events.click, function(e){
             if (that.isOpen === false) that.open();
+            e.preventDefault();
             e.stopPropagation();
         });
 
         picker.on(Metro.events.click, ".action-ok", function(e){
-            var h, m, s, a;
+            var h, m, s;
             var sh = picker.find(".sel-hours li.active"),
                 sm = picker.find(".sel-minutes li.active"),
                 ss = picker.find(".sel-seconds li.active");
@@ -23160,48 +23165,42 @@ var TimePicker = {
             e.stopPropagation();
         });
 
-        this._addScrollEvents();
-    },
+        var scrollLatency = 150;
 
-    _addScrollEvents: function(){
-        var picker = this.picker, o = this.options;
-        var lists = ['hours', 'minutes', 'seconds'];
-
+        var lists = "hours minutes seconds".split(" ");
         $.each(lists, function(){
-            var list_name = this;
-            var list = picker.find(".sel-" + list_name);
+            var listName = this, list = picker.find(".sel-"+listName);
+            list.on("scroll", function(){
+                if (that.listTimer[listName]) {
+                    clearTimeout(that.listTimer[listName]);
+                    that.listTimer[listName] = null;
+                }
+                that.listTimer[listName] = setTimeout(function(){
 
-            if (list.length === 0) return ;
+                    var target, targetElement, scrollTop, delta;
 
-            list.on(Metro.events.scrollStart, function(){
-                list.find(".active").removeClass("active");
-            });
+                    that.listTimer[listName] = null;
 
-            list.on(Metro.events.scrollStop, {latency: 50}, function(){
-                var target = Math.round((Math.ceil(list.scrollTop() + 40) / 40)) ;
-                var target_element = list.find("li").eq(target + o.distance - 1);
-                var scroll_to = target_element.position().top - (o.distance * 40) + list.scrollTop();
+                    target = Math.round((Math.ceil(list.scrollTop()) / 40));
+                    targetElement = list.find(".js-"+listName+"-"+target);
+                    scrollTop = targetElement.position().top - (o.distance * 40);// + list.scrollTop() - 1;
+                    delta = scrollTop - list.scrollTop();
 
-                list.animate({
-                    scrollTop: scroll_to
-                }, 100, function(){
-                    target_element.addClass("active");
-                    Utils.exec(o.onScroll, [target_element, list, picker]);
-                });
-            });
+                    list.find(".active").removeClass("active");
+
+                    list[0].scrollTop += delta;
+                    targetElement.addClass("active");
+                    Utils.exec(o.onScroll, [targetElement, list, picker], list[0]);
+
+                }, scrollLatency);
+
+            })
         });
-    },
 
-    _removeScrollEvents: function(){
-        var picker = this.picker;
-        var lists = ['hours', 'minutes', 'seconds'];
-        $.each(lists, function(){
-            picker.find(".sel-" + this).off("scrollstart scrollstop");
-        });
     },
 
     _set: function(){
-        var that = this, element = this.element, o = this.options;
+        var element = this.element, o = this.options;
         var picker = this.picker;
         var h = "00", m = "00", s = "00";
 
@@ -23233,14 +23232,13 @@ var TimePicker = {
     },
 
     open: function(){
-        var that  = this, element = this.element, o = this.options;
+        var element = this.element, o = this.options;
         var picker = this.picker;
-        var h, m, s;
         var h_list, m_list, s_list;
         var items = picker.find("li");
         var select_wrapper = picker.find(".select-wrapper");
         var select_wrapper_in_viewport, select_wrapper_rect;
-        var h_item, m_item, s_item;
+        var h = parseInt(this.value[0]), m = parseInt(this.value[1]), s = parseInt(this.value[2]);
 
         select_wrapper.parent().removeClass("for-top for-bottom");
         select_wrapper.show();
@@ -23264,22 +23262,23 @@ var TimePicker = {
         };
 
         if (o.hours === true) {
-            h = parseInt(this.value[0]);
             h_list = picker.find(".sel-hours");
-            h_item = h_list.find("li.js-hours-" + h).addClass("active");
-            animateList(h_list, h_item);
+            h_list.scrollTop(h_list.find("li.js-hours-" + h).addClass("active").position().top - (40 * o.distance));
+            // h_item = h_list.find("li.js-hours-" + h).addClass("active");
+            // h_list.scrollTop( h_item.position().top - (o.distance * 40) + h_list.scrollTop());
+            // animateList(h_list, h_item);
         }
         if (o.minutes === true) {
-            m = parseInt(this.value[1]);
             m_list = picker.find(".sel-minutes");
-            m_item = m_list.find("li.js-minutes-" + m).addClass("active");
-            animateList(m_list, m_item);
+            m_list.scrollTop(m_list.find("li.js-minutes-" + m).addClass("active").position().top - (40 * o.distance));
+            // m_item = m_list.find("li.js-minutes-" + m).addClass("active");
+            // animateList(m_list, m_item);
         }
         if (o.seconds === true) {
-            s = parseInt(this.value[2]);
             s_list = picker.find(".sel-seconds");
-            s_item = s_list.find("li.js-seconds-" + s).addClass("active");
-            animateList(s_list, s_item);
+            s_list.scrollTop(s_list.find("li.js-seconds-" + s).addClass("active").position().top - (40 * o.distance));
+            // s_item = s_list.find("li.js-seconds-" + s).addClass("active");
+            // animateList(s_list, s_item);
         }
 
         this.isOpen = true;
@@ -23363,7 +23362,7 @@ var TimePicker = {
 
 Metro.plugin('timepicker', TimePicker);
 
-$(document).on(Metro.events.click, function(e){
+$(document).on(Metro.events.click, function(){
     $.each($(".time-picker"), function(){
         $(this).find("input").data("timepicker").close();
     });

@@ -186,14 +186,14 @@ var DatePicker = {
             var target = this;
             var pageY = Utils.pageXY(e).y;
 
-            $(document).on(Metro.events.move, function(e){
+            $(document).on(Metro.events.move + ".datepicker", function(e){
                 target.scrollTop -= o.scrollSpeed * (pageY  > Utils.pageXY(e).y ? -1 : 1);
                 pageY = Utils.pageXY(e).y;
             });
 
-            $(document).on(Metro.events.stop, function(){
-                $(document).off(Metro.events.move);
-                $(document).off(Metro.events.stop);
+            $(document).on(Metro.events.stop + ".datepicker", function(){
+                $(document).off(Metro.events.move + ".datepicker");
+                $(document).off(Metro.events.stop + ".datepicker");
             });
         });
 
