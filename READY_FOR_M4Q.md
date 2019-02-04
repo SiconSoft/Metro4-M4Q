@@ -63,7 +63,7 @@
 - [x] Select
 - [x] Sidebar 
 - [x] Slider
-- [ ] Sorter
+- [x] Sorter
 - [x] Spinner
 - [x] Splitter
 - [x] Stepper
