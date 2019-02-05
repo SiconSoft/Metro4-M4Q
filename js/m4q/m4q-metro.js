@@ -59,7 +59,7 @@
 	}
 	
 
-	var m4qVersion = "0.1.0 alpha 05/02/2019 12:31:17";
+	var m4qVersion = "0.1.0 alpha 05/02/2019 15:54:52";
 	var regexpSingleTag = /^<([a-z][^\/\0>:\x20\t\r\n\f]*)[\x20\t\r\n\f]*\/?>(?:<\/\1>|)$/i;
 	
 	var matches = Element.prototype.matches
@@ -217,7 +217,26 @@
 	        }
 	
 	        this.each(function(el){
-	            el[prop] = value;
+	            var _val;
+	
+	            if (typeof value === "string") {
+	                _val = value;
+	            } else if (value instanceof m4q || (typeof jQuery !== "undefined" && value instanceof jQuery)) {
+	                value = m4q(value);
+	                if (prop === "innerHTML") {
+	                    _val = value.html();
+	                }
+	                if (prop === "innerText") {
+	                    _val = value.innerText();
+	                }
+	                if (prop === "textContent") {
+	                    _val = value.text();
+	                }
+	            } else {
+	                _val = "";
+	            }
+	
+	            el[prop] = _val;
 	
 	            if (prop === "innerHTML") {
 	                m4q.each(m4q(el).find("script"), function(script){

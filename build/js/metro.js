@@ -85,7 +85,7 @@ function not(value){
 	}
 	
 
-	var m4qVersion = "0.1.0 alpha 05/02/2019 12:31:17";
+	var m4qVersion = "0.1.0 alpha 05/02/2019 15:54:52";
 	var regexpSingleTag = /^<([a-z][^\/\0>:\x20\t\r\n\f]*)[\x20\t\r\n\f]*\/?>(?:<\/\1>|)$/i;
 	
 	var matches = Element.prototype.matches
@@ -243,7 +243,26 @@ function not(value){
 	        }
 	
 	        this.each(function(el){
-	            el[prop] = value;
+	            var _val;
+	
+	            if (typeof value === "string") {
+	                _val = value;
+	            } else if (value instanceof m4q || (typeof jQuery !== "undefined" && value instanceof jQuery)) {
+	                value = m4q(value);
+	                if (prop === "innerHTML") {
+	                    _val = value.html();
+	                }
+	                if (prop === "innerText") {
+	                    _val = value.innerText();
+	                }
+	                if (prop === "textContent") {
+	                    _val = value.text();
+	                }
+	            } else {
+	                _val = "";
+	            }
+	
+	            el[prop] = _val;
 	
 	            if (prop === "innerHTML") {
 	                m4q.each(m4q(el).find("script"), function(script){
@@ -2105,7 +2124,7 @@ var isTouch = (('ontouchstart' in window) || (navigator.MaxTouchPoints > 0) || (
 var Metro = {
 
     version: "4.3.0",
-    versionFull: "4.3.0 alpha 05/02/2019 12:46:57",
+    versionFull: "4.3.0 alpha 05/02/2019 16:05:42",
     build: "1",
     isTouchable: isTouch,
     fullScreenEnabled: document.fullscreenEnabled,
@@ -26477,9 +26496,9 @@ var Wizard = {
     },
 
     _setOptionsFromDOM: function(){
-        var that = this, element = this.element, o = this.options;
+        var element = this.element, o = this.options;
 
-        $.each(element.data(), function(key, value){
+        $.each(element.data(), function(value, key){
             if (key in o) {
                 try {
                     o[key] = JSON.parse(value);
@@ -26491,7 +26510,7 @@ var Wizard = {
     },
 
     _create: function(){
-        var that = this, element = this.element, o = this.options;
+        var element = this.element, o = this.options;
 
         this._createWizard();
         this._createEvents();
@@ -26500,7 +26519,7 @@ var Wizard = {
     },
 
     _createWizard: function(){
-        var that = this, element = this.element, o = this.options;
+        var element = this.element, o = this.options;
         var bar;
 
         element.addClass("wizard").addClass(o.view).addClass(o.clsWizard);
@@ -26512,10 +26531,10 @@ var Wizard = {
             buttonMode += " outline";
         }
 
-        if (o.iconHelp !== false) $("<button>").attr("type", "button").addClass("button wizard-btn-help").addClass(buttonMode).addClass(o.clsHelp).html(Utils.isTag(o.iconHelp) ? o.iconHelp : $("<img>").attr('src', o.iconHelp)).appendTo(bar);
-        if (o.iconPrev !== false) $("<button>").attr("type", "button").addClass("button wizard-btn-prev").addClass(buttonMode).addClass(o.clsPrev).html(Utils.isTag(o.iconPrev) ? o.iconPrev : $("<img>").attr('src', o.iconPrev)).appendTo(bar);
-        if (o.iconNext !== false) $("<button>").attr("type", "button").addClass("button wizard-btn-next").addClass(buttonMode).addClass(o.clsNext).html(Utils.isTag(o.iconNext) ? o.iconNext : $("<img>").attr('src', o.iconNext)).appendTo(bar);
-        if (o.iconFinish !== false) $("<button>").attr("type", "button").addClass("button wizard-btn-finish").addClass(buttonMode).addClass(o.clsFinish).html(Utils.isTag(o.iconFinish) ? o.iconFinish : $("<img>").attr('src', o.iconFinish)).appendTo(bar);
+        if (o.iconHelp !== false) $("<button>").attr("type", "button").addClass("button wizard-btn-help").addClass(buttonMode).addClass(o.clsHelp).html(Utils.isTag(o.iconHelp) ? o.iconHelp : $("<img src='' alt=''>").attr('src', o.iconHelp).outerHTML()).appendTo(bar);
+        if (o.iconPrev !== false) $("<button>").attr("type", "button").addClass("button wizard-btn-prev").addClass(buttonMode).addClass(o.clsPrev).html(Utils.isTag(o.iconPrev) ? o.iconPrev : $("<img src='' alt=''>").attr('src', o.iconPrev).outerHTML()).appendTo(bar);
+        if (o.iconNext !== false) $("<button>").attr("type", "button").addClass("button wizard-btn-next").addClass(buttonMode).addClass(o.clsNext).html(Utils.isTag(o.iconNext) ? o.iconNext : $("<img src='' alt=''>").attr('src', o.iconNext).outerHTML()).appendTo(bar);
+        if (o.iconFinish !== false) $("<button>").attr("type", "button").addClass("button wizard-btn-finish").addClass(buttonMode).addClass(o.clsFinish).html(Utils.isTag(o.iconFinish) ? o.iconFinish : $("<img src='' alt=''>").attr('src', o.iconFinish).outerHTML()).appendTo(bar);
 
         this.toPage(o.start);
 
@@ -26523,7 +26542,7 @@ var Wizard = {
     },
 
     _setHeight: function(){
-        var that = this, element = this.element, o = this.options;
+        var element = this.element;
         var pages = element.children("section");
         var max_height = 0;
 
@@ -26573,7 +26592,7 @@ var Wizard = {
     },
 
     next: function(){
-        var that = this, element = this.element, o = this.options;
+        var element = this.element, o = this.options;
         var pages = element.children("section");
         var page = $(element.children("section").get(this.current - 1));
 
@@ -26587,7 +26606,7 @@ var Wizard = {
     },
 
     prev: function(){
-        var that = this, element = this.element, o = this.options;
+        var element = this.element, o = this.options;
         var page = $(element.children("section").get(this.current - 1));
 
         if (this.current - 1 === 0 || Utils.exec(o.onBeforePrev, [this.current, page, element]) === false) {
@@ -26600,7 +26619,7 @@ var Wizard = {
     },
 
     last: function(){
-        var that = this, element = this.element, o = this.options;
+        var element = this.element;
 
         this.toPage(element.children("section").length);
     },
@@ -26610,7 +26629,7 @@ var Wizard = {
     },
 
     toPage: function(page){
-        var that = this, element = this.element, o = this.options;
+        var element = this.element, o = this.options;
         var target = $(element.children("section").get(page - 1));
         var sections = element.children("section");
         var actions = element.find(".action-bar");

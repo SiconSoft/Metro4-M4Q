@@ -39,9 +39,9 @@ var Wizard = {
     },
 
     _setOptionsFromDOM: function(){
-        var that = this, element = this.element, o = this.options;
+        var element = this.element, o = this.options;
 
-        $.each(element.data(), function(key, value){
+        $.each(element.data(), function(value, key){
             if (key in o) {
                 try {
                     o[key] = JSON.parse(value);
@@ -53,7 +53,7 @@ var Wizard = {
     },
 
     _create: function(){
-        var that = this, element = this.element, o = this.options;
+        var element = this.element, o = this.options;
 
         this._createWizard();
         this._createEvents();
@@ -62,7 +62,7 @@ var Wizard = {
     },
 
     _createWizard: function(){
-        var that = this, element = this.element, o = this.options;
+        var element = this.element, o = this.options;
         var bar;
 
         element.addClass("wizard").addClass(o.view).addClass(o.clsWizard);
@@ -74,10 +74,10 @@ var Wizard = {
             buttonMode += " outline";
         }
 
-        if (o.iconHelp !== false) $("<button>").attr("type", "button").addClass("button wizard-btn-help").addClass(buttonMode).addClass(o.clsHelp).html(Utils.isTag(o.iconHelp) ? o.iconHelp : $("<img>").attr('src', o.iconHelp)).appendTo(bar);
-        if (o.iconPrev !== false) $("<button>").attr("type", "button").addClass("button wizard-btn-prev").addClass(buttonMode).addClass(o.clsPrev).html(Utils.isTag(o.iconPrev) ? o.iconPrev : $("<img>").attr('src', o.iconPrev)).appendTo(bar);
-        if (o.iconNext !== false) $("<button>").attr("type", "button").addClass("button wizard-btn-next").addClass(buttonMode).addClass(o.clsNext).html(Utils.isTag(o.iconNext) ? o.iconNext : $("<img>").attr('src', o.iconNext)).appendTo(bar);
-        if (o.iconFinish !== false) $("<button>").attr("type", "button").addClass("button wizard-btn-finish").addClass(buttonMode).addClass(o.clsFinish).html(Utils.isTag(o.iconFinish) ? o.iconFinish : $("<img>").attr('src', o.iconFinish)).appendTo(bar);
+        if (o.iconHelp !== false) $("<button>").attr("type", "button").addClass("button wizard-btn-help").addClass(buttonMode).addClass(o.clsHelp).html(Utils.isTag(o.iconHelp) ? o.iconHelp : $("<img src='' alt=''>").attr('src', o.iconHelp).outerHTML()).appendTo(bar);
+        if (o.iconPrev !== false) $("<button>").attr("type", "button").addClass("button wizard-btn-prev").addClass(buttonMode).addClass(o.clsPrev).html(Utils.isTag(o.iconPrev) ? o.iconPrev : $("<img src='' alt=''>").attr('src', o.iconPrev).outerHTML()).appendTo(bar);
+        if (o.iconNext !== false) $("<button>").attr("type", "button").addClass("button wizard-btn-next").addClass(buttonMode).addClass(o.clsNext).html(Utils.isTag(o.iconNext) ? o.iconNext : $("<img src='' alt=''>").attr('src', o.iconNext).outerHTML()).appendTo(bar);
+        if (o.iconFinish !== false) $("<button>").attr("type", "button").addClass("button wizard-btn-finish").addClass(buttonMode).addClass(o.clsFinish).html(Utils.isTag(o.iconFinish) ? o.iconFinish : $("<img src='' alt=''>").attr('src', o.iconFinish).outerHTML()).appendTo(bar);
 
         this.toPage(o.start);
 
@@ -85,7 +85,7 @@ var Wizard = {
     },
 
     _setHeight: function(){
-        var that = this, element = this.element, o = this.options;
+        var element = this.element;
         var pages = element.children("section");
         var max_height = 0;
 
@@ -135,7 +135,7 @@ var Wizard = {
     },
 
     next: function(){
-        var that = this, element = this.element, o = this.options;
+        var element = this.element, o = this.options;
         var pages = element.children("section");
         var page = $(element.children("section").get(this.current - 1));
 
@@ -149,7 +149,7 @@ var Wizard = {
     },
 
     prev: function(){
-        var that = this, element = this.element, o = this.options;
+        var element = this.element, o = this.options;
         var page = $(element.children("section").get(this.current - 1));
 
         if (this.current - 1 === 0 || Utils.exec(o.onBeforePrev, [this.current, page, element]) === false) {
@@ -162,7 +162,7 @@ var Wizard = {
     },
 
     last: function(){
-        var that = this, element = this.element, o = this.options;
+        var element = this.element;
 
         this.toPage(element.children("section").length);
     },
@@ -172,7 +172,7 @@ var Wizard = {
     },
 
     toPage: function(page){
-        var that = this, element = this.element, o = this.options;
+        var element = this.element, o = this.options;
         var target = $(element.children("section").get(page - 1));
         var sections = element.children("section");
         var actions = element.find(".action-bar");

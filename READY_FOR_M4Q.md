@@ -82,7 +82,7 @@
 - [x] Validator
 - [x] Video
 - [x] Window
-- [ ] Wizard
+- [x] Wizard
 
 ### Unsupported
 - [ ] Hot keys
