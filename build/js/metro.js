@@ -83,8 +83,9 @@ function not(value){
 	    out[1] = str.match(/[\d.\-+]*\s*(.*)/)[1] || '';
 	    return out;
 	}
+	
 
-	var m4qVersion = "0.1.0 alpha 05/02/2019 10:45:37";
+	var m4qVersion = "0.1.0 alpha 05/02/2019 12:31:17";
 	var regexpSingleTag = /^<([a-z][^\/\0>:\x20\t\r\n\f]*)[\x20\t\r\n\f]*\/?>(?:<\/\1>|)$/i;
 	
 	var matches = Element.prototype.matches
@@ -634,7 +635,7 @@ function not(value){
 	        var eventOptions;
 	
 	        if (this.length === 0) {
-	            return;
+	            return ;
 	        }
 	
 	        if (typeof sel === "function") {
@@ -780,11 +781,7 @@ function not(value){
 	    },
 	
 	    empty: function(){
-	        if (this.length === 0) {
-	            return ;
-	        }
-	
-	        this.each(function(el){
+	        if (this.length > 0) this.each(function(el){
 	            el.innerHTML = "";
 	        });
 	
@@ -1137,7 +1134,7 @@ function not(value){
 	    parent: function(s){
 	        var res = [], out = m4q();
 	        if (this.length === 0) {
-	            return;
+	            return ;
 	        }
 	
 	        if (typeof s !== "string" && s instanceof m4q) return s;
@@ -1157,7 +1154,7 @@ function not(value){
 	        var res = [], out = m4q();
 	
 	        if (this.length === 0) {
-	            return;
+	            return ;
 	        }
 	
 	        if (typeof s !== "string" && s instanceof m4q) return s;
@@ -1192,8 +1189,6 @@ function not(value){
 	        }
 	
 	        if (typeof s !== "string" && s instanceof m4q) return s;
-	
-	        out = m4q();
 	
 	        this.each(function(el){
 	            var elems = [].filter.call(el.parentNode.children, function(child){
@@ -1317,7 +1312,7 @@ function not(value){
 	
 	        if (arguments.length === 0) {
 	            m4q.each(this[0].attributes, function(a){
-	                attributes[a.nodeName] = a.nodeval;
+	                attributes[a.nodeName] = a.nodeValue;
 	            });
 	            return attributes;
 	        }
@@ -1868,7 +1863,7 @@ function not(value){
 	
 	    toggle: function(cb){
 	        return this.each(function(el){
-	            m4q.toggle(el, cb); 
+	            m4q.toggle(el, cb);
 	        })
 	    },
 	
@@ -1929,6 +1924,10 @@ function not(value){
 	    }
 	
 	    if (sel instanceof m4q) {
+	        return sel;
+	    }
+	
+	    if (typeof sel === "object") {
 	        return sel;
 	    }
 	
@@ -2106,7 +2105,7 @@ var isTouch = (('ontouchstart' in window) || (navigator.MaxTouchPoints > 0) || (
 var Metro = {
 
     version: "4.3.0",
-    versionFull: "4.3.0 alpha 05/02/2019 10:52:18",
+    versionFull: "4.3.0 alpha 05/02/2019 12:46:57",
     build: "1",
     isTouchable: isTouch,
     fullScreenEnabled: document.fullscreenEnabled,
@@ -24981,7 +24980,7 @@ var ValidatorFuncs = {
     },
 
     reset_state: function(el){
-        var input = Utils.isJQueryObject(el) === false ? $(el) : el ;
+        var input = Utils.isQ(el) === false ? $(el) : el ;
         var is_control = ValidatorFuncs.is_control(input);
 
         if (is_control) {
@@ -24992,7 +24991,7 @@ var ValidatorFuncs = {
     },
 
     set_valid_state: function(input){
-        if (Utils.isJQueryObject(input) === false) {
+        if (Utils.isQ(input) === false) {
             input = $(input);
         }
         var is_control = ValidatorFuncs.is_control(input);
@@ -25029,7 +25028,7 @@ var ValidatorFuncs = {
     validate: function(el, result, cb_ok, cb_error, required_mode){
         var this_result = true;
         var input = $(el);
-        var funcs = input.data('validate') !== undefined ? String(input.data('validate')).split(" ").map(function(s){return s.trim();}) : [];
+        var funcs = input.data('validate') !== undefined ? (""+input.data('validate')).split(" ").map(function(s){return s.trim();}) : [];
         var errors = [];
 
         if (funcs.length === 0) {
@@ -25053,6 +25052,7 @@ var ValidatorFuncs = {
                 result.val += this_result ? 0 : 1;
             }
         } else if (input.attr('type') && input.attr('type').toLowerCase() === "radio") {
+
             if (input.attr('name') === undefined) {
                 this_result = true;
             }
@@ -25167,7 +25167,7 @@ var Validator = {
     _setOptionsFromDOM: function(){
         var element = this.element, o = this.options;
 
-        $.each(element.data(), function(key, value){
+        $.each(element.data(), function(value, key){
             if (key in o) {
                 try {
                     o[key] = JSON.parse(value);
@@ -25184,7 +25184,6 @@ var Validator = {
 
         element
             .attr("novalidate", 'novalidate');
-            //.attr("action", "javascript:");
 
         $.each(inputs, function(){
             var input = $(this);
@@ -25237,18 +25236,16 @@ var Validator = {
         var that = this, element = this.element, o = this.options;
         var form = this.elem;
         var inputs = element.find("[data-validate]");
-        var submit = element.find(":submit").attr('disabled', 'disabled').addClass('disabled');
         var result = {
             val: 0,
             log: []
         };
         var formData = Utils.formData(element);
 
+
         $.each(inputs, function(){
             ValidatorFuncs.validate(this, result, o.onValidate, o.onError, o.requiredMode);
         });
-
-        submit.removeAttr("disabled").removeClass("disabled");
 
         result.val += Utils.exec(o.onBeforeSubmit, [element, formData], this.elem) === false ? 1 : 0;
 

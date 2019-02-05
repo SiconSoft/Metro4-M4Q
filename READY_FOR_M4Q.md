@@ -79,7 +79,7 @@
 - [x] Toast
 - [ ] Touch
 - [ ] TreeView
-- [ ] Validator
+- [x] Validator
 - [x] Video
 - [x] Window
 - [ ] Wizard

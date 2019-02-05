@@ -120,7 +120,7 @@ var ValidatorFuncs = {
     },
 
     reset_state: function(el){
-        var input = Utils.isJQueryObject(el) === false ? $(el) : el ;
+        var input = Utils.isQ(el) === false ? $(el) : el ;
         var is_control = ValidatorFuncs.is_control(input);
 
         if (is_control) {
@@ -131,7 +131,7 @@ var ValidatorFuncs = {
     },
 
     set_valid_state: function(input){
-        if (Utils.isJQueryObject(input) === false) {
+        if (Utils.isQ(input) === false) {
             input = $(input);
         }
         var is_control = ValidatorFuncs.is_control(input);
@@ -168,7 +168,7 @@ var ValidatorFuncs = {
     validate: function(el, result, cb_ok, cb_error, required_mode){
         var this_result = true;
         var input = $(el);
-        var funcs = input.data('validate') !== undefined ? String(input.data('validate')).split(" ").map(function(s){return s.trim();}) : [];
+        var funcs = input.data('validate') !== undefined ? (""+input.data('validate')).split(" ").map(function(s){return s.trim();}) : [];
         var errors = [];
 
         if (funcs.length === 0) {
@@ -192,6 +192,7 @@ var ValidatorFuncs = {
                 result.val += this_result ? 0 : 1;
             }
         } else if (input.attr('type') && input.attr('type').toLowerCase() === "radio") {
+
             if (input.attr('name') === undefined) {
                 this_result = true;
             }
@@ -306,7 +307,7 @@ var Validator = {
     _setOptionsFromDOM: function(){
         var element = this.element, o = this.options;
 
-        $.each(element.data(), function(key, value){
+        $.each(element.data(), function(value, key){
             if (key in o) {
                 try {
                     o[key] = JSON.parse(value);
@@ -323,7 +324,6 @@ var Validator = {
 
         element
             .attr("novalidate", 'novalidate');
-            //.attr("action", "javascript:");
 
         $.each(inputs, function(){
             var input = $(this);
@@ -376,18 +376,16 @@ var Validator = {
         var that = this, element = this.element, o = this.options;
         var form = this.elem;
         var inputs = element.find("[data-validate]");
-        var submit = element.find(":submit").attr('disabled', 'disabled').addClass('disabled');
         var result = {
             val: 0,
             log: []
         };
         var formData = Utils.formData(element);
 
+
         $.each(inputs, function(){
             ValidatorFuncs.validate(this, result, o.onValidate, o.onError, o.requiredMode);
         });
-
-        submit.removeAttr("disabled").removeClass("disabled");
 
         result.val += Utils.exec(o.onBeforeSubmit, [element, formData], this.elem) === false ? 1 : 0;
 

@@ -57,8 +57,9 @@
 	    out[1] = str.match(/[\d.\-+]*\s*(.*)/)[1] || '';
 	    return out;
 	}
+	
 
-	var m4qVersion = "0.1.0 alpha 05/02/2019 10:45:37";
+	var m4qVersion = "0.1.0 alpha 05/02/2019 12:31:17";
 	var regexpSingleTag = /^<([a-z][^\/\0>:\x20\t\r\n\f]*)[\x20\t\r\n\f]*\/?>(?:<\/\1>|)$/i;
 	
 	var matches = Element.prototype.matches
@@ -608,7 +609,7 @@
 	        var eventOptions;
 	
 	        if (this.length === 0) {
-	            return;
+	            return ;
 	        }
 	
 	        if (typeof sel === "function") {
@@ -754,11 +755,7 @@
 	    },
 	
 	    empty: function(){
-	        if (this.length === 0) {
-	            return ;
-	        }
-	
-	        this.each(function(el){
+	        if (this.length > 0) this.each(function(el){
 	            el.innerHTML = "";
 	        });
 	
@@ -1111,7 +1108,7 @@
 	    parent: function(s){
 	        var res = [], out = m4q();
 	        if (this.length === 0) {
-	            return;
+	            return ;
 	        }
 	
 	        if (typeof s !== "string" && s instanceof m4q) return s;
@@ -1131,7 +1128,7 @@
 	        var res = [], out = m4q();
 	
 	        if (this.length === 0) {
-	            return;
+	            return ;
 	        }
 	
 	        if (typeof s !== "string" && s instanceof m4q) return s;
@@ -1166,8 +1163,6 @@
 	        }
 	
 	        if (typeof s !== "string" && s instanceof m4q) return s;
-	
-	        out = m4q();
 	
 	        this.each(function(el){
 	            var elems = [].filter.call(el.parentNode.children, function(child){
@@ -1291,7 +1286,7 @@
 	
 	        if (arguments.length === 0) {
 	            m4q.each(this[0].attributes, function(a){
-	                attributes[a.nodeName] = a.nodeval;
+	                attributes[a.nodeName] = a.nodeValue;
 	            });
 	            return attributes;
 	        }
@@ -1842,7 +1837,7 @@
 	
 	    toggle: function(cb){
 	        return this.each(function(el){
-	            m4q.toggle(el, cb); 
+	            m4q.toggle(el, cb);
 	        })
 	    },
 	
@@ -1903,6 +1898,10 @@
 	    }
 	
 	    if (sel instanceof m4q) {
+	        return sel;
+	    }
+	
+	    if (typeof sel === "object") {
 	        return sel;
 	    }
 	
