@@ -81,7 +81,7 @@
 - [ ] TreeView
 - [ ] Validator
 - [x] Video
-- [ ] Window
+- [x] Window
 - [ ] Wizard
 
 ### Unsupported

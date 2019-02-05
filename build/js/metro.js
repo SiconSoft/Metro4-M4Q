@@ -84,7 +84,7 @@ function not(value){
 	    return out;
 	}
 
-	var m4qVersion = "0.1.0 alpha 04/02/2019 16:20:46";
+	var m4qVersion = "0.1.0 alpha 05/02/2019 10:45:37";
 	var regexpSingleTag = /^<([a-z][^\/\0>:\x20\t\r\n\f]*)[\x20\t\r\n\f]*\/?>(?:<\/\1>|)$/i;
 	
 	var matches = Element.prototype.matches
@@ -1698,6 +1698,16 @@ function not(value){
 	        if (typeof cb === "function") cb.call(el, arguments);
 	    },
 	
+	    toggle: function(el, cb){
+	        var func;
+	        if ( getComputedStyle(el, null)['display'] !== 'none') {
+	            func = 'hide';
+	        } else {
+	            func = 'show';
+	        }
+	        return m4q[func](el, cb);
+	    },
+	
 	    fadeIn: function(el, dur, easing, cb){
 	        if (not(dur) && not(easing) && not(cb)) {
 	            cb = null;
@@ -1854,6 +1864,12 @@ function not(value){
 	        return this.each(function(el){
 	            m4q.visible(el, mode, cb);
 	        });
+	    },
+	
+	    toggle: function(cb){
+	        return this.each(function(el){
+	            m4q.toggle(el, cb); 
+	        })
 	    },
 	
 	    fadeIn: function(dur, easing, cb){
@@ -2090,7 +2106,7 @@ var isTouch = (('ontouchstart' in window) || (navigator.MaxTouchPoints > 0) || (
 var Metro = {
 
     version: "4.3.0",
-    versionFull: "4.3.0 alpha 04/02/2019 16:36:15",
+    versionFull: "4.3.0 alpha 05/02/2019 10:52:18",
     build: "1",
     isTouchable: isTouch,
     fullScreenEnabled: document.fullscreenEnabled,
@@ -25851,7 +25867,7 @@ var Window = {
         clsContent: "",
         clsWindow: "",
         draggable: true,
-        dragElement: ".window-caption",
+        dragElement: ".window-caption .icon, .window-caption .title",
         dragArea: "parent",
         shadow: false,
         icon: "",
@@ -25888,7 +25904,7 @@ var Window = {
     _setOptionsFromDOM: function(){
         var element = this.element, o = this.options;
 
-        $.each(element.data(), function(key, value){
+        $.each(element.data(), function(value, key){
             if (key in o) {
                 try {
                     o[key] = JSON.parse(value);
@@ -26000,12 +26016,12 @@ var Window = {
             win.addClass("win-shadow");
         }
 
-        if (o.icon !== undefined) {
+        if (Utils.isValue(o.icon)) {
             icon = $("<span>").addClass("icon").html(o.icon);
             icon.appendTo(caption);
         }
 
-        if (o.title !== undefined) {
+        if (Utils.isValue(o.title)) {
             title = $("<span>").addClass("title").html(o.title);
             title.appendTo(caption);
         }
@@ -26016,11 +26032,11 @@ var Window = {
                 o.content = Utils.embedUrl(o.content);
             }
 
-            if (!Utils.isJQueryObject(o.content) && Utils.isFunc(o.content)) {
+            if (!Utils.isQ(o.content) && Utils.isFunc(o.content)) {
                 o.content = Utils.exec(o.content);
             }
 
-            if (Utils.isJQueryObject(o.content)) {
+            if (Utils.isQ(o.content)) {
                 o.content.appendTo(content);
             } else {
                 content.html(o.content);
@@ -26058,13 +26074,13 @@ var Window = {
         win.on(Metro.events.dblclick, ".window-caption", function(e){
             that.maximized(e);
         });
-        win.on(Metro.events.click, ".btn-max", function(e){
+        win.on(Metro.events.start, ".btn-max", function(e){
             that.maximized(e);
         });
-        win.on(Metro.events.click, ".btn-min", function(e){
+        win.on(Metro.events.start, ".btn-min", function(e){
             that.minimized(e);
         });
-        win.on(Metro.events.click, ".btn-close", function(e){
+        win.on(Metro.events.start, ".btn-close", function(e){
             that.close(e);
         });
 

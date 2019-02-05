@@ -58,7 +58,7 @@
 	    return out;
 	}
 
-	var m4qVersion = "0.1.0 alpha 04/02/2019 16:20:46";
+	var m4qVersion = "0.1.0 alpha 05/02/2019 10:45:37";
 	var regexpSingleTag = /^<([a-z][^\/\0>:\x20\t\r\n\f]*)[\x20\t\r\n\f]*\/?>(?:<\/\1>|)$/i;
 	
 	var matches = Element.prototype.matches
@@ -1672,6 +1672,16 @@
 	        if (typeof cb === "function") cb.call(el, arguments);
 	    },
 	
+	    toggle: function(el, cb){
+	        var func;
+	        if ( getComputedStyle(el, null)['display'] !== 'none') {
+	            func = 'hide';
+	        } else {
+	            func = 'show';
+	        }
+	        return m4q[func](el, cb);
+	    },
+	
 	    fadeIn: function(el, dur, easing, cb){
 	        if (not(dur) && not(easing) && not(cb)) {
 	            cb = null;
@@ -1828,6 +1838,12 @@
 	        return this.each(function(el){
 	            m4q.visible(el, mode, cb);
 	        });
+	    },
+	
+	    toggle: function(cb){
+	        return this.each(function(el){
+	            m4q.toggle(el, cb); 
+	        })
 	    },
 	
 	    fadeIn: function(dur, easing, cb){

@@ -32,7 +32,7 @@ var Window = {
         clsContent: "",
         clsWindow: "",
         draggable: true,
-        dragElement: ".window-caption",
+        dragElement: ".window-caption .icon, .window-caption .title",
         dragArea: "parent",
         shadow: false,
         icon: "",
@@ -69,7 +69,7 @@ var Window = {
     _setOptionsFromDOM: function(){
         var element = this.element, o = this.options;
 
-        $.each(element.data(), function(key, value){
+        $.each(element.data(), function(value, key){
             if (key in o) {
                 try {
                     o[key] = JSON.parse(value);
@@ -181,12 +181,12 @@ var Window = {
             win.addClass("win-shadow");
         }
 
-        if (o.icon !== undefined) {
+        if (Utils.isValue(o.icon)) {
             icon = $("<span>").addClass("icon").html(o.icon);
             icon.appendTo(caption);
         }
 
-        if (o.title !== undefined) {
+        if (Utils.isValue(o.title)) {
             title = $("<span>").addClass("title").html(o.title);
             title.appendTo(caption);
         }
@@ -197,11 +197,11 @@ var Window = {
                 o.content = Utils.embedUrl(o.content);
             }
 
-            if (!Utils.isJQueryObject(o.content) && Utils.isFunc(o.content)) {
+            if (!Utils.isQ(o.content) && Utils.isFunc(o.content)) {
                 o.content = Utils.exec(o.content);
             }
 
-            if (Utils.isJQueryObject(o.content)) {
+            if (Utils.isQ(o.content)) {
                 o.content.appendTo(content);
             } else {
                 content.html(o.content);
@@ -239,13 +239,13 @@ var Window = {
         win.on(Metro.events.dblclick, ".window-caption", function(e){
             that.maximized(e);
         });
-        win.on(Metro.events.click, ".btn-max", function(e){
+        win.on(Metro.events.start, ".btn-max", function(e){
             that.maximized(e);
         });
-        win.on(Metro.events.click, ".btn-min", function(e){
+        win.on(Metro.events.start, ".btn-min", function(e){
             that.minimized(e);
         });
-        win.on(Metro.events.click, ".btn-close", function(e){
+        win.on(Metro.events.start, ".btn-close", function(e){
             that.close(e);
         });
 
