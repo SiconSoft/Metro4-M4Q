@@ -77,7 +77,7 @@
 - [x] Tiles
 - [x] Time Picker
 - [x] Toast
-- [ ] Touch
+- [x] Touch
 - [x] TreeView
 - [x] Validator
 - [x] Video
