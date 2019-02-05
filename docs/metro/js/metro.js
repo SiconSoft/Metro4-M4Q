@@ -85,7 +85,7 @@ function not(value){
 	}
 	
 
-	var m4qVersion = "0.1.0 alpha 05/02/2019 15:54:52";
+	var m4qVersion = "0.1.0 alpha 05/02/2019 16:57:56";
 	var regexpSingleTag = /^<([a-z][^\/\0>:\x20\t\r\n\f]*)[\x20\t\r\n\f]*\/?>(?:<\/\1>|)$/i;
 	
 	var matches = Element.prototype.matches
@@ -243,26 +243,7 @@ function not(value){
 	        }
 	
 	        this.each(function(el){
-	            var _val;
-	
-	            if (typeof value === "string") {
-	                _val = value;
-	            } else if (value instanceof m4q || (typeof jQuery !== "undefined" && value instanceof jQuery)) {
-	                value = m4q(value);
-	                if (prop === "innerHTML") {
-	                    _val = value.html();
-	                }
-	                if (prop === "innerText") {
-	                    _val = value.innerText();
-	                }
-	                if (prop === "textContent") {
-	                    _val = value.text();
-	                }
-	            } else {
-	                _val = "";
-	            }
-	
-	            el[prop] = _val;
+	            el[prop] = value;
 	
 	            if (prop === "innerHTML") {
 	                m4q.each(m4q(el).find("script"), function(script){
@@ -284,6 +265,10 @@ function not(value){
 	
 	    val: function(val){
 	        return this._prop("value", val);
+	    },
+	
+	    prop: function(prop, val){
+	        return this._prop(prop, val);
 	    },
 	
 	    push: [].push,
@@ -1121,11 +1106,11 @@ function not(value){
 	    find: function(s){
 	        var res = [], out = m4q();
 	
-	        if (this.length === 0) {
-	            return ;
-	        }
+	        if (s instanceof m4q) return s;
 	
-	        if (typeof s !== "string" && s instanceof m4q) return s;
+	        if (this.length === 0) {
+	            return this;
+	        }
 	
 	        this.each(function (el) {
 	            if (typeof el.querySelectorAll !== "undefined") res = [].slice.call(el.querySelectorAll(s));
@@ -1136,7 +1121,7 @@ function not(value){
 	    children: function(s){
 	        var i, res = [], out = m4q();
 	
-	        if (typeof s !== "string" && s instanceof m4q) return s;
+	        if (s instanceof m4q) return s;
 	
 	        this.each(function(el){
 	            for(i = 0; i < el.children.length; i++) {
@@ -1156,7 +1141,7 @@ function not(value){
 	            return ;
 	        }
 	
-	        if (typeof s !== "string" && s instanceof m4q) return s;
+	        if (s instanceof m4q) return s;
 	
 	        this.each(function(el){
 	            if (el.parentNode) {
@@ -1176,7 +1161,7 @@ function not(value){
 	            return ;
 	        }
 	
-	        if (typeof s !== "string" && s instanceof m4q) return s;
+	        if (s instanceof m4q) return s;
 	
 	        this.each(function(el){
 	            var par = el.parentNode;
@@ -1207,7 +1192,7 @@ function not(value){
 	            return ;
 	        }
 	
-	        if (typeof s !== "string" && s instanceof m4q) return s;
+	        if (s instanceof m4q) return s;
 	
 	        this.each(function(el){
 	            var elems = [].filter.call(el.parentNode.children, function(child){
@@ -1229,7 +1214,7 @@ function not(value){
 	            return ;
 	        }
 	
-	        if (typeof s !== "string" && s instanceof m4q) return s;
+	        if (s instanceof m4q) return s;
 	
 	        this.each(function(el){
 	            while (el) {
@@ -1255,7 +1240,7 @@ function not(value){
 	            return ;
 	        }
 	
-	        if (typeof s !== "string" && s instanceof m4q) return s;
+	        if (s instanceof m4q) return s;
 	
 	        out = m4q();
 	
@@ -1298,7 +1283,7 @@ function not(value){
 	            return ;
 	        }
 	
-	        if (typeof s !== "string" && s instanceof m4q) return s;
+	        if (s instanceof m4q) return s;
 	
 	        if (!s) {
 	            return this.parent(s);
@@ -2124,7 +2109,7 @@ var isTouch = (('ontouchstart' in window) || (navigator.MaxTouchPoints > 0) || (
 var Metro = {
 
     version: "4.3.0",
-    versionFull: "4.3.0 alpha 05/02/2019 16:05:42",
+    versionFull: "4.3.0 alpha 05/02/2019 16:58:53",
     build: "1",
     isTouchable: isTouch,
     fullScreenEnabled: document.fullscreenEnabled,
@@ -24574,9 +24559,9 @@ var Treeview = {
     },
 
     _setOptionsFromDOM: function(){
-        var that = this, element = this.element, o = this.options;
+        var element = this.element, o = this.options;
 
-        $.each(element.data(), function(key, value){
+        $.each(element.data(), function(value, key){
             if (key in o) {
                 try {
                     o[key] = JSON.parse(value);
@@ -24604,9 +24589,9 @@ var Treeview = {
     _createIcon: function(data){
         var icon, src;
 
-        src = Utils.isTag(data) ? $(data) : $("<img>").attr("src", data);
+        src = Utils.isTag(data) ? $(data) : $("<img src='' alt=''>").attr("src", data);
         icon = $("<span>").addClass("icon");
-        icon.html(src);
+        icon.html(src.outerHTML());
 
         return icon;
     },
@@ -24642,7 +24627,7 @@ var Treeview = {
     },
 
     _createTree: function(){
-        var that = this, element = this.element, o = this.options;
+        var that = this, element = this.element;
         var nodes = element.find("li");
 
         element.addClass("treeview");
@@ -24707,7 +24692,7 @@ var Treeview = {
             e.preventDefault();
         });
 
-        element.on(Metro.events.click, "input[type=radio]", function(e){
+        element.on(Metro.events.click, "input[type=radio]", function(){
             var check = $(this);
             var checked = check.is(":checked");
             var node = check.closest("li");
@@ -24717,7 +24702,7 @@ var Treeview = {
             Utils.exec(o.onRadioClick, [checked, check, node, element], this);
         });
 
-        element.on(Metro.events.click, "input[type=checkbox]", function(e){
+        element.on(Metro.events.click, "input[type=checkbox]", function(){
             var check = $(this);
             var checked = check.is(":checked");
             var node = check.closest("li");
@@ -24732,7 +24717,7 @@ var Treeview = {
         var element = this.element;
         var checked, node, checks;
 
-        if (!Utils.isJQueryObject(check)) {
+        if (!Utils.isQ(check)) {
             check = $(check);
         }
 
@@ -24748,14 +24733,17 @@ var Treeview = {
 
         checks = [];
 
-        $.each(element.find(":checkbox"), function(){
+        $.each(element.find("input[type=checkbox]"), function(){
             checks.push(this);
         });
 
-        $.each(checks.reverse(), function(){
-            var ch = $(this);
-            var children = ch.closest("li").children("ul").find(":checkbox").length;
-            var children_checked = ch.closest("li").children("ul").find(":checkbox:checked").length;
+        $.each(checks.reverse(), function(el){
+            var ch = $(el);
+            var checkboxes = ch.closest("li").children("ul").find("input[type=checkbox]");
+            var children = checkboxes.length;
+            var children_checked = checkboxes.filter(function(el){
+                return el.checked;
+            }).length;
 
             if (children > 0 && children_checked === 0) {
                 ch.attr("data-indeterminate", false);
@@ -24776,7 +24764,7 @@ var Treeview = {
     },
 
     current: function(node){
-        var element = this.element, o = this.options;
+        var element = this.element;
 
         if (node === undefined) {
             return element.find("li.current")
@@ -24804,14 +24792,15 @@ var Treeview = {
     },
 
     addTo: function(node, data){
-        var that = this, element = this.element, o = this.options;
+        var element = this.element, o = this.options;
         var target;
         var new_node;
         var toggle;
 
-        if (node === null) {
+        if (Utils.isNull(node)) {
             target = element;
         } else {
+            node = m4q(node);
             target = node.children("ul");
             if (target.length === 0) {
                 target = $("<ul>").appendTo(node);
@@ -24833,7 +24822,7 @@ var Treeview = {
     insertBefore: function(node, data){
         var element = this.element, o = this.options;
         var new_node = this._createNode(data);
-        new_node.insertBefore(node);
+        new_node.insertBefore(m4q(node));
         Utils.exec(o.onNodeInsert, [new_node, element], new_node[0]);
         return new_node;
     },
@@ -24841,12 +24830,13 @@ var Treeview = {
     insertAfter: function(node, data){
         var element = this.element, o = this.options;
         var new_node = this._createNode(data);
-        new_node.insertAfter(node);
+        new_node.insertAfter(m4q(node));
         Utils.exec(o.onNodeInsert, [new_node, element], new_node[0]);
         return new_node;
     },
 
     del: function(node){
+        node = m4q(node);
         var element = this.element, o = this.options;
         var parent_list = node.closest("ul");
         var parent_node = parent_list.closest("li");
@@ -24861,6 +24851,7 @@ var Treeview = {
 
     clean: function(node){
         var element = this.element, o = this.options;
+        node = m4q(node);
         node.children("ul").remove();
         node.removeClass("expanded");
         node.children(".node-toggle").remove();
@@ -24869,7 +24860,6 @@ var Treeview = {
 
     changeAttribute: function(attributeName){
         switch (attributeName) {
-            default: console.log(attributeName);
         }
     }
 };

@@ -59,7 +59,7 @@
 	}
 	
 
-	var m4qVersion = "0.1.0 alpha 05/02/2019 15:54:52";
+	var m4qVersion = "0.1.0 alpha 05/02/2019 16:57:56";
 	var regexpSingleTag = /^<([a-z][^\/\0>:\x20\t\r\n\f]*)[\x20\t\r\n\f]*\/?>(?:<\/\1>|)$/i;
 	
 	var matches = Element.prototype.matches
@@ -217,26 +217,7 @@
 	        }
 	
 	        this.each(function(el){
-	            var _val;
-	
-	            if (typeof value === "string") {
-	                _val = value;
-	            } else if (value instanceof m4q || (typeof jQuery !== "undefined" && value instanceof jQuery)) {
-	                value = m4q(value);
-	                if (prop === "innerHTML") {
-	                    _val = value.html();
-	                }
-	                if (prop === "innerText") {
-	                    _val = value.innerText();
-	                }
-	                if (prop === "textContent") {
-	                    _val = value.text();
-	                }
-	            } else {
-	                _val = "";
-	            }
-	
-	            el[prop] = _val;
+	            el[prop] = value;
 	
 	            if (prop === "innerHTML") {
 	                m4q.each(m4q(el).find("script"), function(script){
@@ -258,6 +239,10 @@
 	
 	    val: function(val){
 	        return this._prop("value", val);
+	    },
+	
+	    prop: function(prop, val){
+	        return this._prop(prop, val);
 	    },
 	
 	    push: [].push,
@@ -1095,11 +1080,11 @@
 	    find: function(s){
 	        var res = [], out = m4q();
 	
-	        if (this.length === 0) {
-	            return ;
-	        }
+	        if (s instanceof m4q) return s;
 	
-	        if (typeof s !== "string" && s instanceof m4q) return s;
+	        if (this.length === 0) {
+	            return this;
+	        }
 	
 	        this.each(function (el) {
 	            if (typeof el.querySelectorAll !== "undefined") res = [].slice.call(el.querySelectorAll(s));
@@ -1110,7 +1095,7 @@
 	    children: function(s){
 	        var i, res = [], out = m4q();
 	
-	        if (typeof s !== "string" && s instanceof m4q) return s;
+	        if (s instanceof m4q) return s;
 	
 	        this.each(function(el){
 	            for(i = 0; i < el.children.length; i++) {
@@ -1130,7 +1115,7 @@
 	            return ;
 	        }
 	
-	        if (typeof s !== "string" && s instanceof m4q) return s;
+	        if (s instanceof m4q) return s;
 	
 	        this.each(function(el){
 	            if (el.parentNode) {
@@ -1150,7 +1135,7 @@
 	            return ;
 	        }
 	
-	        if (typeof s !== "string" && s instanceof m4q) return s;
+	        if (s instanceof m4q) return s;
 	
 	        this.each(function(el){
 	            var par = el.parentNode;
@@ -1181,7 +1166,7 @@
 	            return ;
 	        }
 	
-	        if (typeof s !== "string" && s instanceof m4q) return s;
+	        if (s instanceof m4q) return s;
 	
 	        this.each(function(el){
 	            var elems = [].filter.call(el.parentNode.children, function(child){
@@ -1203,7 +1188,7 @@
 	            return ;
 	        }
 	
-	        if (typeof s !== "string" && s instanceof m4q) return s;
+	        if (s instanceof m4q) return s;
 	
 	        this.each(function(el){
 	            while (el) {
@@ -1229,7 +1214,7 @@
 	            return ;
 	        }
 	
-	        if (typeof s !== "string" && s instanceof m4q) return s;
+	        if (s instanceof m4q) return s;
 	
 	        out = m4q();
 	
@@ -1272,7 +1257,7 @@
 	            return ;
 	        }
 	
-	        if (typeof s !== "string" && s instanceof m4q) return s;
+	        if (s instanceof m4q) return s;
 	
 	        if (!s) {
 	            return this.parent(s);
