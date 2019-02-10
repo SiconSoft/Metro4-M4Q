@@ -336,7 +336,9 @@ var ListView = {
         var element = this.element;
         var nodes = [];
 
-        $.each(element.find(":checked"), function(){
+        $.each(element.find("input[type=checkbox]").filter(function(el){
+            return el.checked;
+        }), function(){
             var check = $(this);
             nodes.push(check.closest(".node")[0])
         });
@@ -346,10 +348,12 @@ var ListView = {
 
     clearSelected: function(){
         this.element.find(":checked").prop("checked", false);
+        this.element.trigger('change');
     },
 
     selectAll: function(mode){
         this.element.find(".node > .checkbox input").prop("checked", mode !== false);
+        this.element.trigger('change');
     },
 
     changeAttribute: function(attributeName){
