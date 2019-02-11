@@ -262,7 +262,7 @@ var Calendar = {
                 if (el.hasClass("prev-year") || el.hasClass("next-year")) {
                     Utils.exec(o.onYearChange, [that.current, element], element[0]);
                 }
-            }, o.ripple ? 300 : 1);
+            }, o.ripple ? 300 : 0);
 
             e.preventDefault();
             e.stopImmediatePropagation();
@@ -722,14 +722,14 @@ var Calendar = {
 
     _drawCalendar: function(){
         var that = this;
-        setTimeout(function(){
+        setImmediate(function(){
             that.element.html("");
             that._drawHeader();
             that._drawContent();
             that._drawFooter();
             that._drawMonths();
             that._drawYears();
-        }, 0);
+        });
     },
 
     getPreset: function(){

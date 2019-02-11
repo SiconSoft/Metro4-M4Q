@@ -2573,7 +2573,7 @@ var isTouch = (('ontouchstart' in window) || (navigator.MaxTouchPoints > 0) || (
 var Metro = {
 
     version: "4.3.0",
-    versionFull: "4.3.0 alpha 11/02/2019 13:05:40",
+    versionFull: "4.3.0 alpha 11/02/2019 13:24:48",
     build: "1",
     isTouchable: isTouch,
     fullScreenEnabled: document.fullscreenEnabled,
@@ -7657,7 +7657,7 @@ var Calendar = {
                 if (el.hasClass("prev-year") || el.hasClass("next-year")) {
                     Utils.exec(o.onYearChange, [that.current, element], element[0]);
                 }
-            }, o.ripple ? 300 : 1);
+            }, o.ripple ? 300 : 0);
 
             e.preventDefault();
             e.stopImmediatePropagation();
@@ -8117,14 +8117,14 @@ var Calendar = {
 
     _drawCalendar: function(){
         var that = this;
-        setTimeout(function(){
+        setImmediate(function(){
             that.element.html("");
             that._drawHeader();
             that._drawContent();
             that._drawFooter();
             that._drawMonths();
             that._drawYears();
-        }, 0);
+        });
     },
 
     getPreset: function(){
