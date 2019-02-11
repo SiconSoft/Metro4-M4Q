@@ -521,7 +521,7 @@
 	    }
 	}(window));
 
-	var m4qVersion = "0.1.0 alpha 11/02/2019 12:56:16";
+	var m4qVersion = "0.1.0 alpha 11/02/2019 21:35:59";
 	var regexpSingleTag = /^<([a-z][^\/\0>:\x20\t\r\n\f]*)[\x20\t\r\n\f]*\/?>(?:<\/\1>|)$/i;
 	
 	var matches = Element.prototype.matches
@@ -572,8 +572,9 @@
 	        return m4q.toArray(this);
 	    },
 	
-	    index: function(){
-	        return this.length === 0 ? -1 : m4q.toArray(this[0].parentNode.children).indexOf(this[0]);
+	    // TODO add selector and element as argument
+	    index: function(selector){
+	        return this.length === 0 ? -1 : m4q.toArray(this[0].parentNode.children).indexOf(this[0]) - 1;
 	    },
 	
 	    get: function(index){
@@ -581,6 +582,10 @@
 	            return this.items();
 	        }
 	        return index < 0 ? this[ index + this.length ] : this[ index ];
+	    },
+	
+	    eq: function(index){
+	        return m4q(this.get(index >= 0 ? index : this.length + index));
 	    },
 	
 	    clone: function(){
@@ -675,8 +680,13 @@
 	        if (this.length === 0) {
 	            return ;
 	        }
-	        if (value === undefined) {
+	
+	        if (arguments.length === 1) {
 	            return this[0][prop];
+	        }
+	
+	        if (not(value)) {
+	            value = '';
 	        }
 	
 	        this.each(function(el){
@@ -1206,7 +1216,7 @@
 
 	m4q.fn.extend({
 	    html: function(value){
-	        return this._prop('innerHTML', value);
+	        return arguments.length === 0 ? this._prop('innerHTML') : this._prop('innerHTML', typeof value === "undefined" ? "" : value);
 	    },
 	
 	    outerHTML: function(){
@@ -1214,11 +1224,11 @@
 	    },
 	
 	    text: function(value){
-	        return this._prop('textContent', value);
+	        return arguments.length === 0 ? this._prop('textContent') : this._prop('textContent', typeof value === "undefined" ? "" : value);
 	    },
 	
 	    innerText: function(value){
-	        return this._prop('innerText', value);
+	        return arguments.length === 0 ? this._prop('innerText') : this._prop('innerText', typeof value === "undefined" ? "" : value);
 	    },
 	
 	    empty: function(){

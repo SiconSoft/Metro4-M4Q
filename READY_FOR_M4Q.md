@@ -7,7 +7,7 @@
 - [x] Animation
 - [x] Colors
 - [x] Easing
-- [ ] Export
+- [x] Export ?
 - [x] Extensions
 - [x] i18n
 - [x] md5
@@ -67,7 +67,7 @@
 - [x] Spinner
 - [x] Splitter
 - [x] Stepper
-- [ ] Streamer
+- [x] Streamer
 - [x] Switch
 - [ ] Table
 - [x] Tabs

@@ -547,7 +547,7 @@ function not(value){
 	    }
 	}(window));
 
-	var m4qVersion = "0.1.0 alpha 11/02/2019 12:56:16";
+	var m4qVersion = "0.1.0 alpha 11/02/2019 21:35:59";
 	var regexpSingleTag = /^<([a-z][^\/\0>:\x20\t\r\n\f]*)[\x20\t\r\n\f]*\/?>(?:<\/\1>|)$/i;
 	
 	var matches = Element.prototype.matches
@@ -598,8 +598,9 @@ function not(value){
 	        return m4q.toArray(this);
 	    },
 	
-	    index: function(){
-	        return this.length === 0 ? -1 : m4q.toArray(this[0].parentNode.children).indexOf(this[0]);
+	    // TODO add selector and element as argument
+	    index: function(selector){
+	        return this.length === 0 ? -1 : m4q.toArray(this[0].parentNode.children).indexOf(this[0]) - 1;
 	    },
 	
 	    get: function(index){
@@ -607,6 +608,10 @@ function not(value){
 	            return this.items();
 	        }
 	        return index < 0 ? this[ index + this.length ] : this[ index ];
+	    },
+	
+	    eq: function(index){
+	        return m4q(this.get(index >= 0 ? index : this.length + index));
 	    },
 	
 	    clone: function(){
@@ -701,8 +706,13 @@ function not(value){
 	        if (this.length === 0) {
 	            return ;
 	        }
-	        if (value === undefined) {
+	
+	        if (arguments.length === 1) {
 	            return this[0][prop];
+	        }
+	
+	        if (not(value)) {
+	            value = '';
 	        }
 	
 	        this.each(function(el){
@@ -1232,7 +1242,7 @@ function not(value){
 
 	m4q.fn.extend({
 	    html: function(value){
-	        return this._prop('innerHTML', value);
+	        return arguments.length === 0 ? this._prop('innerHTML') : this._prop('innerHTML', typeof value === "undefined" ? "" : value);
 	    },
 	
 	    outerHTML: function(){
@@ -1240,11 +1250,11 @@ function not(value){
 	    },
 	
 	    text: function(value){
-	        return this._prop('textContent', value);
+	        return arguments.length === 0 ? this._prop('textContent') : this._prop('textContent', typeof value === "undefined" ? "" : value);
 	    },
 	
 	    innerText: function(value){
-	        return this._prop('innerText', value);
+	        return arguments.length === 0 ? this._prop('innerText') : this._prop('innerText', typeof value === "undefined" ? "" : value);
 	    },
 	
 	    empty: function(){
@@ -2573,7 +2583,7 @@ var isTouch = (('ontouchstart' in window) || (navigator.MaxTouchPoints > 0) || (
 var Metro = {
 
     version: "4.3.0",
-    versionFull: "4.3.0 alpha 11/02/2019 13:24:48",
+    versionFull: "4.3.0 alpha 11/02/2019 21:36:35",
     build: "1",
     isTouchable: isTouch,
     fullScreenEnabled: document.fullscreenEnabled,
@@ -4299,7 +4309,7 @@ var Export = {
     },
 
     tableToCSV: function(table, filename, options){
-        var that = this, o = this.options;
+        var o = this.options;
         var body, head, data = "";
         var i, j, row, cell;
 
@@ -19696,9 +19706,9 @@ var Streamer = {
     },
 
     _setOptionsFromDOM: function(){
-        var that = this, element = this.element, o = this.options;
+        var element = this.element, o = this.options;
 
-        $.each(element.data(), function(key, value){
+        $.each(element.data(), function(value, key){
             if (key in o) {
                 try {
                     o[key] = JSON.parse(value);
@@ -19726,7 +19736,7 @@ var Streamer = {
         $("<div>").addClass("events-area").appendTo(element);
 
         if (o.source !== null) {
-            $.get(o.source, function(data){
+            $.json(o.source).then(function(data){
                 that.data = data;
                 that.build();
             });
@@ -19800,14 +19810,17 @@ var Streamer = {
             var h = t.getHours(), m = t.getMinutes();
             var v = (h < 10 ? "0"+h : h) + ":" + (m < 10 ? "0"+m : m);
 
-            var li = $("<li>").data("time", v).addClass("js-time-point-" + v.replace(":", "-")).html("<em>"+v+"</em>").appendTo(timeline);
+            $("<li>")
+                .data("time", v)
+                .addClass("js-time-point-" + v.replace(":", "-"))
+                .html("<em>"+v+"</em>")
+                .appendTo(timeline);
         }
 
-        // -- End timeline creator
+        // -- End timeline
 
         if (data.streams !== undefined) {
-            $.each(data.streams, function(stream_index){
-                var stream_item = this;
+            $.each(data.streams, function(stream_item, stream_index){
                 var stream = $("<div>").addClass("stream").addClass(this.cls).appendTo(streams);
                 stream
                     .addClass(stream_item.cls)
@@ -19827,24 +19840,19 @@ var Streamer = {
                     .appendTo(event_group_main);
 
                 if (stream_item.events !== undefined) {
-                    $.each(stream_item.events, function(event_index){
-                        var event_item = this;
+                    $.each(stream_item.events, function(event_item, event_index){
                         var _icon;
                         var sid = stream_index+":"+event_index;
                         var custom_html = event_item.custom !== undefined ? event_item.custom : "";
                         var custom_html_open = event_item.custom_open !== undefined ? event_item.custom_open : "";
                         var custom_html_close = event_item.custom_close !== undefined ? event_item.custom_close : "";
-                        var event = $("<div>")
-                            .data("origin", event_item)
-                            .data("sid", sid)
-                            .data("data", event_item.data)
-                            .data("time", event_item.time)
-                            .data("target", event_item.target)
-                            .addClass("stream-event")
-                            .addClass("size-"+event_item.size+"x")
-                            .addClass(event_item.cls)
-                            .appendTo(stream_events);
+                        var event = $("<div>").addClass("stream-event").addClass("size-"+event_item.size+"x").addClass(event_item.cls).appendTo(stream_events);
 
+                        event.data("origin", event_item);
+                        event.data("sid", sid);
+                        event.data("data", event_item.data);
+                        event.data("time", event_item.time);
+                        event.data("target", event_item.target);
 
                         var left = timeline.find(".js-time-point-"+this.time.replace(":", "-"))[0].offsetLeft - stream.outerWidth();
 
@@ -19911,13 +19919,11 @@ var Streamer = {
                         var event_item = this;
                         var group = $("<div>").addClass("event-group").addClass("size-"+event_item.size+"x");
                         var events = $("<div>").addClass("stream-events global-stream").appendTo(group);
-                        var event = $("<div>").addClass("stream-event").appendTo(events);
-                        event
-                            .addClass("global-event")
-                            .addClass(event_item.cls)
-                            .data("time", event_item.time)
-                            .data("origin", event_item)
-                            .data("data", event_item.data);
+                        var event = $("<div>").addClass("stream-event").addClass("global-event").addClass(event_item.cls).appendTo(events);
+
+                        event.data("time", event_item.time);
+                        event.data("origin", event_item);
+                        event.data("data", event_item.data);
 
                         $("<div>").addClass("event-title").html(event_item.title).appendTo(event);
                         $("<div>").addClass("event-subtitle").html(event_item.subtitle).appendTo(event);
@@ -19944,7 +19950,7 @@ var Streamer = {
             }, o.startSlideSleep);
         }
 
-        Utils.exec(o.onStreamerCreate, [element]);
+        Utils.exec(o.onStreamerCreate, [element], element[0]);
     },
 
     _createEvents: function(){
@@ -20020,27 +20026,11 @@ var Streamer = {
                 element.data("stream", index);
                 element.find(".stream-event").addClass("disabled");
                 that.enableStream(stream);
-                Utils.exec(o.onStreamSelect, [stream]);
+                Utils.exec(o.onStreamSelect, [stream], this);
             }
 
-            Utils.exec(o.onStreamClick, [stream]);
+            Utils.exec(o.onStreamClick, [stream], this);
         });
-
-        if (Utils.isTouchDevice() !== true) {
-            element.on(Metro.events.mousewheel, ".events-area", function(e) {
-                var acrollable = $(this);
-
-                if (e.deltaY === undefined || e.deltaFactor === undefined) {
-                    return ;
-                }
-
-                if (e.deltaFactor > 1) {
-                    var scroll = acrollable.scrollLeft() - ( e.deltaY * 30 );
-                    acrollable.scrollLeft(scroll);
-                    e.preventDefault();
-                }
-            });
-        }
 
         if (Utils.isTouchDevice() === true) {
             element.on(Metro.events.click, ".stream", function(){
@@ -20055,13 +20045,12 @@ var Streamer = {
     },
 
     _changeURI: function(){
-        var that = this, element = this.element, o = this.options, data = this.data;
         var link = this.getLink();
         history.pushState({}, document.title, link);
     },
 
     slideTo: function(time){
-        var that = this, element = this.element, o = this.options, data = this.data;
+        var element = this.element, o = this.options;
         var target;
         if (time === undefined) {
             target = $(element.find(".streamer-timeline li")[0]);
@@ -20075,14 +20064,14 @@ var Streamer = {
     },
 
     enableStream: function(stream){
-        var that = this, element = this.element, o = this.options, data = this.data;
+        var element = this.element;
         var index = stream.index();
         stream.removeClass("disabled").data("streamDisabled", false);
         element.find(".stream-events").eq(index).find(".stream-event").removeClass("disabled");
     },
 
     disableStream: function(stream){
-        var that = this, element = this.element, o = this.options, data = this.data;
+        var element = this.element;
         var index = stream.index();
         stream.addClass("disabled").data("streamDisabled", true);
         element.find(".stream-events").eq(index).find(".stream-event").addClass("disabled");
@@ -20097,7 +20086,7 @@ var Streamer = {
     },
 
     getLink: function(){
-        var that = this, element = this.element, o = this.options, data = this.data;
+        var element = this.element, o = this.options;
         var events = element.find(".stream-event");
         var a = [];
         var link;
@@ -20122,7 +20111,7 @@ var Streamer = {
     },
 
     getTimes: function(){
-        var that = this, element = this.element, o = this.options, data = this.data;
+        var element = this.element;
         var times = element.find(".streamer-timeline > li");
         var result = [];
         $.each(times, function(){
@@ -20132,7 +20121,7 @@ var Streamer = {
     },
 
     getEvents: function(event_type, include_global){
-        var that = this, element = this.element, o = this.options, data = this.data;
+        var element = this.element;
         var items, events = [];
 
         switch (event_type) {
@@ -20178,10 +20167,9 @@ var Streamer = {
     },
 
     toggleEvent: function(event){
-        var that = this, element = this.element, o = this.options, data = this.data;
         event = $(event);
 
-        if (event.hasClass("global-event") && o.selectGlobal !== true) {
+        if (event.hasClass("global-event") && this.options.selectGlobal !== true) {
             return ;
         }
 
@@ -20193,7 +20181,7 @@ var Streamer = {
     },
 
     selectEvent: function(event, state){
-        var that = this, element = this.element, o = this.options, data = this.data;
+        var that = this, o = this.options;
         if (state === undefined) {
             state = true;
         }
@@ -20212,7 +20200,7 @@ var Streamer = {
     },
 
     changeSource: function(){
-        var that = this, element = this.element, o = this.options, data = this.data;
+        var that = this, element = this.element, o = this.options;
         var new_source = element.attr("data-source");
 
         if (String(new_source).trim() === "") {
@@ -20221,7 +20209,7 @@ var Streamer = {
 
         o.source = new_source;
 
-        $.get(o.source, function(data){
+        $.get(o.source).then(function(data){
             that.data = data;
             that.build();
         });
@@ -20230,7 +20218,7 @@ var Streamer = {
     },
 
     changeData: function(){
-        var that = this, element = this.element, o = this.options, data = this.data;
+        var element = this.element, o = this.options;
         var new_data = element.attr("data-data");
 
         if (String(new_data).trim() === "") {
@@ -20246,8 +20234,7 @@ var Streamer = {
     },
 
     changeStreamSelectOption: function(){
-        var that = this, element = this.element, o = this.options, data = this.data;
-
+        var element = this.element, o = this.options;
         o.streamSelect = element.attr("data-stream-select").toLowerCase() === "true";
     },
 

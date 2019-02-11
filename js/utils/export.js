@@ -47,7 +47,7 @@ var Export = {
     },
 
     tableToCSV: function(table, filename, options){
-        var that = this, o = this.options;
+        var o = this.options;
         var body, head, data = "";
         var i, j, row, cell;
 
