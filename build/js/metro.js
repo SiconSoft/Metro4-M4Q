@@ -29,7 +29,7 @@
 /*
  * m4q v0.1.0 (https://github.com/olton/m4q.git)
  * Copyright 2018 - 2019 by Sergey Pimenov
- * Helper for DOM manipulation for Metro 4 library
+ * Helper for DOM manipulation
  * Licensed under MIT
  */
 
@@ -84,8 +84,470 @@ function not(value){
 	    return out;
 	}
 	
+(function (global, undefined) {
+	
+	    if (global.setImmediate) {
+	        return;
+	    }
+	
+	    var nextHandle = 1;
+	    var tasksByHandle = {};
+	    var currentlyRunningATask = false;
+	    var doc = global.document;
+	    var registerImmediate;
+	
+	    function setImmediate(callback) {
+	        if (typeof callback !== "function") {
+	            callback = new Function("" + callback);
+	        }
+	        var args = new Array(arguments.length - 1);
+	        for (var i = 0; i < args.length; i++) {
+	            args[i] = arguments[i + 1];
+	        }
+	        tasksByHandle[nextHandle] = { callback: callback, args: args };
+	        registerImmediate(nextHandle);
+	        return nextHandle++;
+	    }
+	
+	    function clearImmediate(handle) {
+	        delete tasksByHandle[handle];
+	    }
+	
+	    function run(task) {
+	        var callback = task.callback;
+	        var args = task.args;
+	        switch (args.length) {
+	            case 0:
+	                callback();
+	                break;
+	            case 1:
+	                callback(args[0]);
+	                break;
+	            case 2:
+	                callback(args[0], args[1]);
+	                break;
+	            case 3:
+	                callback(args[0], args[1], args[2]);
+	                break;
+	            default:
+	                callback.apply(undefined, args);
+	                break;
+	        }
+	    }
+	
+	    function runIfPresent(handle) {
+	        if (currentlyRunningATask) {
+	            setTimeout(runIfPresent, 0, handle);
+	        } else {
+	            var task = tasksByHandle[handle];
+	            if (task) {
+	                currentlyRunningATask = true;
+	                try {
+	                    run(task);
+	                } finally {
+	                    clearImmediate(handle);
+	                    currentlyRunningATask = false;
+	                }
+	            }
+	        }
+	    }
+	
+	    function installNextTickImplementation() {
+	        registerImmediate = function(handle) {
+	            process.nextTick(function () { runIfPresent(handle); });
+	        };
+	    }
+	
+	    function canUsePostMessage() {
+	        if (global.postMessage && !global.importScripts) {
+	            var postMessageIsAsynchronous = true;
+	            var oldOnMessage = global.onmessage;
+	            global.onmessage = function() {
+	                postMessageIsAsynchronous = false;
+	            };
+	            global.postMessage("", "*");
+	            global.onmessage = oldOnMessage;
+	            return postMessageIsAsynchronous;
+	        }
+	    }
+	
+	    function installPostMessageImplementation() {
+	        var messagePrefix = "setImmediate$" + Math.random() + "$";
+	        var onGlobalMessage = function(event) {
+	            if (event.source === global &&
+	                typeof event.data === "string" &&
+	                event.data.indexOf(messagePrefix) === 0) {
+	                runIfPresent(+event.data.slice(messagePrefix.length));
+	            }
+	        };
+	
+	        global.addEventListener("message", onGlobalMessage, false);
+	
+	        registerImmediate = function(handle) {
+	            global.postMessage(messagePrefix + handle, "*");
+	        };
+	    }
+	
+	    function installMessageChannelImplementation() {
+	        var channel = new MessageChannel();
+	        channel.port1.onmessage = function(event) {
+	            var handle = event.data;
+	            runIfPresent(handle);
+	        };
+	
+	        registerImmediate = function(handle) {
+	            channel.port2.postMessage(handle);
+	        };
+	    }
+	
+	    function installReadyStateChangeImplementation() {
+	        var html = doc.documentElement;
+	        registerImmediate = function(handle) {
+	            var script = doc.createElement("script");
+	            script.onreadystatechange = function () {
+	                runIfPresent(handle);
+	                script.onreadystatechange = null;
+	                html.removeChild(script);
+	                script = null;
+	            };
+	            html.appendChild(script);
+	        };
+	    }
+	
+	    function installSetTimeoutImplementation() {
+	        registerImmediate = function(handle) {
+	            setTimeout(runIfPresent, 0, handle);
+	        };
+	    }
+	
+	    var attachTo = Object.getPrototypeOf && Object.getPrototypeOf(global);
+	    attachTo = attachTo && attachTo.setTimeout ? attachTo : global;
+	
+	    if ({}.toString.call(global.process) === "[object process]") {
+	        // For Node.js before 0.9
+	        installNextTickImplementation();
+	
+	    } else if (canUsePostMessage()) {
+	        // For non-IE10 modern browsers
+	        installPostMessageImplementation();
+	
+	    } else if (global.MessageChannel) {
+	        // For web workers, where supported
+	        installMessageChannelImplementation();
+	
+	    } else if (doc && "onreadystatechange" in doc.createElement("script")) {
+	        // For IE 6–8
+	        installReadyStateChangeImplementation();
+	
+	    } else {
+	        // For older browsers
+	        installSetTimeoutImplementation();
+	    }
+	
+	    attachTo.setImmediate = setImmediate;
+	    attachTo.clearImmediate = clearImmediate;
+	
+	}(window));
+(function (global, undefined) {
+	
+	    if (global.Promise) {
+	        return;
+	    }
+	
+	    var PENDING = 'pending';
+	    var SEALED = 'sealed';
+	    var FULFILLED = 'fulfilled';
+	    var REJECTED = 'rejected';
+	    var NOOP = function(){};
+	
+	    function isArray(value) {
+	        return Object.prototype.toString.call(value) === '[object Array]';
+	    }
+	
+	    // async calls
+	    var asyncSetTimer = typeof setImmediate !== 'undefined' ? setImmediate : setTimeout;
+	    var asyncQueue = [];
+	    var asyncTimer;
+	
+	    function asyncFlush(){
+	        // run promise callbacks
+	        for (var i = 0; i < asyncQueue.length; i++)
+	            asyncQueue[i][0](asyncQueue[i][1]);
+	
+	        // reset async asyncQueue
+	        asyncQueue = [];
+	        asyncTimer = false;
+	    }
+	
+	    function asyncCall(callback, arg){
+	        asyncQueue.push([callback, arg]);
+	
+	        if (!asyncTimer)
+	        {
+	            asyncTimer = true;
+	            asyncSetTimer(asyncFlush, 0);
+	        }
+	    }
+	
+	    function invokeResolver(resolver, promise) {
+	        function resolvePromise(value) {
+	            resolve(promise, value);
+	        }
+	
+	        function rejectPromise(reason) {
+	            reject(promise, reason);
+	        }
+	
+	        try {
+	            resolver(resolvePromise, rejectPromise);
+	        } catch(e) {
+	            rejectPromise(e);
+	        }
+	    }
+	
+	    function invokeCallback(subscriber){
+	        var owner = subscriber.owner;
+	        var settled = owner.state_;
+	        var value = owner.data_;
+	        var callback = subscriber[settled];
+	        var promise = subscriber.then;
+	
+	        if (typeof callback === 'function')
+	        {
+	            settled = FULFILLED;
+	            try {
+	                value = callback(value);
+	            } catch(e) {
+	                reject(promise, e);
+	            }
+	        }
+	
+	        if (!handleThenable(promise, value))
+	        {
+	            if (settled === FULFILLED)
+	                resolve(promise, value);
+	
+	            if (settled === REJECTED)
+	                reject(promise, value);
+	        }
+	    }
+	
+	    function handleThenable(promise, value) {
+	        var resolved;
+	
+	        try {
+	            if (promise === value)
+	                throw new TypeError('A promises callback cannot return that same promise.');
+	
+	            if (value && (typeof value === 'function' || typeof value === 'object'))
+	            {
+	                var then = value.then;  // then should be retrived only once
+	
+	                if (typeof then === 'function')
+	                {
+	                    then.call(value, function(val){
+	                        if (!resolved)
+	                        {
+	                            resolved = true;
+	
+	                            if (value !== val)
+	                                resolve(promise, val);
+	                            else
+	                                fulfill(promise, val);
+	                        }
+	                    }, function(reason){
+	                        if (!resolved)
+	                        {
+	                            resolved = true;
+	
+	                            reject(promise, reason);
+	                        }
+	                    });
+	
+	                    return true;
+	                }
+	            }
+	        } catch (e) {
+	            if (!resolved)
+	                reject(promise, e);
+	
+	            return true;
+	        }
+	
+	        return false;
+	    }
+	
+	    function resolve(promise, value){
+	        if (promise === value || !handleThenable(promise, value))
+	            fulfill(promise, value);
+	    }
+	
+	    function fulfill(promise, value){
+	        if (promise.state_ === PENDING)
+	        {
+	            promise.state_ = SEALED;
+	            promise.data_ = value;
+	
+	            asyncCall(publishFulfillment, promise);
+	        }
+	    }
+	
+	    function reject(promise, reason){
+	        if (promise.state_ === PENDING)
+	        {
+	            promise.state_ = SEALED;
+	            promise.data_ = reason;
+	
+	            asyncCall(publishRejection, promise);
+	        }
+	    }
+	
+	    function publish(promise) {
+	        var callbacks = promise.then_;
+	        promise.then_ = undefined;
+	
+	        for (var i = 0; i < callbacks.length; i++) {
+	            invokeCallback(callbacks[i]);
+	        }
+	    }
+	
+	    function publishFulfillment(promise){
+	        promise.state_ = FULFILLED;
+	        publish(promise);
+	    }
+	
+	    function publishRejection(promise){
+	        promise.state_ = REJECTED;
+	        publish(promise);
+	    }
+	
+	    /**
+	     * @class
+	     */
+	    function Promise(resolver){
+	        if (typeof resolver !== 'function')
+	            throw new TypeError('Promise constructor takes a function argument');
+	
+	        if (this instanceof Promise === false)
+	            throw new TypeError('Failed to construct \'Promise\': Please use the \'new\' operator, this object constructor cannot be called as a function.');
+	
+	        this.then_ = [];
+	
+	        invokeResolver(resolver, this);
+	    }
+	
+	    Promise.prototype = {
+	        constructor: Promise,
+	
+	        state_: PENDING,
+	        then_: null,
+	        data_: undefined,
+	
+	        then: function(onFulfillment, onRejection){
+	            var subscriber = {
+	                owner: this,
+	                then: new this.constructor(NOOP),
+	                fulfilled: onFulfillment,
+	                rejected: onRejection
+	            };
+	
+	            if (this.state_ === FULFILLED || this.state_ === REJECTED)
+	            {
+	                // already resolved, call callback async
+	                asyncCall(invokeCallback, subscriber);
+	            }
+	            else
+	            {
+	                // subscribe
+	                this.then_.push(subscriber);
+	            }
+	
+	            return subscriber.then;
+	        },
+	
+	        'catch': function(onRejection) {
+	            return this.then(null, onRejection);
+	        }
+	    };
+	
+	    Promise.all = function(promises){
+	        var Class = this;
+	
+	        if (!isArray(promises))
+	            throw new TypeError('You must pass an array to Promise.all().');
+	
+	        return new Class(function(resolve, reject){
+	            var results = [];
+	            var remaining = 0;
+	
+	            function resolver(index){
+	                remaining++;
+	                return function(value){
+	                    results[index] = value;
+	                    if (!--remaining)
+	                        resolve(results);
+	                };
+	            }
+	
+	            for (var i = 0, promise; i < promises.length; i++)
+	            {
+	                promise = promises[i];
+	
+	                if (promise && typeof promise.then === 'function')
+	                    promise.then(resolver(i), reject);
+	                else
+	                    results[i] = promise;
+	            }
+	
+	            if (!remaining)
+	                resolve(results);
+	        });
+	    };
+	
+	    Promise.race = function(promises){
+	        var Class = this;
+	
+	        if (!isArray(promises))
+	            throw new TypeError('You must pass an array to Promise.race().');
+	
+	        return new Class(function(resolve, reject) {
+	            for (var i = 0, promise; i < promises.length; i++)
+	            {
+	                promise = promises[i];
+	
+	                if (promise && typeof promise.then === 'function')
+	                    promise.then(resolve, reject);
+	                else
+	                    resolve(promise);
+	            }
+	        });
+	    };
+	
+	    Promise.resolve = function(value){
+	        var Class = this;
+	
+	        if (value && typeof value === 'object' && value.constructor === Class)
+	            return value;
+	
+	        return new Class(function(resolve){
+	            resolve(value);
+	        });
+	    };
+	
+	    Promise.reject = function(reason){
+	        var Class = this;
+	
+	        return new Class(function(resolve, reject){
+	            reject(reason);
+	        });
+	    };
+	
+	    if (typeof  global['Promise'] === "undefined") {
+	        global.Promise = Promise;
+	    }
+	}(window));
 
-	var m4qVersion = "0.1.0 alpha 05/02/2019 16:57:56";
+	var m4qVersion = "0.1.0 alpha 11/02/2019 12:56:16";
 	var regexpSingleTag = /^<([a-z][^\/\0>:\x20\t\r\n\f]*)[\x20\t\r\n\f]*\/?>(?:<\/\1>|)$/i;
 	
 	var matches = Element.prototype.matches
@@ -130,6 +592,7 @@ function not(value){
 	    m4q: m4qVersion,
 	    constructor: m4q,
 	    length: 0,
+	    uid: "",
 	
 	    items: function(){
 	        return m4q.toArray(this);
@@ -796,44 +1259,41 @@ function not(value){
 	
 
 	m4q.ajax = function(p){
-	    var xhr = new XMLHttpRequest();
-	
-	    xhr.onload = function(){
-	        if (xhr.status >= 200 && xhr.status < 300) {
-	            if (typeof p.success === "function")
-	                p.success(p.parseJson ? JSON.parse(xhr.response) : xhr.response, xhr.status, xhr.statusText, xhr);
-	        } else {
-	            if (typeof p.error === "function")
-	                p.error(xhr.status, xhr.statusText, xhr);
+	    return new Promise(function(success, fail){
+	        var xhr = new XMLHttpRequest();
+	        if (p.headers) {
+	            m4q.each(function(n, v){
+	                xhr.setRequestHeader(n, v);
+	            });
 	        }
-	    };
 	
-	    xhr.onerror = function(){
-	        if (typeof p.error === "function")
-	            p.error(xhr.status, xhr.statusText, xhr);
-	    };
+	        xhr.open(p.method || 'GET', p.url, true);
+	        xhr.send(p.data);
 	
-	    if (p.headers) {
-	        m4q.each(function(n, v){
-	            xhr.setRequestHeader(n, v);
+	        xhr.addEventListener("load", function(){
+	            if (xhr.status < 400) {
+	                if (typeof success === "function") success(p.parseJson ? JSON.parse(xhr.response) : xhr.response, xhr.status, xhr);
+	            } else {
+	                if (typeof fail === "function") fail(xhr);
+	            }
 	        });
-	    }
 	
-	    xhr.open(p.method || 'GET', p.url, true);
-	    xhr.send(p.data);
+	        xhr.addEventListener("error", function(){
+	            if (typeof fail === "function") fail(xhr);
+	        });
+	    });
 	};
 	
 	['get', 'post', 'put', 'patch', 'delete', 'json'].forEach(function(method){
-	    m4q[method] = function(url, data, success, error, dataType, headers){
+	    m4q[method] = function(url, data, dataType, headers){
+	        var _method = method.toUpperCase();
 	        return m4q.ajax({
-	            method: method.toUpperCase() === 'JSON' ? 'GET' : method.toUpperCase(),
+	            method: _method === 'JSON' ? 'GET' : method.toUpperCase(),
 	            url: url,
 	            data: data,
-	            success: success,
-	            error: error,
 	            dataType: dataType,
 	            headers: headers,
-	            parseJson: method === 'json'
+	            parseJson: _method === 'JSON'
 	        });
 	    }
 	});
@@ -1958,6 +2418,8 @@ function not(value){
 	        });
 	    }
 	
+	    this.uid = m4q.uniqueId();
+	
 	    return this;
 	};
 	
@@ -1966,6 +2428,8 @@ function not(value){
 var _$ = window.$,
 	    _m4q = window.m4q,
 	    _$M = window.$M;
+	
+	m4q.Promise = Promise;
 	
 	window.m4q = m4q;
 	
@@ -2109,7 +2573,7 @@ var isTouch = (('ontouchstart' in window) || (navigator.MaxTouchPoints > 0) || (
 var Metro = {
 
     version: "4.3.0",
-    versionFull: "4.3.0 alpha 10/02/2019 16:35:44",
+    versionFull: "4.3.0 alpha 11/02/2019 13:05:40",
     build: "1",
     isTouchable: isTouch,
     fullScreenEnabled: document.fullscreenEnabled,
@@ -12230,7 +12694,7 @@ var HtmlContainer = {
 
         html = o.htmlSource;
 
-        $.get(html, null, function(response, status, statusText, xhr){
+        $.get(html).then(function(response, status, xhr){
             switch (o.insertMode.toLowerCase()) {
                 case "prepend": element.prepend(response); break;
                 case "append": element.append(response); break;
@@ -12239,9 +12703,9 @@ var HtmlContainer = {
                 }
             }
             Utils.exec(o.onLoad, [response, status, xhr], elem);
-        }, function(status, statusText, xhr){
+        }, function(xhr){
             elem.innerHTML = "Data not found.";
-            Utils.exec(o.onFail, [status, statusText, xhr], elem);
+            Utils.exec(o.onFail, [xhr.status, xhr.statusText, xhr], elem);
         });
     },
 
@@ -14046,11 +14510,11 @@ var List = {
         if (o.source !== null) {
             Utils.exec(o.onDataLoad, [o.source], element[0]);
 
-            $.json(o.source, {}, function(data){
+            $.json(o.source).then(function(data){
                 that._build(data);
                 Utils.exec(o.onDataLoaded, [o.source, data], element[0]);
-            }, function( status, statusText, xhr) {
-                Utils.exec(o.onDataLoadError, [o.source, status, statusText, xhr], element[0]);
+            }, function(xhr){
+                Utils.exec(o.onDataLoadError, [o.source, xhr], element[0]);
             });
         } else {
             that._build();
@@ -14615,7 +15079,7 @@ var List = {
 
         Utils.exec(o.onDataLoad, [o.source], element[0]);
 
-        $.json(o.source, {}, function(data){
+        $.json(o.source).then(function(data){
             Utils.exec(o.onDataLoaded, [o.source, data], element[0]);
 
             that._createItemsFromJSON(data);
@@ -14648,9 +15112,8 @@ var List = {
             that.currentPage = 1;
 
             that.sorting(o.sortClass, o.sortDir, true);
-
-        }, function( status, statusText, xhr) {
-            Utils.exec(o.onDataLoadError, [o.source, status, statusText, xhr], element[0]);
+        }, function(xhr){
+            Utils.exec(o.onDataLoadError, [o.source, xhr], element[0]);
         });
     },
 

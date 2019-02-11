@@ -125,11 +125,11 @@ var List = {
         if (o.source !== null) {
             Utils.exec(o.onDataLoad, [o.source], element[0]);
 
-            $.json(o.source, {}, function(data){
+            $.json(o.source).then(function(data){
                 that._build(data);
                 Utils.exec(o.onDataLoaded, [o.source, data], element[0]);
-            }, function( status, statusText, xhr) {
-                Utils.exec(o.onDataLoadError, [o.source, status, statusText, xhr], element[0]);
+            }, function(xhr){
+                Utils.exec(o.onDataLoadError, [o.source, xhr], element[0]);
             });
         } else {
             that._build();
@@ -694,7 +694,7 @@ var List = {
 
         Utils.exec(o.onDataLoad, [o.source], element[0]);
 
-        $.json(o.source, {}, function(data){
+        $.json(o.source).then(function(data){
             Utils.exec(o.onDataLoaded, [o.source, data], element[0]);
 
             that._createItemsFromJSON(data);
@@ -727,9 +727,8 @@ var List = {
             that.currentPage = 1;
 
             that.sorting(o.sortClass, o.sortDir, true);
-
-        }, function( status, statusText, xhr) {
-            Utils.exec(o.onDataLoadError, [o.source, status, statusText, xhr], element[0]);
+        }, function(xhr){
+            Utils.exec(o.onDataLoadError, [o.source, xhr], element[0]);
         });
     },
 

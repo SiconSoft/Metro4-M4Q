@@ -51,7 +51,7 @@ var HtmlContainer = {
 
         html = o.htmlSource;
 
-        $.get(html, null, function(response, status, statusText, xhr){
+        $.get(html).then(function(response, status, xhr){
             switch (o.insertMode.toLowerCase()) {
                 case "prepend": element.prepend(response); break;
                 case "append": element.append(response); break;
@@ -60,9 +60,9 @@ var HtmlContainer = {
                 }
             }
             Utils.exec(o.onLoad, [response, status, xhr], elem);
-        }, function(status, statusText, xhr){
+        }, function(xhr){
             elem.innerHTML = "Data not found.";
-            Utils.exec(o.onFail, [status, statusText, xhr], elem);
+            Utils.exec(o.onFail, [xhr.status, xhr.statusText, xhr], elem);
         });
     },
 
