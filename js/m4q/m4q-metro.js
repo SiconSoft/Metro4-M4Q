@@ -521,7 +521,7 @@
 	    }
 	}(window));
 
-	var m4qVersion = "0.1.0 alpha 11/02/2019 21:35:59";
+	var m4qVersion = "0.1.0 alpha 13/02/2019 12:51:27";
 	var regexpSingleTag = /^<([a-z][^\/\0>:\x20\t\r\n\f]*)[\x20\t\r\n\f]*\/?>(?:<\/\1>|)$/i;
 	
 	var matches = Element.prototype.matches
@@ -572,9 +572,23 @@
 	        return m4q.toArray(this);
 	    },
 	
-	    // TODO add selector and element as argument
+	    // TODO add element as argument
 	    index: function(selector){
-	        return this.length === 0 ? -1 : m4q.toArray(this[0].parentNode.children).indexOf(this[0]) - 1;
+	        var res = [];
+	
+	        if (this.length === 0) {
+	            return -1;
+	        }
+	
+	        m4q.each(this[0].parentNode.children, function(el){
+	            if (selector) {
+	                if (matches.call(el, selector)) res.push(el);
+	            } else {
+	                res.push(el);
+	            }
+	        });
+	
+	        return res.indexOf(this[0]);
 	    },
 	
 	    get: function(index){
@@ -711,11 +725,18 @@
 	    },
 	
 	    val: function(val){
-	        return this._prop("value", val);
+	        return arguments.length === 0 ? this._prop('value') : this._prop('value', typeof value === "undefined" ? "" : value);
 	    },
 	
-	    prop: function(prop, val){
-	        return this._prop(prop, val);
+	    prop: function(prop, value){
+	        return arguments.length === 0 ? this._prop(prop) : this._prop(prop, typeof value === "undefined" ? "" : value);
+	    },
+	
+	    id: function(){
+	        if (this.length === 0) {
+	            return ;
+	        }
+	        return this[0].getAttribute("id");
 	    },
 	
 	    push: [].push,
@@ -1515,9 +1536,11 @@
 	                left: rect.left + pageXOffset
 	            }
 	        }
-	        return this.each(function(el){
-	            if (val.top) {el.style.top = val.top + 'px';}
-	            if (val.left) {el.style.left = val.left + 'px';}
+	        return this.each(function(el){ //?
+	            $(el).css({
+	                top: val.top,
+	                left: val.left
+	            })
 	        });
 	    },
 	
@@ -1733,8 +1756,6 @@
 	            return this.parent(s);
 	        }
 	
-	        out = m4q();
-	
 	        this.each(function(el){
 	            while (el) {
 	                el = el.parentElement;
@@ -1743,6 +1764,24 @@
 	                    m4q.merge(out, m4q(el));
 	                    return ;
 	                }
+	            }
+	        });
+	
+	        return out;
+	    },
+	
+	    has: function(selector){
+	        var out = m4q();
+	
+	        if (this.length === 0) {
+	            return ;
+	        }
+	
+	        this.each(function(el){
+	            var $el = m4q(el);
+	            var child = $el.children(selector);
+	            if (child.length > 0) {
+	                m4q.merge(out, $el);
 	            }
 	        });
 	
@@ -2082,6 +2121,7 @@
 	            }
 	
 	            if (p === 1 && typeof cb === "function") {
+	                m4q.proxy(cb, el);
 	                cb.call(el, arguments);
 	            }
 	            if (p < 1) {
@@ -2119,7 +2159,10 @@
 	            $el.origin('display', (el.style.display ? el.style.display : getComputedStyle(el, null)['display']));
 	        }
 	        el.style.display = 'none';
-	        if (typeof cb === "function") cb.call(el, arguments);
+	        if (typeof cb === "function") {
+	            m4q.proxy(cb, el);
+	            cb.call(el, arguments);
+	        }
 	        return this;
 	    },
 	
@@ -2129,7 +2172,10 @@
 	        if (parseInt(el.style.opacity) === 0) {
 	            el.style.opacity = "1";
 	        }
-	        if (typeof cb === "function") cb.call(el, arguments);
+	        if (typeof cb === "function") {
+	            m4q.proxy(cb, el);
+	            cb.call(el, arguments);
+	        }
 	        return this;
 	    },
 	
@@ -2138,7 +2184,11 @@
 	            mode = true;
 	        }
 	        el.style.visibility = mode ? 'visible' : 'hidden';
-	        if (typeof cb === "function") cb.call(el, arguments);
+	        if (typeof cb === "function") {
+	            m4q.proxy(cb, el);
+	            cb.call(el, arguments);
+	        }
+	        return this;
 	    },
 	
 	    toggle: function(el, cb){

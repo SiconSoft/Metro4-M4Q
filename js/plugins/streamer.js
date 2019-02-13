@@ -348,7 +348,9 @@ var Streamer = {
 
         element.on(Metro.events.click, ".stream", function(e){
             var stream = $(this);
-            var index = stream.index();
+            var index = stream.index(".stream");
+
+            console.log(index);
 
             if (o.streamSelect === false) {
                 return;
@@ -400,14 +402,14 @@ var Streamer = {
 
     enableStream: function(stream){
         var element = this.element;
-        var index = stream.index();
+        var index = stream.index(".stream");
         stream.removeClass("disabled").data("streamDisabled", false);
         element.find(".stream-events").eq(index).find(".stream-event").removeClass("disabled");
     },
 
     disableStream: function(stream){
         var element = this.element;
-        var index = stream.index();
+        var index = stream.index(".stream");
         stream.addClass("disabled").data("streamDisabled", true);
         element.find(".stream-events").eq(index).find(".stream-event").addClass("disabled");
     },

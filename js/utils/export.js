@@ -61,7 +61,7 @@ var Export = {
 
             head = table.querySelectorAll("thead")[0];
 
-            for(i = 0; i < head.rows.length; i++) {
+            if (head && head.rows) for(i = 0; i < head.rows.length; i++) {
                 row = head.rows[i];
                 for(j = 0; j < row.cells.length; j++){
                     cell = row.cells[j];

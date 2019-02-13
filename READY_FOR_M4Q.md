@@ -69,7 +69,7 @@
 - [x] Stepper
 - [x] Streamer
 - [x] Switch
-- [ ] Table
+- [x] Table
 - [x] Tabs
 - [x] Tabs Material
 - [x] Tag input

@@ -161,7 +161,7 @@ var Table = {
     _setOptionsFromDOM: function(){
         var element = this.element, o = this.options;
 
-        $.each(element.data(), function(key, value){
+        $.each(element.data(), function(value, key){
             if (key in o) {
                 try {
                     o[key] = JSON.parse(value);
@@ -191,15 +191,16 @@ var Table = {
         if (o.source !== null) {
             Utils.exec(o.onDataLoad, [o.source], element[0]);
 
-            $.get(o.source, function(data){
+            $.json(o.source).then(function(data){
                 if (typeof data !== "object") {
                     throw new Error("Data for table is not a object");
                 }
                 that._build(data);
                 Utils.exec(o.onDataLoaded, [o.source, data], element[0]);
-            }).fail(function( jqXHR, textStatus, errorThrown) {
-                Utils.exec(o.onDataLoadError, [o.source, jqXHR, textStatus, errorThrown], element[0]);
-                console.log(textStatus); console.log(jqXHR); console.log(errorThrown);
+            }, function(xhr){
+                Utils.exec(o.onDataLoadError, [o.source, xhr], element[0]);
+                console.log(xhr.status, xhr.statusText);
+                console.log(xhr);
             });
         } else {
             that._build();
@@ -233,21 +234,21 @@ var Table = {
             }
             this._final();
         } else {
-            $.get(
+
+            $.json(
                 o.viewSavePath,
                 {
                     id: id
-                },
-                function(view){
-                    if (Utils.isValue(view) && Utils.objectLength(view) === Utils.objectLength(that.view)) {
-                        that.view = view;
-                        Utils.exec(o.onViewGet, [view], element[0]);
-                    }
-                    that._final();
                 }
-            ).fail(function(jqXHR, textStatus) {
+            ).then(function(view){
+                if (Utils.isValue(view) && Utils.objectLength(view) === Utils.objectLength(that.view)) {
+                    that.view = view;
+                    Utils.exec(o.onViewGet, [view], element[0]);
+                }
                 that._final();
-                console.log("Warning! View " + textStatus + " for table " + element.attr('id') + " ");
+            }, function(xhr){
+                that._final();
+                console.log("Warning! View " + xhr.statusText + " for table " + element.attr('id') + " ");
             });
         }
     },
@@ -302,7 +303,7 @@ var Table = {
 
         view = {};
 
-        $.each(this.heads, function(i){
+        $.each(this.heads, function(v, i){
 
             if (Utils.isValue(this.cls)) {this.cls = this.cls.replace("hidden", "");}
             if (Utils.isValue(this.clsColumn)) {this.clsColumn = this.clsColumn.replace("hidden", "");}
@@ -330,7 +331,7 @@ var Table = {
             tds[j] = null;
         }
 
-        $.each(cells, function(i){
+        $.each(cells, function(v, i){
             row = $("<tr>");
             row.data('index', i);
             row.data('index-view', i);
@@ -356,6 +357,7 @@ var Table = {
         var inspector, table_wrap, table, tbody, actions;
 
         inspector = $("<div data-role='draggable' data-drag-element='.table-inspector-header' data-drag-area='body'>").addClass("table-inspector");
+        inspector.attr("for", this.element.id());
 
         $("<div class='table-inspector-header'>"+o.inspectorTitle+"</div>").appendTo(inspector);
 
@@ -373,9 +375,10 @@ var Table = {
         $("<button class='button secondary js-table-inspector-reset ml-2 mr-2' type='button'>").html(this.locale.buttons.reset).appendTo(actions);
         $("<button class='button link js-table-inspector-cancel place-right' type='button'>").html(this.locale.buttons.cancel).appendTo(actions);
 
+        inspector.data("open", false);
         this.inspector = inspector;
 
-        component.append(inspector);
+        $("body").append(inspector);
 
         this._createInspectorEvents();
     },
@@ -391,8 +394,8 @@ var Table = {
         var that = this, element = this.element;
         var head = element.find("thead");
 
-        if (head.length > 0) $.each(head.find("tr > *"), function(){
-            var item = $(this);
+        if (head.length > 0) $.each(head.find("tr > *"), function(el){
+            var item = $(el);
             var dir, head_item, item_class;
 
             if (Utils.isValue(item.data('sort-dir'))) {
@@ -438,8 +441,8 @@ var Table = {
         var that = this, element = this.element;
         var foot = element.find("tfoot");
 
-        if (foot.length > 0) $.each(foot.find("tr > *"), function(){
-            var item = $(this);
+        if (foot.length > 0) $.each(foot.find("tr > *"), function(el){
+            var item = $(el);
             var foot_item;
 
             foot_item = {
@@ -457,11 +460,11 @@ var Table = {
         var that = this, element = this.element;
         var body = element.find("tbody");
 
-        if (body.length > 0) $.each(body.find("tr"), function(){
-            var row = $(this);
+        if (body.length > 0) $.each(body.find("tr"), function(_tr){
+            var row = $(_tr);
             var tr = [];
-            $.each(row.children("td"), function(){
-                var td = $(this);
+            $.each(row.children("td"), function(_td){
+                var td = $(_td);
                 tr.push(td.html());
             });
             that.items.push(tr);
@@ -485,11 +488,9 @@ var Table = {
         }
 
         if (source.data !== undefined) {
-            $.each(source.data, function(){
-                var row = this;
+            $.each(source.data, function(row){
                 var tr = [];
-                $.each(row, function(){
-                    var td = this;
+                $.each(row, function(td){
                     tr.push(td);
                 });
                 that.items.push(tr);
@@ -519,8 +520,8 @@ var Table = {
 
         tr = $("<tr>").addClass(o.clsHeadRow).appendTo(head);
 
-        $.each(this.service, function(){
-            var item = this, classes = [];
+        $.each(this.service, function(item){
+            var classes = [];
             th = $("<th>").appendTo(tr);
             if (Utils.isValue(item.title)) {th.html(item.title);}
             if (Utils.isValue(item.size)) {th.css({width: item.size});}
@@ -535,8 +536,7 @@ var Table = {
             tds[j] = null;
         }
 
-        $.each(cells, function(cell_index){
-            var item = this;
+        $.each(cells, function(item, cell_index){
             var classes = [];
 
             th = $("<th>");
@@ -599,8 +599,7 @@ var Table = {
         }
 
         tr = $("<tr>").addClass(o.clsHeadRow).appendTo(foot);
-        $.each(this.foots, function(){
-            var item = this;
+        $.each(this.foots, function(item){
             th = $("<th>").appendTo(tr);
 
             if (item.title !== undefined) {
@@ -644,9 +643,10 @@ var Table = {
         rows_block = Utils.isValue(this.wrapperRows) ? this.wrapperRows : $("<div>").addClass("table-rows-block").addClass(o.clsRowsCount).appendTo(top_block);
 
         rows_select = $("<select>").appendTo(rows_block);
-        $.each(Utils.strToArray(o.rowsSteps), function () {
-            var val = parseInt(this);
-            var option = $("<option>").attr("value", val).text(val === -1 ? o.allRecordsTitle : val).appendTo(rows_select);
+        $.each(Utils.strToArray(o.rowsSteps), function (val) {
+            var option;
+            val = parseInt(val);
+            option = $("<option>").attr("value", val).text(val === -1 ? o.allRecordsTitle : val).appendTo(rows_select);
             if (val === parseInt(o.rows)) {
                 option.attr("selected", "selected");
             }
@@ -738,8 +738,7 @@ var Table = {
         this._createBottomBlock();
 
         var need_sort = false;
-        if (this.heads.length > 0) $.each(this.heads, function(i){
-            var item = this;
+        if (this.heads.length > 0) $.each(this.heads, function(item, i){
             if (!need_sort && ["asc", "desc"].indexOf(item.sortDir) > -1) {
                 need_sort = true;
                 that.sort.colIndex = i;
@@ -757,8 +756,8 @@ var Table = {
         var filter_func;
 
         if (Utils.isValue(o.filters)) {
-            $.each(Utils.strToArray(o.filters), function(){
-                filter_func = Utils.isFunc(this);
+            $.each(Utils.strToArray(o.filters), function(flt){
+                filter_func = Utils.isFunc(flt);
                 if (filter_func !== false) {
                     that.filtersIndexes.push(that.addFilter(filter_func));
                 }
@@ -782,8 +781,9 @@ var Table = {
         var search = component.find(".table-search-block input");
         var customSearch;
         var id = element.attr("id");
+        // var inspector = this.inspector;
 
-        $(window).on(Metro.events.resize+"-"+id, function(){
+        $(window).on(Metro.events.resize+".table-"+id, function(){
             if (o.horizontalScroll === true) {
                 if (!Utils.isNull(o.horizontalScrollStop) && Utils.mediaExist(o.horizontalScrollStop)) {
                     table_container.removeClass("horizontal-scroll");
@@ -791,6 +791,12 @@ var Table = {
                     table_container.addClass("horizontal-scroll");
                 }
             }
+            // if (inspector.data("open")) {
+            //     inspector.css({
+            //         top: ($(window).height() - inspector.outerHeight(true)) / 2,
+            //         left: ($(window).width() - inspector.outerWidth(true)) / 2
+            //     })
+            // }
         });
 
         element.on(Metro.events.click, ".sortable-column", function(){
@@ -804,10 +810,10 @@ var Table = {
 
             var col = $(this);
 
-            that.activity.show(o.activityTimeout, function(){
+            that.activity.show(function(){
                 that.currentPage = 1;
                 that.sort.colIndex = col.data("index");
-                if (!col.has("sort-asc") && !col.hasClass("sort-desc")) {
+                if (!col.hasClass("sort-asc") && !col.hasClass("sort-desc")) {
                     that.sort.dir = o.sortDir;
                 } else {
                     if (col.hasClass("sort-asc")) {
@@ -861,9 +867,9 @@ var Table = {
             var data = [];
 
             if (status) {
-                $.each(that.filteredItems, function(){
-                    if (data.indexOf(this[o.checkColIndex]) !== -1) return ;
-                    data.push(""+this[o.checkColIndex]);
+                $.each(that.filteredItems, function(item){
+                    if (data.indexOf(item[o.checkColIndex]) !== -1) return ;
+                    data.push(""+item[o.checkColIndex]);
                 });
             } else {
                 data = [];
@@ -937,10 +943,6 @@ var Table = {
         }
 
         this._createInspectorEvents();
-
-        element.on(Metro.events.click, ".js-table-crud-button", function(){
-
-        });
     },
 
     _createInspectorEvents: function(){
@@ -967,8 +969,8 @@ var Table = {
             tr.data("index-view", index_view);
             that.view[index]['index-view'] = index_view;
 
-            $.each(tr.nextAll(), function(){
-                var t = $(this);
+            $.each(tr.nextAll(), function(el){
+                var t = $(el);
                 index_view++;
                 t.data("index-view", index_view);
                 that.view[t.data("index")]['index-view'] = index_view;
@@ -996,8 +998,8 @@ var Table = {
             tr.data("index-view", index_view);
             that.view[index]['index-view'] = index_view;
 
-            $.each(tr.prevAll(), function(){
-                var t = $(this);
+            $.each(tr.prevAll(), function(el){
+                var t = $(el);
                 index_view--;
                 t.data("index-view", index_view);
                 that.view[t.data("index")]['index-view'] = index_view;
@@ -1014,22 +1016,22 @@ var Table = {
             var op = ['cls', 'clsColumn'];
 
             if (status) {
-                $.each(op, function(){
+                $.each(op, function(el){
                     var a;
-                    a = Utils.isValue(that.heads[index][this]) ? Utils.strToArray(that.heads[index][this]) : [];
+                    a = Utils.isValue(that.heads[index][el]) ? Utils.strToArray(that.heads[index][el]) : [];
                     Utils.arrayDelete(a, "hidden");
-                    that.heads[index][this] = a.join(" ");
+                    that.heads[index][el] = a.join(" ");
                     that.view[index]['show'] = true;
                 });
             } else {
-                $.each(op, function(){
+                $.each(op, function(el){
                     var a;
 
-                    a = Utils.isValue(that.heads[index][this]) ? Utils.strToArray(that.heads[index][this]) : [];
+                    a = Utils.isValue(that.heads[index][el]) ? Utils.strToArray(that.heads[index][el]) : [];
                     if (a.indexOf("hidden") === -1) {
                         a.push("hidden");
                     }
-                    that.heads[index][this] = a.join(" ");
+                    that.heads[index][el] = a.join(" ");
                     that.view[index]['show'] = false;
                 });
             }
@@ -1082,16 +1084,16 @@ var Table = {
             Metro.storage.setItem(o.viewSavePath.replace("$1", id), view);
             Utils.exec(o.onViewSave, [o.viewSavePath, view], element[0]);
         } else {
+
             $.post(
                 o.viewSavePath,
                 {
                     id : element.attr("id"),
                     view : view
-                },
-                function(data, status, xhr){
-                    Utils.exec(o.onViewSave, [o.viewSavePath, view, data, status, xhr], element[0]);
                 }
-            );
+            ).then(function(data, xhr){
+                Utils.exec(o.onViewSave, [o.viewSavePath, view, data, xhr.status, xhr], element[0]);
+            });
         }
     },
 
@@ -1235,7 +1237,7 @@ var Table = {
                 }
 
                 if (that.searchFields.length > 0) {
-                    $.each(that.heads, function(i, v){
+                    $.each(that.heads, function(v, i){
                         if (that.searchFields.indexOf(v.name) > -1) {
                             row_data += "•"+row[i];
                         }
@@ -1324,12 +1326,12 @@ var Table = {
                     tds[j] = null;
                 }
 
-                $.each(cells, function(cell_index){
+                $.each(cells, function(cell, cell_index){
                     if (o.cellWrapper === true) {
                         td = $("<td>");
-                        $("<div>").addClass("cell-wrapper").addClass(o.clsCellWrapper).html(this).appendTo(td);
+                        $("<div>").addClass("cell-wrapper").addClass(o.clsCellWrapper).html(cell).appendTo(td);
                     } else {
-                        td = $("<td>").html(this);
+                        td = $("<td>").html(cell);
                     }
                     td.addClass(o.clsBodyCell);
                     if (Utils.isValue(that.heads[cell_index].clsColumn)) {
@@ -1345,7 +1347,7 @@ var Table = {
                     }
 
                     tds[view[cell_index]['index-view']] = td;
-                    Utils.exec(o.onDrawCell, [td, this, cell_index, that.heads[cell_index]], td[0]);
+                    Utils.exec(o.onDrawCell, [td, cell, cell_index, that.heads[cell_index]], td[0]);
                 });
 
                 for (j = 0; j < cells.length; j++){
@@ -1579,8 +1581,7 @@ var Table = {
 
             Utils.exec(o.onDataLoad, [o.source], element[0]);
 
-            $.get(o.source, function(data){
-
+            $.json(o.source).then(function(data){
                 that.items = [];
                 that.heads = [];
                 that.foots = [];
@@ -1590,9 +1591,11 @@ var Table = {
                 that._rebuild(review);
 
                 Utils.exec(o.onDataLoaded, [o.source, data], element[0]);
-            }).fail(function( jqXHR, textStatus, errorThrown) {
-                Utils.exec(o.onDataLoadError, [o.source, jqXHR, textStatus, errorThrown], element[0]);
-                console.log(textStatus); console.log(jqXHR); console.log(errorThrown);
+
+            }, function (xhr) {
+                Utils.exec(o.onDataLoadError, [o.source, xhr], element[0]);
+                console.log(xhr.status, xhr.statusText);
+                console.log(xhr);
             });
         }
     },
@@ -1721,9 +1724,9 @@ var Table = {
             return [];
         }
 
-        $.each(this.items, function(){
-            if (stored_keys.indexOf(""+this[o.checkColIndex]) !== -1) {
-                selected.push(this);
+        $.each(this.items, function(item){
+            if (stored_keys.indexOf(""+item[o.checkColIndex]) !== -1) {
+                selected.push(item);
             }
         });
         return selected;
@@ -1750,7 +1753,15 @@ var Table = {
     },
 
     openInspector: function(mode){
-        this.inspector[mode ? "addClass" : "removeClass"]("open");
+        var ins = this.inspector;
+        if (mode) {
+            ins.show().css({
+                top: ($(window).height()  - ins.outerHeight(true)) / 2 + pageYOffset,
+                left: ($(window).width() - ins.outerWidth(true)) / 2 + pageXOffset
+            }).data("open", true);
+        } else {
+            ins.hide().data("open", false);
+        }
     },
 
     closeInspector: function(){
@@ -1758,7 +1769,7 @@ var Table = {
     },
 
     toggleInspector: function(){
-        this.inspector.toggleClass("open");
+        this.openInspector(!this.inspector.data("open"));
     },
 
     resetView: function(){
@@ -1775,7 +1786,7 @@ var Table = {
 
     export: function(to, mode, filename, options){
         var that = this, o = this.options;
-        var table = document.createElement("table");
+        var table = $("<table>");
         var head = $("<thead>").appendTo(table);
         var body = $("<tbody>").appendTo(table);
         var i, j, cells, tds = [], items, tr, td;
@@ -1796,8 +1807,7 @@ var Table = {
             tds[j] = null;
         }
 
-        $.each(cells, function(cell_index){
-            var item = this;
+        $.each(cells, function(item, cell_index){
             if (Utils.bool(that.view[cell_index]['show']) === false) {
                 return ;
             }
@@ -1839,11 +1849,11 @@ var Table = {
                     tds[j] = null;
                 }
 
-                $.each(cells, function(cell_index){
+                $.each(cells, function(cell, cell_index){
                     if (Utils.bool(that.view[cell_index].show) === false) {
                         return ;
                     }
-                    td = $("<td>").html(this);
+                    td = $("<td>").html(cell);
                     tds[that.view[cell_index]['index-view']] = td;
                 });
 
