@@ -2635,7 +2635,7 @@ var isTouch = (('ontouchstart' in window) || (navigator.MaxTouchPoints > 0) || (
 var Metro = {
 
     version: "4.3.0",
-    versionFull: "4.3.0 beta 1 14/02/2019 21:54:19",
+    versionFull: "4.3.0 beta 1 14/02/2019 22:03:27",
     build: "1",
     isTouchable: isTouch,
     fullScreenEnabled: document.fullscreenEnabled,
@@ -4494,9 +4494,8 @@ Hotkey.init();
 
 m4q.fn.hotkey = function(key, fn){
     return this.each(function(el){
-        $(el).on(Metro.events.keyup+".hotkey-method", function(e){
+        $(el).on(Metro.events.keyup+".hotkey-method-"+key, function(e){
             var _key = Hotkey.getKey(e);
-            console.log(key, _key);
             if (key === _key) Utils.exec(fn, [e, _key, key], el);
         })
     })

@@ -75,9 +75,8 @@ Hotkey.init();
 
 m4q.fn.hotkey = function(key, fn){
     return this.each(function(el){
-        $(el).on(Metro.events.keyup+".hotkey-method", function(e){
+        $(el).on(Metro.events.keyup+".hotkey-method-"+key, function(e){
             var _key = Hotkey.getKey(e);
-            console.log(key, _key);
             if (key === _key) Utils.exec(fn, [e, _key, key], el);
         })
     })
