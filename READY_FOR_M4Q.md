@@ -7,18 +7,19 @@
 - [x] Animation
 - [x] Colors
 - [x] Easing
-- [x] Export ?
+- [x] Export
 - [x] Extensions
 - [x] i18n
 - [x] md5
 - [x] Storage
 - [x] Tpl
 - [x] Utilities
+- [x] Hotkeys
 
 ### Plugins
 - [x] Accordion
 - [x] Activity
-- [x] App-bar (no dropdown)
+- [x] App-bar
 - [x] Audio
 - [x] Bottom sheets
 - [x] Bottom group
@@ -83,6 +84,3 @@
 - [x] Video
 - [x] Window
 - [x] Wizard
-
-### Unsupported
-- [ ] Hot keys

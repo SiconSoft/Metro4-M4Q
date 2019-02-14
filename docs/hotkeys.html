@@ -159,27 +159,15 @@
                 <p>
                     For custom hotkeys you can use next supported event types: <code>keydown</code>, <code>keyup</code> and <code>keypress</code>. To create own event:
                 </p>
-                <pre><code class="javascript">
-                    <!-- bind, unbind -->
-                    $(expression).bind(types, keys, handler);
-                    $(expression).unbind(types, handler);
-
-                    $(document).bind('keydown', 'ctrl+a', fn);
-
-                    // e.g. replace '$' sign with 'EUR'
-                    $('input.foo').bind('keyup', '$', function(){
-                      this.value = this.value.replace('$', 'EUR');
-                    });
-                </code></pre>
+                <div class="example">
+                    <input type="text" data-role="input" id="hotKeyInput">
+                </div>
                 <pre><code class="javascript">
                     <!-- on, off -->
-                    $(expression).on(types, null, keys, handler);
-                    $(expression).off(types, handler);
-
-                    $(document).on('keydown', null, 'ctrl+a', fn);
+                    &lt;input type="text" data-role="input" id="hotKeyInput"&gt;
 
                     // e.g. replace '$' sign with 'EUR'
-                    $('input.foo').on('keyup', null, '$', function(){
+                    $('#hotKeyInput').hotkey('shift+4', function(){
                       this.value = this.value.replace('$', 'EUR');
                     });
                 </code></pre>
@@ -196,5 +184,10 @@
     <!-- ads-script -->
     <!-- ga-script -->
     <!-- hit-ua -->
+    <script>
+        $("#hotKeyInput").hotkey("shift+4", function(e){
+            this.value = this.value.replace("$", "EUR");
+        })
+    </script>
 </body>
 </html>

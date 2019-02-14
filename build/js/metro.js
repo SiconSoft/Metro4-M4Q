@@ -2590,10 +2590,12 @@ if (window.METRO_CLOAK_REMOVE === undefined) {
 if (window.METRO_CLOAK_DURATION === undefined) {
     window.METRO_CLOAK_DURATION = meta_cloak_duration !== undefined ? parseInt(meta_cloak_duration) : 500;
 }
+
 if (window.METRO_HOTKEYS_FILTER_CONTENT_EDITABLE === undefined) {window.METRO_HOTKEYS_FILTER_CONTENT_EDITABLE = true;}
 if (window.METRO_HOTKEYS_FILTER_INPUT_ACCEPTING_ELEMENTS === undefined) {window.METRO_HOTKEYS_FILTER_INPUT_ACCEPTING_ELEMENTS = true;}
 if (window.METRO_HOTKEYS_FILTER_TEXT_INPUTS === undefined) {window.METRO_HOTKEYS_FILTER_TEXT_INPUTS = true;}
 if (window.METRO_HOTKEYS_BUBBLE_UP === undefined) {window.METRO_HOTKEYS_BUBBLE_UP = false;}
+
 if (window.METRO_THROWS === undefined) {window.METRO_THROWS = true;}
 
 if (meta_m4q_global && JSON.parse(meta_m4q_global) === true) {
@@ -2633,7 +2635,7 @@ var isTouch = (('ontouchstart' in window) || (navigator.MaxTouchPoints > 0) || (
 var Metro = {
 
     version: "4.3.0",
-    versionFull: "4.3.0 alpha 13/02/2019 16:38:00",
+    versionFull: "4.3.0 alpha 14/02/2019 21:39:26",
     build: "1",
     isTouchable: isTouch,
     fullScreenEnabled: document.fullscreenEnabled,
@@ -2717,7 +2719,7 @@ var Metro = {
         resize: 'resize',
         keyup: 'keyup',
         keydown: 'keydown',
-        keypress: 'keypredd',
+        keypress: 'keypress',
         dblclick: 'dblclick',
         input: 'input',
         change: 'change',
@@ -2799,7 +2801,7 @@ var Metro = {
         HIDE: 2
     },
 
-    hotkeys: [],
+    hotkeys: {},
 
     about: function(f){
         console.log("Metro 4 - v" + this.ver(f));
@@ -2843,7 +2845,7 @@ var observer, observerCallback;
                 } else
 
                 if (mutation.type === 'childList' && mutation.addedNodes.length > 0) {
-                    var i, obj, widgets = {}, plugins = {};
+                    var i, obj, widgets = {}, plugins = {}, hotkeys = {};
                     var nodes = mutation.addedNodes;
 
                     for(i = 0; i < nodes.length; i++) {
@@ -2861,6 +2863,7 @@ var observer, observerCallback;
                         obj = $(node);
 
                         plugins = obj.find("[data-role]");
+                        hotkeys = obj.find("[data-hotkey]");
 
                         if (obj.attr('data-role') !== undefined) {
                             widgets = $.merge(plugins, obj);
@@ -2868,9 +2871,12 @@ var observer, observerCallback;
                             widgets = plugins;
                         }
 
-                        if (widgets.length) {
-                            Metro.initWidgets(widgets);
+                        if (obj.attr('data-hotkey') !== undefined) {
+                            hotkeys = $.merge(hotkeys, obj);
                         }
+
+                        if (widgets.length) {Metro.initWidgets(widgets);}
+                        if (hotkeys.length) {Metro.initHotkeys(hotkeys);}
                     }
 
                 } else  {
@@ -2922,9 +2928,10 @@ var observer, observerCallback;
     },
 
     initHotkeys: function(hotkeys){
-        $.each(hotkeys, function(){
-            var element = $(this);
+        $.each(hotkeys, function(el){
+            var element = $(el);
             var hotkey = element.data('hotkey') ? element.data('hotkey').toLowerCase() : false;
+            var fn = element.data('hotkey-func') ? element.data('hotkey-func') : false;
 
             if (hotkey === false) {
                 return;
@@ -2934,21 +2941,7 @@ var observer, observerCallback;
                 return;
             }
 
-            Metro.hotkeys.push(hotkey);
-
-            $(document).on(Metro.events.keyup, null, hotkey, function(e){
-                if (element === undefined) return;
-
-                if (element[0].tagName === 'A' &&
-                    element.attr('href') !== undefined &&
-                    element.attr('href').trim() !== '' &&
-                    element.attr('href').trim() !== '#') {
-                    document.location.href = element.attr('href');
-                } else {
-                    element.click();
-                }
-                return METRO_HOTKEYS_BUBBLE_UP;
-            });
+            Metro.hotkeys[hotkey] = [el, fn];
 
             element.data('hotKeyBonded', true);
         });
@@ -4422,6 +4415,92 @@ var Export = {
 
 Metro['export'] = Export.init();
 
+
+// Source: js/utils/hotkey.js
+var Hotkey = {
+    specialKeys: {
+        8: "backspace", 9: "tab", 13: "return", 16: "shift", 17: "ctrl", 18: "alt", 19: "pause",
+        20: "capslock", 27: "esc", 32: "space", 33: "pageup", 34: "pagedown", 35: "end", 36: "home",
+        37: "left", 38: "up", 39: "right", 40: "down", 45: "insert", 46: "del",
+        96: "0", 97: "1", 98: "2", 99: "3", 100: "4", 101: "5", 102: "6", 103: "7",
+        104: "8", 105: "9", 106: "*", 107: "+", 109: "-", 110: ".", 111 : "/",
+        112: "f1", 113: "f2", 114: "f3", 115: "f4", 116: "f5", 117: "f6", 118: "f7", 119: "f8",
+        120: "f9", 121: "f10", 122: "f11", 123: "f12", 144: "numlock", 145: "scroll", 188: ",", 190: ".",
+        191: "/", 224: "meta" },
+
+    shiftNums: {
+        "~":"`", "!":"1", "@":"2", "#":"3", "$":"4", "%":"5", "^":"6", "&":"7",
+        "*":"8", "(":"9", ")":"0", "_":"-", "+":"=", ":":";", "\"":"'", "<":",",
+        ">":".",  "?":"/",   "|":"\\"
+    },
+
+    shiftNumsInverse: {
+        "`": "~", "1": "!", "2": "@", "3": "#", "4": "$", "5": "%", "6": "^", "7": "&",
+        "8": "*", "9": "(", "0": ")", "-": "_", "=": "+", ";": ": ", "'": "\"", ",": "<",
+        ".": ">",  "/": "?",  "\\": "|"
+    },
+
+    textAcceptingInputTypes: [
+        "text", "password", "number", "email", "url", "range", "date", "month", "week", "time", "datetime",
+        "datetime-local", "search", "color", "tel"
+    ],
+
+    getKey: function(e){
+        var key, k = e.keyCode, char = String.fromCharCode( k ).toLowerCase();
+        if( e.shiftKey ){
+            key = Hotkey.shiftNums[ char ] ? Hotkey.shiftNums[ char ] : char;
+        }
+        else {
+            key = Hotkey.specialKeys[ k ] === undefined
+                ? char
+                : Hotkey.specialKeys[ k ];
+        }
+
+        return Hotkey.getModifier(e).length ? Hotkey.getModifier(e).join("+") + "+" + key : key;
+    },
+
+    getModifier: function(e){
+        var m = [];
+        if (e.altKey) {m.push("alt");}
+        if (e.ctrlKey) {m.push("ctrl");}
+        if (e.shiftKey) {m.push("shift");}
+        return m;
+    },
+
+    init: function(){
+        $(document).on(Metro.events.keyup + ".hotkey-data", function(e){
+            var el, fn, key = Hotkey.getKey(e);
+
+            if (
+                (METRO_HOTKEYS_FILTER_INPUT_ACCEPTING_ELEMENTS && /textarea|input|select/i.test(e.target.nodeName)) ||
+                (METRO_HOTKEYS_FILTER_CONTENT_EDITABLE && $(e.target).attr('contenteditable')) ||
+                (METRO_HOTKEYS_FILTER_TEXT_INPUTS && Hotkey.textAcceptingInputTypes.indexOf(e.target.type) > -1)
+            )
+            {
+                return;
+            }
+
+            if (Utils.keyInObject(Metro.hotkeys, key)) {
+                el = Metro.hotkeys[key][0];
+                fn = Metro.hotkeys[key][1];
+
+                fn === false ? $(el).click() : Utils.exec(fn);
+            }
+        });
+    }
+};
+
+Hotkey.init();
+
+m4q.fn.hotkey = function(key, fn){
+    return this.each(function(el){
+        $(el).on(Metro.events.keyup+".hotkey-method", function(e){
+            var _key = Hotkey.getKey(e);
+            console.log(key, _key);
+            if (key === _key) Utils.exec(fn, [e, _key, key], el);
+        })
+    })
+};
 
 // Source: js/utils/i18n.js
 var Locales = {
@@ -6048,8 +6127,8 @@ var d = new Date().getTime();
         return Object.values(obj).indexOf(value) > -1;
     },
 
-    keyInObject: function(obj){
-        return Object.keys(obj).indexOf(value) > -1;
+    keyInObject: function(obj, key){
+        return Object.keys(obj).indexOf(key) > -1;
     },
 
     inObject: function(obj, key, val){
