@@ -2635,7 +2635,7 @@ var isTouch = (('ontouchstart' in window) || (navigator.MaxTouchPoints > 0) || (
 var Metro = {
 
     version: "4.3.0",
-    versionFull: "4.3.0 beta 1 14/02/2019 22:03:27",
+    versionFull: "4.3.0 beta 1 15/02/2019 20:07:47",
     build: "1",
     isTouchable: isTouch,
     fullScreenEnabled: document.fullscreenEnabled,
@@ -21740,11 +21740,12 @@ var Table = {
                 return result;
             });
 
-            Utils.exec(o.onSearch, [that.searchString, items], element[0])
         } else {
             items = this.items;
         }
 
+        Utils.exec(o.onSearch, [that.searchString, items], element[0]);
+        
         this.filteredItems = items;
 
         return items;

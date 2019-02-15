@@ -1260,11 +1260,12 @@ var Table = {
                 return result;
             });
 
-            Utils.exec(o.onSearch, [that.searchString, items], element[0])
         } else {
             items = this.items;
         }
 
+        Utils.exec(o.onSearch, [that.searchString, items], element[0]);
+        
         this.filteredItems = items;
 
         return items;
