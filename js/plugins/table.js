@@ -1265,7 +1265,7 @@ var Table = {
         }
 
         Utils.exec(o.onSearch, [that.searchString, items], element[0]);
-        
+
         this.filteredItems = items;
 
         return items;

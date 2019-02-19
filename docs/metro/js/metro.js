@@ -547,7 +547,7 @@ function not(value){
 	    }
 	}(window));
 
-	var m4qVersion = "0.1.0 alpha 13/02/2019 16:37:16";
+	var m4qVersion = "0.1.0 alpha 19/02/2019 15:54:16";
 	var regexpSingleTag = /^<([a-z][^\/\0>:\x20\t\r\n\f]*)[\x20\t\r\n\f]*\/?>(?:<\/\1>|)$/i;
 	
 	var matches = Element.prototype.matches
@@ -1055,10 +1055,31 @@ function not(value){
 	
 	
 
+	(function () {
+	    if ( typeof window.CustomEvent === "function" ) return false;
+	
+	    function CustomEvent ( event, params ) {
+	        params = params || { bubbles: false, cancelable: false, detail: null };
+	        var evt = document.createEvent( 'CustomEvent' );
+	        evt.initCustomEvent( event, params.bubbles, params.cancelable, params.detail );
+	        return evt;
+	    }
+	
+	    CustomEvent.prototype = window.Event.prototype;
+	
+	    window.CustomEvent = CustomEvent;
+	})();
+	
 	var overriddenStop =  Event.prototype.stopPropagation;
+	var overriddenPrevent =  Event.prototype.preventDefault;
+	
 	Event.prototype.stopPropagation = function(){
 	    this.isPropagationStopped = true;
 	    overriddenStop.apply(this, arguments);
+	};
+	Event.prototype.preventDefault = function(){
+	    this.isPreventedDefault = true;
+	    overriddenPrevent.apply(this, arguments);
 	};
 	
 	Event.prototype.stop = function(immediate){
@@ -2635,7 +2656,7 @@ var isTouch = (('ontouchstart' in window) || (navigator.MaxTouchPoints > 0) || (
 var Metro = {
 
     version: "4.3.0",
-    versionFull: "4.3.0 beta 1 15/02/2019 20:07:47",
+    versionFull: "4.3.0 beta 1 19/02/2019 15:55:27",
     build: "1",
     isTouchable: isTouch,
     fullScreenEnabled: document.fullscreenEnabled,
@@ -21745,7 +21766,7 @@ var Table = {
         }
 
         Utils.exec(o.onSearch, [that.searchString, items], element[0]);
-        
+
         this.filteredItems = items;
 
         return items;
