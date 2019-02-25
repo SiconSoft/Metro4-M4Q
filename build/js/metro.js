@@ -2656,7 +2656,7 @@ var isTouch = (('ontouchstart' in window) || (navigator.MaxTouchPoints > 0) || (
 var Metro = {
 
     version: "4.3.0",
-    versionFull: "4.3.0 beta 1 25/02/2019 09:16:34",
+    versionFull: "4.3.0 beta 1 25/02/2019 15:40:06",
     build: "1",
     isTouchable: isTouch,
     fullScreenEnabled: document.fullscreenEnabled,
@@ -6384,8 +6384,6 @@ var Accordion = {
         this._setOptionsFromDOM();
         this._create();
 
-        Utils.exec(this.options.onAccordionCreate, [this.element]);
-
         return this;
     },
     options: {
@@ -6419,6 +6417,18 @@ var Accordion = {
 
     _create: function(){
         var element = this.element, o = this.options;
+
+        this._createStructure();
+        this._createEvents();
+
+        Utils.exec(o.onAccordionCreate, [element], element[0]);
+        element.trigger("accordioncreate", {
+            detail: element
+        });
+    },
+
+    _createStructure: function(){
+        var element = this.element, o = this.options;
         var frames = element.children(".frame");
         var active = element.children(".frame.active");
         var frame_to_open;
@@ -6445,8 +6455,6 @@ var Accordion = {
         if (o.showActive === true || o.oneFrame === true) {
             this._openFrame(frame_to_open);
         }
-
-        this._createEvents();
     },
 
     _createEvents: function(){
@@ -6491,6 +6499,9 @@ var Accordion = {
         frame.children(".content").addClass(o.activeContentClass).slideDown(o.duration);
 
         Utils.exec(o.onFrameOpen, [frame], element[0]);
+        element.trigger("frameopen", {
+            detail: frame
+        })
     },
 
     _closeFrame: function(f){
@@ -6510,6 +6521,9 @@ var Accordion = {
         frame.children(".content").removeClass(o.activeContentClass).slideUp(o.duration);
 
         Utils.callback(o.onFrameClose, [frame], element[0]);
+        element.trigger("frameclose", {
+            detail: frame
+        });
     },
 
     _closeAll: function(skip){
@@ -26442,6 +26456,12 @@ var Video = {
 Metro.plugin('video', Video);
 
 // Source: js/plugins/window.js
+var WindowStates = {
+    NORMAL: 0,
+    MAX: 1,
+    MIN: 2
+};
+
 var Window = {
     init: function( options, elem ) {
         this.options = $.extend( {}, this.options, options );
@@ -26454,6 +26474,7 @@ var Window = {
             left: 0
         };
         this.hidden = false;
+        this.state = WindowStates.NORMAL;
 
         this._setOptionsFromDOM();
         this._create();
@@ -26809,7 +26830,7 @@ var Window = {
     maximized: function(e){
         var win = this.win,  o = this.options;
         var target = $(e.currentTarget);
-        win.toggleClass("maximized");
+        win.removeClass("minimized").toggleClass("maximized");
         if (target.hasClass("window-caption")) {
             Utils.exec(o.onCaptionDblClick, [win]);
         } else {
@@ -26819,7 +26840,7 @@ var Window = {
 
     minimized: function(){
         var win = this.win,  element = this.element, o = this.options;
-        win.toggleClass("minimized");
+        win.removeClass("maximized").toggleClass("minimized");
         Utils.exec(o.onMinClick, [win], element[0]);
     },
 

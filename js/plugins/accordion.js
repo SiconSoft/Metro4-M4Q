@@ -7,8 +7,6 @@ var Accordion = {
         this._setOptionsFromDOM();
         this._create();
 
-        Utils.exec(this.options.onAccordionCreate, [this.element]);
-
         return this;
     },
     options: {
@@ -42,6 +40,18 @@ var Accordion = {
 
     _create: function(){
         var element = this.element, o = this.options;
+
+        this._createStructure();
+        this._createEvents();
+
+        Utils.exec(o.onAccordionCreate, [element], element[0]);
+        element.trigger("accordioncreate", {
+            detail: element
+        });
+    },
+
+    _createStructure: function(){
+        var element = this.element, o = this.options;
         var frames = element.children(".frame");
         var active = element.children(".frame.active");
         var frame_to_open;
@@ -68,8 +78,6 @@ var Accordion = {
         if (o.showActive === true || o.oneFrame === true) {
             this._openFrame(frame_to_open);
         }
-
-        this._createEvents();
     },
 
     _createEvents: function(){
@@ -114,6 +122,9 @@ var Accordion = {
         frame.children(".content").addClass(o.activeContentClass).slideDown(o.duration);
 
         Utils.exec(o.onFrameOpen, [frame], element[0]);
+        element.trigger("frameopen", {
+            detail: frame
+        })
     },
 
     _closeFrame: function(f){
@@ -133,6 +144,9 @@ var Accordion = {
         frame.children(".content").removeClass(o.activeContentClass).slideUp(o.duration);
 
         Utils.callback(o.onFrameClose, [frame], element[0]);
+        element.trigger("frameclose", {
+            detail: frame
+        });
     },
 
     _closeAll: function(skip){

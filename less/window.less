@@ -222,22 +222,6 @@
 }
 
 .window {
-    &.minimized {
-        max-width: 12rem;
-        max-height: 2.25rem;
-
-        .window-caption {
-            border-bottom: none!important;
-        }
-
-        .window-content {
-            display: none!important;
-        }
-
-        .window-caption .btn-custom {
-            display: none;
-        }
-    }
 
     &.maximized {
         top: 0!important;
@@ -265,6 +249,25 @@
                 top: 8px;
                 z-index: 1;
             }
+        }
+    }
+
+    &.minimized {
+        max-width: 12rem!important;
+        max-height: 2.25rem!important;
+        overflow: hidden!important;
+        height: 2.25rem!important;
+
+        .window-caption {
+            border-bottom: none!important;
+        }
+
+        .window-content {
+            display: none!important;
+        }
+
+        .window-caption .btn-custom {
+            display: none;
         }
     }
 

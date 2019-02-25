@@ -1,3 +1,9 @@
+var WindowStates = {
+    NORMAL: 0,
+    MAX: 1,
+    MIN: 2
+};
+
 var Window = {
     init: function( options, elem ) {
         this.options = $.extend( {}, this.options, options );
@@ -10,6 +16,7 @@ var Window = {
             left: 0
         };
         this.hidden = false;
+        this.state = WindowStates.NORMAL;
 
         this._setOptionsFromDOM();
         this._create();
@@ -365,7 +372,7 @@ var Window = {
     maximized: function(e){
         var win = this.win,  o = this.options;
         var target = $(e.currentTarget);
-        win.toggleClass("maximized");
+        win.removeClass("minimized").toggleClass("maximized");
         if (target.hasClass("window-caption")) {
             Utils.exec(o.onCaptionDblClick, [win]);
         } else {
@@ -375,7 +382,7 @@ var Window = {
 
     minimized: function(){
         var win = this.win,  element = this.element, o = this.options;
-        win.toggleClass("minimized");
+        win.removeClass("maximized").toggleClass("minimized");
         Utils.exec(o.onMinClick, [win], element[0]);
     },
 
