@@ -45,8 +45,10 @@ var Accordion = {
         this._createEvents();
 
         Utils.exec(o.onAccordionCreate, [element], element[0]);
-        element.trigger("accordioncreate", {
-            detail: element
+        setImmediate(function(){
+            element.trigger("accordioncreate", {
+                detail: element
+            });
         });
     },
 

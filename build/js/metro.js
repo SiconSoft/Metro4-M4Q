@@ -2656,7 +2656,7 @@ var isTouch = (('ontouchstart' in window) || (navigator.MaxTouchPoints > 0) || (
 var Metro = {
 
     version: "4.3.0",
-    versionFull: "4.3.0 beta 1 25/02/2019 15:40:06",
+    versionFull: "4.3.0 beta 1 27/02/2019 21:26:01",
     build: "1",
     isTouchable: isTouch,
     fullScreenEnabled: document.fullscreenEnabled,
@@ -6422,8 +6422,10 @@ var Accordion = {
         this._createEvents();
 
         Utils.exec(o.onAccordionCreate, [element], element[0]);
-        element.trigger("accordioncreate", {
-            detail: element
+        setImmediate(function(){
+            element.trigger("accordioncreate", {
+                detail: element
+            });
         });
     },
 

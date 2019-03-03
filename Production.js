@@ -50,7 +50,9 @@ module.exports = function(grunt) {
                     footer: "\n\nreturn METRO_INIT === true ? Metro.init() : Metro;\n\n});",
                     stripBanners: true,
                     process: function(src, filepath) {
+                        // return '\n// Source: ' + filepath + '\n\n' + src;
                         return '\n// Source: ' + filepath + '\n' + src.replace(/(^|\n)[ \t]*('use strict'|"use strict");?\s*/g, '$1');
+                        // return '\n// Source: ' + filepath + '\n' + src.replace(/(^|\n)[ \t]*();?\s*/g, '$1');
                     }
                 },
                 src: [
@@ -73,6 +75,19 @@ module.exports = function(grunt) {
                     'build/css/metro-icons.css'
                 ],
                 dest: 'build/css/metro-all.css'
+            }
+        },
+
+        uglify: {
+            options: {
+                banner: '<%= copyright %>',
+                stripBanners: false,
+                sourceMap: true,
+                preserveComments: false
+            },
+            core: {
+                src: 'build/js/metro.js',
+                dest: 'build/js/metro.min.js'
             }
         },
 
@@ -140,6 +155,30 @@ module.exports = function(grunt) {
             }
         },
 
+        cssmin: {
+            src: {
+                expand: true,
+                cwd: "build/css",
+                src: ['*.css', '!*.min.css'],
+                dest: "build/css",
+                ext: ".min.css"
+            },
+            schemes: {
+                expand: true,
+                cwd: "build/css/schemes",
+                src: ['*.css', '!*.min.css'],
+                dest: "build/css/schemes",
+                ext: ".min.css"
+            },
+            third: {
+                expand: true,
+                cwd: "build/css/third-party",
+                src: ['*.css', '!*.min.css'],
+                dest: "build/css/third-party",
+                ext: ".min.css"
+            }
+        },
+
         copy: {
             fonts: {
                 expand: true,
@@ -200,12 +239,12 @@ module.exports = function(grunt) {
         watch: {
             scripts: {
                 files: ['js/m4q/*.js', 'js/i18n/*.json', 'js/*.js', 'js/utils/*.js', 'js/plugins/*.js', 'less/*.less', 'less/include/*.less', 'less/third-party/*.less', 'less/schemes/*.less', 'less/schemes/builder/*.less', 'Gruntfile.js'],
-                tasks: ['clean',  'less', 'postcss', 'concat', 'copy', 'replace']
+                tasks: ['clean',  'less', 'postcss', 'concat', 'uglify', 'cssmin', 'copy', 'replace']
             }
         }
     });
 
-    tasks = ['clean', 'less', 'postcss', 'concat', 'copy', 'replace'];
+    tasks = ['clean', 'less', 'postcss', 'concat', 'uglify', 'cssmin', 'copy', 'replace'];
 
     if (watching) {
         tasks.push('watch');
